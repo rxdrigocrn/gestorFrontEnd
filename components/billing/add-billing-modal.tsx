@@ -13,7 +13,7 @@ interface AddBillingModalProps {
 }
 
 export function AddBillingModal({ open, onOpenChange }: AddBillingModalProps) {
-  // Sample data - would come from API
+
   const messages = [
     { id: '1', name: 'Lembrete de Pagamento' },
     { id: '2', name: 'Boas-vindas' }

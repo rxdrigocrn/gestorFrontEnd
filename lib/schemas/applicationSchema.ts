@@ -1,0 +1,8 @@
+import { z } from 'zod'
+
+export const applicationSchema = z.object({
+    name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+    isDefault: z.boolean()
+})
+
+export type ApplicationValues = z.infer<typeof applicationSchema>

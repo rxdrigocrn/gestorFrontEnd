@@ -1,4 +1,3 @@
-// This would come from your API/database
 const clientData = {
   id: "CL001",
   name: "Daniel Da Cruz Santana",
@@ -30,8 +29,6 @@ const clientData = {
 
 // Define all possible client IDs for static generation
 export function generateStaticParams() {
-  // In a real application, this would fetch from your database
-  // For now, we'll include both the example client and the required CL003
   return [
     { id: 'CL001' },
     { id: 'CL003' }

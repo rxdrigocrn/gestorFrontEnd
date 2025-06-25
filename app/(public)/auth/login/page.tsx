@@ -29,12 +29,16 @@ const LoginPage = () => {
         setSuccess(false)
 
         try {
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/login`, data, {
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, data, {
                 withCredentials: true,
             })
 
-            if (response.status === 200) {
+            if (response.status === 201) {
                 setSuccess(true)
+                const token = response.data.accessToken
+
+
+                sessionStorage.setItem('token', token)
                 window.location.href = '/dashboard'
             } else {
                 setServerErrors('Falha no login')

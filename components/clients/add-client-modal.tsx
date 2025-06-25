@@ -1,6 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { clientFormSchema, ClientFormValues } from '@/lib/schemas/clientFormSchema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,348 +21,527 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { usePlanStore } from '@/store/planStore'
+import { useDeviceStore } from '@/store/deviceStore'
+import { useApplicationStore } from '@/store/applicationStore'
+import { usePaymentMethodStore } from '@/store/paymentMethodStore'
+import { useLeadSourceStore } from '@/store/leadStore'
+import { useServerStore } from '@/store/serverStore'
 
 interface AddClientModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onConfirm: (data: ClientFormValues) => void
 }
 
-export function AddClientModal({ open, onOpenChange }: AddClientModalProps) {
-  const [date, setDate] = useState<Date>()
-  const [appDate, setAppDate] = useState<Date>()
+export function AddClientModal({ open, onOpenChange, onConfirm }: AddClientModalProps) {
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useForm<ClientFormValues>({
+    resolver: zodResolver(clientFormSchema),
+    defaultValues: {
+      addPayment: "yes",
+      sendMessage: "yes",
+    },
+  })
 
-  // Sample data - would come from API in production
-  const servers = [
-    { id: '1', name: 'Server 1' },
-    { id: '2', name: 'Server 2' },
-  ]
+  const { items: plans, fetchItems: fetchPlans } = usePlanStore()
+  const { items: paymentMethods, fetchItems: fetchPaymentMethods } = usePaymentMethodStore()
+  const { items: devices, fetchItems: fetchDevices } = useDeviceStore()
+  const { items: applications, fetchItems: fetchApplications } = useApplicationStore()
+  const { items: leadSources, fetchItems: fetchLeadSources } = useLeadSourceStore()
+  const { items: servers, fetchItems: fetchServers } = useServerStore()
 
-  const plans = [
-    { id: '1', name: 'Basic Plan' },
-    { id: '2', name: 'Premium Plan' },
-  ]
+  useEffect(() => {
+    fetchPlans()
+    fetchPaymentMethods()
+    fetchDevices()
+    fetchApplications()
+    fetchLeadSources()
+    fetchServers()
+  }, [])
 
-  const paymentMethods = [
-    { id: '1', name: 'PIX' },
-    { id: '2', name: 'Credit Card' },
-  ]
 
-  const devices = [
-    { id: '1', name: 'Android Box' },
-    { id: '2', name: 'Smart TV' },
-  ]
+  const onSubmit = (data: ClientFormValues) => {
+    const backendData = {
+      ...data,
+      expiresAt: data.dueDate ? `${format(data.dueDate, 'yyyy-MM-dd')}T${data.dueTime || '00:00:00'}.000Z` : undefined,
+    }
 
-  const apps = [
-    { id: '1', name: 'IPTV App' },
-    { id: '2', name: 'VOD App' },
-  ]
+    const { dueDate, dueTime, ...rest } = backendData
 
-  const sources = [
-    { id: '1', name: 'Facebook' },
-    { id: '2', name: 'Instagram' },
-  ]
+    onConfirm({
+      ...rest,
+      expiresAt: backendData.expiresAt
+    })
+  }
 
   return (
-    <Modal 
-      open={open} 
-      onOpenChange={onOpenChange} 
-      title="Add New Client"
-      maxWidth="3xl"
-    >
-      <Tabs defaultValue="personal" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="personal">Personal Data</TabsTrigger>
-          <TabsTrigger value="payment">Payment</TabsTrigger>
-          <TabsTrigger value="info">Additional Info</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="personal" className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" placeholder="Full name" />
+    <Modal open={open} onOpenChange={onOpenChange} title="Adicionar Novo Cliente" maxWidth="3xl">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Tabs defaultValue="personal" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="personal">Dados Pessoais</TabsTrigger>
+            <TabsTrigger value="payment">Pagamento</TabsTrigger>
+            <TabsTrigger value="info">Informações Adicionais</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="personal" className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome</Label>
+                <Input
+                  id="name"
+                  placeholder="Nome completo"
+                  {...register('name')}
+                />
+                {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  placeholder="Username"
+                  {...register('username')}
+                />
+                {errors.username && <p className="text-sm text-red-500">{errors.username.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Senha"
+                  {...register('password')}
+                />
+                {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Email"
+                  {...register('email')}
+                />
+                {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefone Principal</Label>
+                <Input
+                  id="phone"
+                  placeholder="+55 (85) 9987654321"
+                  {...register('phone')}
+                />
+                {errors.phone && <p className="text-sm text-red-500">{errors.phone.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone2">Telefone Secundário</Label>
+                <Input
+                  id="phone2"
+                  placeholder="+55 (85) 99876543210"
+                  {...register('phone2')}
+                />
+                {errors.phone2 && <p className="text-sm text-red-500">{errors.phone2.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Data de Vencimento</Label>
+                <Controller
+                  name="dueDate"
+                  control={control}
+                  render={({ field }) => (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {field.value ? format(field.value, "PPP") : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                />
+                {errors.dueDate && <p className="text-sm text-red-500">{errors.dueDate.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="dueTime">Hora de Vencimento</Label>
+                <Input
+                  id="dueTime"
+                  type="time"
+                  {...register('dueTime')}
+                />
+                {errors.dueTime && <p className="text-sm text-red-500">{errors.dueTime.message}</p>}
+              </div>
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input id="username" placeholder="Username" />
+              <Label htmlFor="notes">Notas</Label>
+              <Textarea
+                id="notes"
+                placeholder="Notas adicionais..."
+                {...register('notes')}
+              />
+              {errors.notes && <p className="text-sm text-red-500">{errors.notes.message}</p>}
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="Password" />
+          </TabsContent>
+
+          <TabsContent value="payment" className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="serverId">Servidor</Label>
+                <Controller
+                  name="serverId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar servidor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {servers.map(server => (
+                          <SelectItem key={server.id} value={server.id}>
+                            {server.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.serverId && <p className="text-sm text-red-500">{errors.serverId.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="planId">Plano</Label>
+                <Controller
+                  name="planId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar plano" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {plans.map(plan => (
+                          <SelectItem key={plan.id} value={plan.id}>
+                            {plan.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.planId && <p className="text-sm text-red-500">{errors.planId.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="paymentMethodId">Método de Pagamento</Label>
+                <Controller
+                  name="paymentMethodId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar método de pagamento" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {paymentMethods.map(method => (
+                          <SelectItem key={method.id} value={method.id}>
+                            {method.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.paymentMethodId && <p className="text-sm text-red-500">{errors.paymentMethodId.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="amount">Valor</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="0.00"
+                  {...register('amount', { valueAsNumber: true })}
+                />
+                {errors.amount && <p className="text-sm text-red-500">{errors.amount.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="screens">Número de Telas</Label>
+                <Input
+                  id="screens"
+                  type="number"
+                  min="1"
+                  {...register('screens', { valueAsNumber: true })}
+                />
+                {errors.screens && <p className="text-sm text-red-500">{errors.screens.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="totalCost">Custo Total</Label>
+                <Input
+                  id="totalCost"
+                  type="number"
+                  placeholder="0.00"
+                  {...register('totalCost', { valueAsNumber: true })}
+                />
+                {errors.totalCost && <p className="text-sm text-red-500">{errors.totalCost.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="credit">Crédito</Label>
+                <Input
+                  id="credit"
+                  type="number"
+                  placeholder="0.00"
+                  {...register('credit', { valueAsNumber: true })}
+                />
+                {errors.credit && <p className="text-sm text-red-500">{errors.credit.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pix">PIX</Label>
+                <Input
+                  id="pix"
+                  {...register('pix')}
+                />
+                {errors.pix && <p className="text-sm text-red-500">{errors.pix.message}</p>}
+              </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="Email" />
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Adicionar Pagamento</Label>
+                <Controller
+                  name="addPayment"
+                  control={control}
+                  render={({ field }) => (
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex space-x-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yes" id="addPayment-yes" />
+                        <Label htmlFor="addPayment-yes">Sim</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="no" id="addPayment-no" />
+                        <Label htmlFor="addPayment-no">Não</Label>
+                      </div>
+                    </RadioGroup>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Enviar Mensagem</Label>
+                <Controller
+                  name="sendMessage"
+                  control={control}
+                  render={({ field }) => (
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex space-x-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yes" id="sendMessage-yes" />
+                        <Label htmlFor="sendMessage-yes">Sim</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="no" id="sendMessage-no" />
+                        <Label htmlFor="sendMessage-no">ão</Label>
+                      </div>
+                    </RadioGroup>
+                  )}
+                />
+              </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="phone1">Primary Phone</Label>
-              <Input id="phone1" placeholder="+1 (555) 000-0000" />
+          </TabsContent>
+
+          <TabsContent value="info" className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="leadSourceId">Captação</Label>
+                <Controller
+                  name="leadSourceId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar Captação" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {leadSources.map(source => (
+                          <SelectItem key={source.id} value={source.id}>
+                            {source.type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="referredBy">Referido Por</Label>
+                <Input
+                  id="referredBy"
+                  {...register('referredBy')}
+                />
+                {errors.referredBy && <p className="text-sm text-red-500">{errors.referredBy.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="deviceId">Dispositivo</Label>
+                <Controller
+                  name="deviceId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar dispositivo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {devices.map(device => (
+                          <SelectItem key={device.id} value={device.id}>
+                            {device.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="applicationId">Aplicativo</Label>
+                <Controller
+                  name="applicationId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar aplicativo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {applications.map(app => (
+                          <SelectItem key={app.id} value={app.id}>
+                            {app.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Expiração do App</Label>
+                <Controller
+                  name="appDate"
+                  control={control}
+                  render={({ field }) => (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {field.value ? format(field.value, "PPP") : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="m3u">M3U Link</Label>
+                <Input
+                  id="m3u"
+                  {...register('m3u')}
+                />
+                {errors.m3u && <p className="text-sm text-red-500">{errors.m3u.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="mac">Endereço MAC</Label>
+                <Input
+                  id="mac"
+                  {...register('mac')}
+                />
+                {errors.mac && <p className="text-sm text-red-500">{errors.mac.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="deviceKey">Chave do Dispositivo/OTP Code</Label>
+                <Input
+                  id="deviceKey"
+                  {...register('deviceKey')}
+                />
+                {errors.deviceKey && <p className="text-sm text-red-500">{errors.deviceKey.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="birthDate">Data de Nascimento</Label>
+                <Input
+                  id="birthDate"
+                  type="date"
+                  {...register('birthDate')}
+                />
+                {errors.birthDate && <p className="text-sm text-red-500">{errors.birthDate.message}</p>}
+              </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="phone2">Secondary Phone</Label>
-              <Input id="phone2" placeholder="+1 (555) 000-0000" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Due Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="dueTime">Due Time</Label>
-              <Input id="dueTime" type="time" />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" placeholder="Additional notes..." />
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="payment" className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="server">Server</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select server" />
-                </SelectTrigger>
-                <SelectContent>
-                  {servers.map(server => (
-                    <SelectItem key={server.id} value={server.id}>
-                      {server.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="plan">Plan</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select plan" />
-                </SelectTrigger>
-                <SelectContent>
-                  {plans.map(plan => (
-                    <SelectItem key={plan.id} value={plan.id}>
-                      {plan.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="paymentMethod">Payment Method</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  {paymentMethods.map(method => (
-                    <SelectItem key={method.id} value={method.id}>
-                      {method.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="amount">Amount</Label>
-              <Input id="amount" type="number" placeholder="0.00" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="screens">Number of Screens</Label>
-              <Input id="screens" type="number" min="1" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="totalCost">Total Cost</Label>
-              <Input id="totalCost" type="number" placeholder="0.00" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="credit">Credit</Label>
-              <Input id="credit" type="number" placeholder="0.00" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="pix">PIX</Label>
-              <Input id="pix" />
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Add Payment</Label>
-              <RadioGroup defaultValue="yes">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="yes" id="addPayment-yes" />
-                  <Label htmlFor="addPayment-yes">Yes</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="no" id="addPayment-no" />
-                  <Label htmlFor="addPayment-no">No</Label>
-                </div>
-              </RadioGroup>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Send Message</Label>
-              <RadioGroup defaultValue="yes">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="yes" id="sendMessage-yes" />
-                  <Label htmlFor="sendMessage-yes">Yes</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="no" id="sendMessage-no" />
-                  <Label htmlFor="sendMessage-no">No</Label>
-                </div>
-              </RadioGroup>
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="info" className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="source">Source</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select source" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sources.map(source => (
-                    <SelectItem key={source.id} value={source.id}>
-                      {source.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="referredBy">Referred By</Label>
-              <Input id="referredBy" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="device">Device</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select device" />
-                </SelectTrigger>
-                <SelectContent>
-                  {devices.map(device => (
-                    <SelectItem key={device.id} value={device.id}>
-                      {device.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="app">Application</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select application" />
-                </SelectTrigger>
-                <SelectContent>
-                  {apps.map(app => (
-                    <SelectItem key={app.id} value={app.id}>
-                      {app.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>App Expiration</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !appDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {appDate ? format(appDate, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={appDate}
-                    onSelect={setAppDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="m3u">M3U Link</Label>
-              <Input id="m3u" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="mac">MAC Address</Label>
-              <Input id="mac" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="deviceKey">Device Key/OTP Code</Label>
-              <Input id="deviceKey" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="birthDate">Birth Date</Label>
-              <Input id="birthDate" type="date" />
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-      
-      <div className="flex justify-end space-x-2 mt-6">
-        <Button variant="outline" onClick={() => onOpenChange(false)}>
-          Cancel
-        </Button>
-        <Button>Save Client</Button>
-      </div>
+          </TabsContent>
+        </Tabs>
+
+        <div className="flex justify-end space-x-2 mt-6">
+          <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button type="submit">Salvar Cliente</Button>
+        </div>
+      </form>
     </Modal>
   )
 }

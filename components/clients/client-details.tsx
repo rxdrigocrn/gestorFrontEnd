@@ -144,7 +144,7 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Situação</p>
-                <Badge variant="success" className="bg-green-500">
+                <Badge variant="default" className="bg-green-500">
                   {clientData.status}
                 </Badge>
               </div>

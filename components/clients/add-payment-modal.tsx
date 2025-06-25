@@ -146,7 +146,9 @@ export function AddPaymentModal({ open, onOpenChange }: AddPaymentModalProps) {
                 <Calendar
                   mode="single"
                   selected={paymentDate}
-                  onSelect={setPaymentDate}
+                  onSelect={(date) => {
+                    if (date) setPaymentDate(date)
+                  }}
                   initialFocus
                 />
               </PopoverContent>
