@@ -11,8 +11,8 @@ export type DeviceUpdate = DeviceBase & {
 
 export type DeviceResponse = DeviceBase & {
   id: string
-  createdAt: string
-  updatedAt: string
+  // createdAt: string
+  // updatedAt: string
   organizationId: string
 }
 

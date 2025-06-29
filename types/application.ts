@@ -11,8 +11,8 @@ export type ApplicationUpdate = ApplicationBase & {
 
 export type ApplicationResponse = ApplicationBase & {
   id: string
-  createdAt: string
-  updatedAt: string
+  // createdAt: string
+  // updatedAt: string
   organizationId: string
 }
 

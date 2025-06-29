@@ -5,42 +5,45 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Modal } from '@/components/ui/modal'
-import { ServerCreate } from '@/types/server'
-import { serverSchema } from '@/lib/schemas/serverFormSchema'
+import { ServerResponse } from '@/types/server'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ServerFormData, serverSchema } from '@/lib/schemas/serverFormSchema'
+import { useEffect } from 'react'
 
 interface AddServerModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: (data: ServerCreate) => void
+  onConfirm: (data: ServerFormData) => Promise<void> | void
+  defaultValues?: Partial<ServerResponse>
 }
 
-export function AddServerModal({ open, onOpenChange, onConfirm }: AddServerModalProps) {
+export function AddServerModal({ open, onOpenChange, onConfirm, defaultValues }: AddServerModalProps) {
   const {
     register,
     handleSubmit,
     formState: { errors },
     watch,
+    reset,
     setValue,
-  } = useForm<ServerCreate>({
+  } = useForm<ServerFormData>({
     resolver: zodResolver(serverSchema),
-    defaultValues: {
-      whatsappSession: 'no',
-      credits: null,
-      androidAppUrl: null,
-      androidAppUrlSec: null,
-      iosAppUrl: null,
-      samsungAppUrl: null,
-      lgAppUrl: null,
-      rokuAppUrl: null,
-    }
   })
 
-  const onSubmit = (data: ServerCreate) => {
+  const onSubmit = (data: ServerFormData) => {
     onConfirm(data)
   }
+
+  const onInvalid = (errors: any) => {
+    console.error('Erros de validação do formulário:', errors);
+  };
+
+  useEffect(() => {
+    if (open) {
+      reset(defaultValues);
+    }
+  }, [open, defaultValues, reset]);
 
   return (
     <Modal
@@ -49,7 +52,7 @@ export function AddServerModal({ open, onOpenChange, onConfirm }: AddServerModal
       title="Adicionar Novo Servidor"
       maxWidth="sm"
     >
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4 p-4">
         <Tabs defaultValue="data" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="data">Dados</TabsTrigger>

@@ -1,7 +1,7 @@
 export type LeadSourceBase = {
   type: string
-  cost: number
-  description?: string | null
+  cost: number | null
+  description?: string
   isDefault?: boolean
 }
 
@@ -13,8 +13,8 @@ export type LeadSourceUpdate = LeadSourceBase & {
 
 export type LeadSourceResponse = LeadSourceBase & {
   id: string
-  createdAt: string
-  updatedAt: string
+  // createdAt: string
+  // updatedAt: string
   organizationId: string
 }
 

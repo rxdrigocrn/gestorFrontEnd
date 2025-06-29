@@ -17,8 +17,8 @@ import { MoreHorizontal, Eye, Edit, Trash2, MessageCircle, PlusCircle } from 'lu
 import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddDeviceModal } from '@/components/dispositivos/add-dispositivos-modal'
-import { DeviceCreate, DeviceResponse } from '@/types/device'
-import { DeviceValues } from '@/lib/schemas/deviceSchema'
+import { DeviceCreate, DeviceResponse, DeviceUpdate } from '@/types/device'
+import { DeviceFormData } from '@/lib/schemas/deviceSchema'
 
 export default function DevicesTable() {
     const router = useRouter()
@@ -29,13 +29,15 @@ export default function DevicesTable() {
         fetchItems: fetchDevices,
         isLoading,
         error,
-        createItem,  // precisa para criar o dispositivo!
-        // você pode desestruturar updateItem, deleteItem etc aqui conforme precisar
+        createItem,
+        updateItem,
+        deleteItem,
     } = useDeviceStore()
 
     const [searchTerm, setSearchTerm] = useState('')
     const [filters, setFilters] = useState<{ [key: string]: string }>({})
     const [showAddModal, setShowAddModal] = useState(false)
+    const [editingItem, setEditingItem] = useState<DeviceResponse | null>(null)
 
     useEffect(() => {
         fetchDevices()
@@ -48,16 +50,43 @@ export default function DevicesTable() {
         return matchesSearch
     })
 
-    // Aqui chamamos a função createItem da store (que já está tipada e atualiza o estado interno da store)
-    const handleSubmit = async (data: DeviceValues) => {
+    const handleSubmit = async (data: DeviceFormData) => {
         try {
-            await createItem(data)
+            if (data.id) {
+                await updateItem(data.id, data as DeviceUpdate)
+            } else {
+                await createItem(data as DeviceCreate)
+            }
             setShowAddModal(false)
-            fetchDevices() // se quiser garantir que a lista está atualizada (geralmente não precisa porque a store já atualiza)
+            setEditingItem(null)
+            fetchDevices()
         } catch (error) {
-            console.error('Erro ao criar dispositivo:', error)
+            console.error('Erro ao salvar dispositivo:', error)
         }
     }
+
+    const handleEdit = (device: DeviceResponse) => {
+        setEditingItem(device)
+        setShowAddModal(true)
+    }
+
+    const handleDelete = async (deviceId: string) => {
+        if (confirm('Tem certeza que deseja excluir este dispositivo?')) {
+            try {
+                await deleteItem(deviceId) // Marcando como excluído
+                fetchDevices() // Recarrega a lista de dispositivos
+            } catch (error) {
+                console.error('Erro ao excluir dispositivo:', error)
+            }
+        }
+    }
+
+    const handleModalChange = (isOpen: boolean) => {
+        setShowAddModal(isOpen);
+        if (!isOpen) {
+            setEditingItem(null);
+        }
+    };
 
     if (isLoading) return <p>Carregando dispositivos...</p>
     if (error) return <p className="text-red-600">Erro: {error}</p>
@@ -87,7 +116,7 @@ export default function DevicesTable() {
             <GenericTable<DeviceResponse>
                 data={filteredDevices}
                 rowKey={(row) => row.id}
-                onRowClick={(row) => router.push(`/dispositivos/${row.id}`)}
+                // onRowClick={(row) => router.push(`/dispositivos/${row.id}`)}
                 columns={[
                     {
                         header: 'Dispositivo',
@@ -114,20 +143,20 @@ export default function DevicesTable() {
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Ações</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => router.push(`/dispositivos/${device.id}`)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Detalhes
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => router.push(`/dispositivos/${device.id}/edit`)}>
+
+                            <DropdownMenuItem onClick={(e) => {
+                                e.preventDefault()
+                                handleEdit(device)
+                            }}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Editar
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <MessageCircle className="mr-2 h-4 w-4" />
-                                Enviar Mensagem
-                            </DropdownMenuItem>
+
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem onClick={(e) => {
+                                e.preventDefault()
+                                handleDelete(device.id)
+                            }} className="text-destructive cursor-pointer">
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Excluir
                             </DropdownMenuItem>
@@ -138,7 +167,7 @@ export default function DevicesTable() {
 
             {/* Modal */}
             {showAddModal && (
-                <AddDeviceModal open={showAddModal} onOpenChange={setShowAddModal} onConfirm={handleSubmit} />
+                <AddDeviceModal open={showAddModal} onOpenChange={handleModalChange} onConfirm={handleSubmit} defaultValues={editingItem ?? undefined} />
             )}
         </div>
     )

@@ -17,25 +17,26 @@ import { MoreHorizontal, Eye, Edit, Trash2, MessageCircle, PlusCircle } from 'lu
 import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddPlanModal } from '@/components/planos/add-plan-modal'
-import { PlanCreate, PlanResponse } from '@/types/plan'
-import { PlanValues } from '@/lib/schemas/planSchema'
+import { PlanCreate, PlanResponse, PlanUpdate } from '@/types/plan'
+import { PlanFormData } from '@/lib/schemas/planSchema'
 
 export default function PlansTable() {
     const router = useRouter()
 
-    // Desestruture da store tudo que precisa
     const {
         items: plans,
         fetchItems: fetchPlans,
         isLoading,
         error,
-        createItem,  // precisa para criar o plano!
-        // você pode desestruturar updateItem, deleteItem etc aqui conforme precisar
+        createItem,
+        updateItem,
+        deleteItem
     } = usePlanStore()
 
     const [searchTerm, setSearchTerm] = useState('')
     const [filters, setFilters] = useState<{ [key: string]: string }>({})
     const [showAddModal, setShowAddModal] = useState(false)
+    const [editingItem, setEditingItem] = useState<PlanResponse | null>(null)
 
     useEffect(() => {
         fetchPlans()
@@ -48,16 +49,41 @@ export default function PlansTable() {
         return matchesSearch
     })
 
-    // Aqui chamamos a função createItem da store (que já está tipada e atualiza o estado interno da store)
-    const handleSubmit = async (data: PlanValues) => {
+    const handleSubmit = async (data: PlanFormData) => {
         try {
-            await createItem(data)
+            if (data.id) {
+                await updateItem(data.id, data as PlanUpdate)
+            } else {
+                await createItem(data as PlanCreate)
+            }
             setShowAddModal(false)
-            fetchPlans() // se quiser garantir que a lista está atualizada (geralmente não precisa porque a store já atualiza)
+            setEditingItem(null)
+            fetchPlans()
         } catch (error) {
-            console.error('Erro ao criar plano:', error)
+            console.error('Erro ao salvar método de pagamento:', error)
         }
     }
+
+    const handleEdit = (plan: PlanResponse) => {
+        setEditingItem(plan)
+        setShowAddModal(true)
+    }
+
+    const handleDelete = async (id: string) => {
+        try {
+            await deleteItem(id)
+            fetchPlans()
+        } catch (error) {
+            console.error('Erro ao excluir plano:', error)
+        }
+    }
+
+    const handleModalChange = (isOpen: boolean) => {
+        setShowAddModal(isOpen);
+        if (!isOpen) {
+            setEditingItem(null);
+        }
+    };
 
     if (isLoading) return <p>Carregando planos...</p>
     if (error) return <p className="text-red-600">Erro: {error}</p>
@@ -115,20 +141,19 @@ export default function PlansTable() {
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Ações</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => router.push(`/plans/${plan.id}`)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Detalhes
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => router.push(`/plans/${plan.id}/edit`)}>
+                            <DropdownMenuItem className="cursor-pointer" onClick={(e) => {
+                                e.stopPropagation()
+                                handleEdit(plan)
+                            }}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Editar
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <MessageCircle className="mr-2 h-4 w-4" />
-                                Enviar Mensagem
-                            </DropdownMenuItem>
+
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem className="text-destructive cursor-pointer" onClick={(e) => {
+                                e.stopPropagation() // Impede o clique de "borbulhar" para a linha
+                                handleDelete(plan.id)
+                            }}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Excluir
                             </DropdownMenuItem>
@@ -139,7 +164,7 @@ export default function PlansTable() {
 
             {/* Modal */}
             {showAddModal && (
-                <AddPlanModal open={showAddModal} onOpenChange={setShowAddModal} onConfirm={handleSubmit} />
+                <AddPlanModal open={showAddModal} onOpenChange={handleModalChange} onConfirm={handleSubmit} defaultValues={editingItem ?? undefined} />
             )}
         </div>
     )

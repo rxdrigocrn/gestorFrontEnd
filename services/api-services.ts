@@ -20,7 +20,8 @@ export const createItem = async (resource: Resource, data: Data) => {
 }
 
 export const updateItem = async (resource: Resource, id: ID, data: Data) => {
-    const response = await api.put(`${resource}/${id}`, data)
+    const { id: _, organizationId, ...rest } = data
+    const response = await api.patch(`${resource}/${id}`, rest)
     return response.data
 }
 

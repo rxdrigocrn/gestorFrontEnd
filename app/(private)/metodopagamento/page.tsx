@@ -17,8 +17,8 @@ import { MoreHorizontal, Eye, Edit, Trash2, MessageCircle, PlusCircle } from 'lu
 import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddPaymentMethodModal } from '@/components/paymentMethod/add-paymentmethod-modal'
-import { PaymentMethodCreate, PaymentMethodResponse } from '@/types/paymentMethod'
-import { PaymentMethodValues } from '@/lib/schemas/paymentMethod'
+import { PaymentMethodResponse, PaymentMethodUpdate } from '@/types/paymentMethod'
+import { PaymentMethodFormData } from '@/lib/schemas/paymentMethod'
 
 export default function PaymentMethodsTable() {
     const router = useRouter()
@@ -29,13 +29,15 @@ export default function PaymentMethodsTable() {
         fetchItems: fetchPaymentMethods,
         isLoading,
         error,
-        createItem,  // precisa para criar o método de pagamento!
-        // você pode desestruturar updateItem, deleteItem etc aqui conforme precisar
+        createItem,
+        updateItem,
+        deleteItem
     } = usePaymentMethodStore()
 
     const [searchTerm, setSearchTerm] = useState('')
     const [filters, setFilters] = useState<{ [key: string]: string }>({})
     const [showAddModal, setShowAddModal] = useState(false)
+    const [editingItem, setEditingItem] = useState<PaymentMethodResponse | null>(null)
 
     useEffect(() => {
         fetchPaymentMethods()
@@ -49,15 +51,46 @@ export default function PaymentMethodsTable() {
     })
 
     // Aqui chamamos a função createItem da store (que já está tipada e atualiza o estado interno da store)
-    const handleSubmit = async (data: PaymentMethodValues) => {
+    const handleSubmit = async (data: PaymentMethodFormData) => {
         try {
-            await createItem(data)
+            if (data.id) {
+                await updateItem(data.id, data as PaymentMethodUpdate)  // editar
+            } else {
+                await createItem(data)  // criar
+            }
             setShowAddModal(false)
-            fetchPaymentMethods() // se quiser garantir que a lista está atualizada (geralmente não precisa porque a store já atualiza)
+            setEditingItem(null)
+            fetchPaymentMethods()
         } catch (error) {
-            console.error('Erro ao criar método de pagamento:', error)
+            console.error('Erro ao salvar método de pagamento:', error)
         }
     }
+
+
+    const handleEdit = (method: PaymentMethodResponse) => {
+        setEditingItem(method)
+        setShowAddModal(true)
+    }
+
+    const handleDelete = async (paymentMethodId: string) => {
+        if (confirm('Tem certeza que deseja excluir este Metodo?')) {
+            try {
+                await deleteItem(paymentMethodId)
+                fetchPaymentMethods()
+            } catch (error) {
+                console.error('Erro ao excluir servidor:', error)
+            }
+        }
+    }
+
+
+
+    const handleModalChange = (isOpen: boolean) => {
+        setShowAddModal(isOpen);
+        if (!isOpen) {
+            setEditingItem(null);
+        }
+    };
 
     if (isLoading) return <p>Carregando métodos de pagamento...</p>
     if (error) return <p className="text-red-600">Erro: {error}</p>
@@ -87,7 +120,7 @@ export default function PaymentMethodsTable() {
             <GenericTable<PaymentMethodResponse>
                 data={filteredPaymentMethods}
                 rowKey={(row) => row.id}
-                onRowClick={(row) => router.push(`/payment-methods/${row.id}`)}
+                // onRowClick={(row) => router.push(`/payment-methods/${row.id}`)}
                 columns={[
                     {
                         header: 'Método de Pagamento',
@@ -115,20 +148,18 @@ export default function PaymentMethodsTable() {
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Ações</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => router.push(`/payment-methods/${method.id}`)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Detalhes
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => router.push(`/payment-methods/${method.id}/edit`)}>
+                            <DropdownMenuItem className="cursor-pointer" onClick={(e) => {
+                                e.stopPropagation(); // Impede o clique de "borbulhar" para a linha
+                                handleEdit(method);
+                            }}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Editar
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <MessageCircle className="mr-2 h-4 w-4" />
-                                Enviar Mensagem
-                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem className="text-destructive cursor-pointer" onClick={(e) => {
+                                e.stopPropagation(); // Impede o clique de "borbulhar" para a linha
+                                handleDelete(method.id)
+                            }}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Excluir
                             </DropdownMenuItem>
@@ -139,7 +170,12 @@ export default function PaymentMethodsTable() {
 
             {/* Modal */}
             {showAddModal && (
-                <AddPaymentMethodModal open={showAddModal} onOpenChange={setShowAddModal} onConfirm={handleSubmit} />
+                <AddPaymentMethodModal
+                    open={showAddModal}
+                    onOpenChange={handleModalChange}
+                    onConfirm={handleSubmit}
+                    defaultValues={editingItem ?? undefined}
+                />
             )}
         </div>
     )

@@ -1,15 +1,15 @@
 export type ServerBase = {
   name: string
   cost: number
-  credits: number | null
+  credits?: number | null
   panelLink: string
-  whatsappSession: string | null
-  androidAppUrl: string | null
-  androidAppUrlSec: string | null
-  iosAppUrl: string | null
-  samsungAppUrl: string | null
-  lgAppUrl: string | null
-  rokuAppUrl: string | null
+  whatsappSession?: string 
+  androidAppUrl?: string 
+  androidAppUrlSec?: string 
+  iosAppUrl?: string 
+  samsungAppUrl?: string 
+  lgAppUrl?: string 
+  rokuAppUrl?: string 
 }
 
 export type ServerCreate = ServerBase
@@ -26,3 +26,4 @@ export type ServerResponse = ServerBase & {
 }
 
 export type ServerList = ServerResponse[]
+

@@ -1,8 +1,12 @@
 import { z } from 'zod';
 
 export const paymentMethodSchema = z.object({
+    id: z.string().uuid().optional(),
     name: z.string().min(1, "Name is required"),
     feePercentage: z.number().min(0, "Fee percentage must be a non-negative number"),
+    description: z.string().optional().nullable(),
+    organizationId: z.string().optional(),
 });
 
-export type PaymentMethodValues = z.infer<typeof paymentMethodSchema>;
+export type PaymentMethodFormData = z.infer<typeof paymentMethodSchema>;
+

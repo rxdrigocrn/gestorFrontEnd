@@ -17,8 +17,8 @@ import { MoreHorizontal, Eye, Edit, Trash2, MessageCircle, PlusCircle } from 'lu
 import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddLeadModal } from '@/components/leads/add-leads-modal'
-import { LeadSourceCreate, LeadSourceResponse } from '@/types/lead'
-import { LeadValues } from '@/lib/schemas/leadSchema'
+import { LeadSourceCreate, LeadSourceResponse, LeadSourceUpdate } from '@/types/lead'
+import { LeadFormData } from '@/lib/schemas/leadSchema'
 
 export default function LeadsTable() {
     const router = useRouter()
@@ -29,13 +29,15 @@ export default function LeadsTable() {
         fetchItems: fetchLeads,
         isLoading,
         error,
-        createItem,  // precisa para criar o lead!
-        // você pode desestruturar updateItem, deleteItem etc aqui conforme precisar
+        createItem,
+        updateItem,
+        deleteItem,
     } = useLeadSourceStore()
 
     const [searchTerm, setSearchTerm] = useState('')
     const [filters, setFilters] = useState<{ [key: string]: string }>({})
     const [showAddModal, setShowAddModal] = useState(false)
+    const [editingItem, setEditingItem] = useState<LeadSourceResponse | null>(null)
 
     useEffect(() => {
         fetchLeads()
@@ -48,16 +50,43 @@ export default function LeadsTable() {
         return matchesSearch
     })
 
-    // Aqui chamamos a função createItem da store (que já está tipada e atualiza o estado interno da store)
-    const handleSubmit = async (data: LeadValues) => {
+    const handleSubmit = async (data: LeadFormData) => {
         try {
-            await createItem(data)
+            if (data.id) {
+                await updateItem(data.id, data as LeadSourceUpdate)
+            } else {
+                await createItem(data as LeadSourceCreate)
+            }
             setShowAddModal(false)
-            fetchLeads() // se quiser garantir que a lista está atualizada (geralmente não precisa porque a store já atualiza)
+            setEditingItem(null)
+            fetchLeads()
         } catch (error) {
-            console.error('Erro ao criar lead:', error)
+            console.error('Erro ao salvar lead:', error)
         }
     }
+
+    const handleEdit = (lead: LeadSourceResponse) => {
+        setEditingItem(lead)
+        setShowAddModal(true)
+    }
+
+    const handleDelete = async (leadId: string) => {
+        if (confirm('Tem certeza que deseja excluir este lead?')) {
+            try {
+                await deleteItem(leadId)
+                fetchLeads()
+            } catch (error) {
+                console.error('Erro ao excluir lead:', error)
+            }
+        }
+    }
+
+    const handleModalChange = (isOpen: boolean) => {
+        setShowAddModal(isOpen);
+        if (!isOpen) {
+            setEditingItem(null);
+        }
+    };
 
     if (isLoading) return <p>Carregando leads...</p>
     if (error) return <p className="text-red-600">Erro: {error}</p>
@@ -87,7 +116,7 @@ export default function LeadsTable() {
             <GenericTable<LeadSourceResponse>
                 data={filteredLeads}
                 rowKey={(row) => row.id}
-                onRowClick={(row) => router.push(`/leads/${row.id}`)}
+                // onRowClick={(row) => router.push(`/leads/${row.id}`)}
                 columns={[
                     {
                         header: 'Lead',
@@ -114,11 +143,14 @@ export default function LeadsTable() {
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Ações</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => router.push(`/leads/${lead.id}`)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Detalhes
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => router.push(`/leads/${lead.id}/edit`)}>
+                            {/* <DropdownMenuItem onClick={() => router.push(`/leads/${lead.id}`)}>
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    Detalhes
+                                </DropdownMenuItem> */}
+                            <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation()
+                                handleEdit(lead)
+                            }}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Editar
                             </DropdownMenuItem>
@@ -127,7 +159,10 @@ export default function LeadsTable() {
                                 Enviar Mensagem
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem className="text-destructive cursor-pointer" onClick={(e) => {
+                                e.stopPropagation()
+                                handleDelete(lead.id)
+                            }}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Excluir
                             </DropdownMenuItem>
@@ -138,7 +173,7 @@ export default function LeadsTable() {
 
             {/* Modal */}
             {showAddModal && (
-                <AddLeadModal open={showAddModal} onOpenChange={setShowAddModal} onConfirm={handleSubmit} />
+                <AddLeadModal open={showAddModal} onOpenChange={handleModalChange} onConfirm={handleSubmit} defaultValues={editingItem ?? undefined} />
             )}
         </div>
     )

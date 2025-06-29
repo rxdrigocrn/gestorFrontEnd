@@ -3,44 +3,60 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { paymentMethodSchema, PaymentMethodValues } from '@/lib/schemas/paymentMethod'
+import { paymentMethodSchema, PaymentMethodFormData } from '@/lib/schemas/paymentMethod'
 
 import { Modal } from '@/components/ui/modal'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '../ui/textarea'
 
 interface AddPaymentMethodModalProps {
     open: boolean
     onOpenChange: (open: boolean) => void
-    onConfirm: (data: PaymentMethodValues) => Promise<void> | void
+    onConfirm: (data: PaymentMethodFormData) => Promise<void> | void
+    defaultValues?: Partial<PaymentMethodFormData>;
+
 }
 
 export function AddPaymentMethodModal({
     open,
     onOpenChange,
-    onConfirm
+    onConfirm,
+    defaultValues,
 }: AddPaymentMethodModalProps) {
     const {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
         reset,
-    } = useForm<PaymentMethodValues>({
+    } = useForm<PaymentMethodFormData>({
         resolver: zodResolver(paymentMethodSchema),
+        defaultValues: {
+            name: '',
+            description: '',
+            feePercentage: 0,
+            ...defaultValues,
+        },
     })
 
     useEffect(() => {
-        if (open) reset()
-    }, [open, reset])
+        if (open) {
+            reset(defaultValues);
+        }
+    }, [open, defaultValues, reset]);
 
-    const onSubmit = async (data: PaymentMethodValues) => {
+    const onInvalid = (errors: any) => {
+        console.error('Form validation errors:', errors);
+    };
+
+    const onSubmit = async (data: PaymentMethodFormData) => {
         await onConfirm(data)
     }
 
     return (
-        <Modal open={open}  title="Novo Método de pagamento" onOpenChange={onOpenChange}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
+        <Modal open={open} title="Novo Método de pagamento" onOpenChange={onOpenChange}>
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4 p-4">
                 <div className="space-y-1">
                     <Label htmlFor="name">Nome</Label>
                     <Input
@@ -49,6 +65,18 @@ export function AddPaymentMethodModal({
                         placeholder="Nome da forma de pagamento"
                     />
                     {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
+                </div>
+
+                <div className="space-y-1">
+                    <Label htmlFor="description">Descrição</Label>
+                    <Textarea
+                        id="description"
+                        {...register('description')}
+                        placeholder="Descrição da forma de pagamento"
+                    />
+                    {errors.description && (
+                        <p className="text-sm text-red-600">{errors.description.message}</p>
+                    )}
                 </div>
 
                 <div className="space-y-1">

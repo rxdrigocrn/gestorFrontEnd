@@ -17,8 +17,8 @@ import { MoreHorizontal, Eye, Edit, Trash2, MessageCircle, PlusCircle } from 'lu
 import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import AddApplicationModal from '@/components/application/add-app-modal'
-import { ApplicationResponse } from '@/types/application'
-import { ApplicationValues } from '@/lib/schemas/applicationSchema'
+import { ApplicationCreate, ApplicationResponse, ApplicationUpdate } from '@/types/application'
+import { ApplicationFormData } from '@/lib/schemas/applicationSchema'
 
 export default function ApplicationsTable() {
     const router = useRouter()
@@ -29,12 +29,15 @@ export default function ApplicationsTable() {
         fetchItems: fetchApplications,
         isLoading,
         error,
-        createItem,  // precisa para criar o aplicativo!
+        createItem,
+        updateItem,
+        deleteItem,
     } = useApplicationStore()
 
     const [searchTerm, setSearchTerm] = useState('')
     const [filters, setFilters] = useState<{ [key: string]: string }>({})
     const [showAddModal, setShowAddModal] = useState(false)
+    const [editingItem, setEditingItem] = useState<ApplicationResponse | null>(null)
 
     useEffect(() => {
         fetchApplications()
@@ -46,17 +49,44 @@ export default function ApplicationsTable() {
             (application.name && application.name.toLowerCase().includes(searchTerm.toLowerCase()))
         return matchesSearch
     })
-
-    // Aqui chamamos a função createItem da store (que já está tipada e atualiza o estado interno da store)
-    const handleSubmit = async (data: ApplicationValues) => {
+    const handleSubmit = async (data: ApplicationFormData) => {
         try {
-            await createItem(data)
+            if (data.id) {
+                await updateItem(data.id, data as ApplicationUpdate)
+            } else {
+                await createItem(data as ApplicationCreate)
+            }
             setShowAddModal(false)
-            fetchApplications() // se quiser garantir que a lista está atualizada (geralmente não precisa porque a store já atualiza)
+            setEditingItem(null)
+            fetchApplications()
         } catch (error) {
-            console.error('Erro ao criar aplicativo:', error)
+            console.error('Erro ao salvar aplicativo:', error)
+
         }
     }
+
+    const handleEdit = (application: ApplicationResponse) => {
+        setEditingItem(application)
+        setShowAddModal(true)
+    }
+
+    const handleDelete = async (applicationId: string) => {
+        if (confirm('Tem certeza que deseja excluir este aplicativo?')) {
+            try {
+                await deleteItem(applicationId)
+                fetchApplications()
+            } catch (error) {
+                console.error('Erro ao excluir aplicativo:', error)
+            }
+        }
+    }
+
+    const handleModalChange = (isOpen: boolean) => {
+        setShowAddModal(isOpen);
+        if (!isOpen) {
+            setEditingItem(null);
+        }
+    };
 
     if (isLoading) return <p>Carregando aplicativos...</p>
     if (error) return <p className="text-red-600">Erro: {error}</p>
@@ -113,20 +143,23 @@ export default function ApplicationsTable() {
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Ações</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => router.push(`/applications/${application.id}`)}>
+                            {/* <DropdownMenuItem onClick={() => router.push(`/applications/${application.id}`)}>
                                 <Eye className="mr-2 h-4 w-4" />
                                 Detalhes
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => router.push(`/applications/${application.id}/edit`)}>
+                            </DropdownMenuItem> */}
+                            <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(application)
+                            }
+                            }>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Editar
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <MessageCircle className="mr-2 h-4 w-4" />
-                                Enviar Mensagem
-                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem className="text-destructive cursor-pointer" onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(application.id)
+                            }}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Excluir
                             </DropdownMenuItem>
@@ -137,7 +170,7 @@ export default function ApplicationsTable() {
 
             {/* Modal */}
             {showAddModal && (
-                <AddApplicationModal open={showAddModal} onOpenChange={setShowAddModal} onConfirm={handleSubmit} />
+                <AddApplicationModal open={showAddModal} onOpenChange={handleModalChange} onConfirm={handleSubmit} defaultValues={editingItem ?? undefined} />
             )}
         </div>
     )

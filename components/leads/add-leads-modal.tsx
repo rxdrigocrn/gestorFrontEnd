@@ -3,40 +3,48 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { leadSchema, LeadValues } from '@/lib/schemas/leadSchema'
+import { leadSchema, LeadFormData } from '@/lib/schemas/leadSchema'
 
 import { Modal } from '@/components/ui/modal'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '../ui/textarea'
 
 interface AddLeadModalProps {
     open: boolean
     onOpenChange: (open: boolean) => void
-    onConfirm: (data: LeadValues) => Promise<void> | void
+    onConfirm: (data: LeadFormData) => Promise<void> | void
+    defaultValues?: Partial<LeadFormData>
 }
 
-export function AddLeadModal({ open, onOpenChange, onConfirm }: AddLeadModalProps) {
+export function AddLeadModal({ open, onOpenChange, onConfirm, defaultValues }: AddLeadModalProps) {
     const {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
         reset,
-    } = useForm<LeadValues>({
+    } = useForm<LeadFormData>({
         resolver: zodResolver(leadSchema),
     })
 
-    useEffect(() => {
-        if (open) reset()
-    }, [open, reset])
+   useEffect(() => {
+        if (open) {
+            reset(defaultValues || {});
+        }
+    }, [open, defaultValues, reset]);
 
-    const onSubmit = async (data: LeadValues) => {
+    const onSubmit = async (data: LeadFormData) => {
         await onConfirm(data)
+    }
+
+    const onInvalid = (errors: any) => {
+        console.error('Form validation errors:', errors)
     }
 
     return (
         <Modal open={open} title="Nova Captação" onOpenChange={onOpenChange}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4 p-4">
                 <div className="space-y-1">
                     <Label htmlFor="type">Tipo</Label>
                     <Input
@@ -47,6 +55,18 @@ export function AddLeadModal({ open, onOpenChange, onConfirm }: AddLeadModalProp
                     {errors.type && (
                         <p className="text-sm text-red-600">{errors.type.message}</p>
                     )}
+                </div>
+
+
+                <div className="space-y-1">
+                    <Label htmlFor="description">Descrição (opcional)</Label>
+                    <Textarea
+                        id="description"
+                        {...register('description')}
+                        placeholder="Descrição do plano"
+                        rows={3}
+                    />
+                    {errors.description && <p className="text-sm text-red-600">{errors.description.message}</p>}
                 </div>
 
                 <div className="space-y-1">

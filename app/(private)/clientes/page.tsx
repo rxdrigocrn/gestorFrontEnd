@@ -19,15 +19,17 @@ import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddClientModal } from '@/components/clients/add-client-modal'
 import { createItem } from '@/services/api-services'
-import { ClientResponse, } from '@/types/client'
+import { ClientCreate, ClientResponse, ClientUpdate, } from '@/types/client'
+import { ClientFormData } from '@/lib/schemas/clientFormSchema'
 
 export default function ClientsTable() {
   const router = useRouter()
-  const { clients, fetchClients, isLoading, error } = useClientStore()
+  const { fetchItems: fetchClients, items: clients, isLoading, error, createItem, updateItem, deleteItem } = useClientStore()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState<{ [key: string]: string }>({})
   const [showAddModal, setShowAddModal] = useState(false)
+  const [editingItem, setEditingItem] = useState<ClientResponse | null>(null)
 
   useEffect(() => {
     fetchClients()
@@ -52,16 +54,44 @@ export default function ClientsTable() {
 
     return matchesSearch && matchesPlan
   })
-
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: ClientFormData) => {
     try {
-      await createItem('/clients', data)
+      if (data.id) {
+        await updateItem(data.id, data as ClientUpdate)
+      } else {
+        await createItem(data as ClientCreate)
+      }
       setShowAddModal(false)
+      setEditingItem(null)
       fetchClients()
     } catch (error) {
-      console.error('Erro ao criar cliente:', error)
+      console.error('Erro ao salvar aplicativo:', error)
+
     }
   }
+
+  const handleEdit = (application: ClientResponse) => {
+    setEditingItem(application)
+    setShowAddModal(true)
+  }
+
+  const handleDelete = async (applicationId: string) => {
+    if (confirm('Tem certeza que deseja excluir este aplicativo?')) {
+      try {
+        await deleteItem(applicationId)
+        fetchClients()
+      } catch (error) {
+        console.error('Erro ao excluir aplicativo:', error)
+      }
+    }
+  }
+
+  const handleModalChange = (isOpen: boolean) => {
+    setShowAddModal(isOpen);
+    if (!isOpen) {
+      setEditingItem(null);
+    }
+  };
 
   if (isLoading) return <p>Carregando clientes...</p>
   if (error) return <p className="text-red-600">Erro: {error}</p>
@@ -108,7 +138,7 @@ export default function ClientsTable() {
       <GenericTable<ClientResponse>
         data={filteredClients}
         rowKey={(row) => row.id}
-        onRowClick={(row) => router.push(`/clients/${row.id}`)}
+        onRowClick={(row) => router.push(`/clientes/${row.id}`)}
         columns={[
           {
             header: 'Cliente',
@@ -140,11 +170,14 @@ export default function ClientsTable() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Ações</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push(`/clients/${client.id}`)}>
+              <DropdownMenuItem onClick={() => router.push(`/clientes/${client.id}`)}>
                 <Eye className="mr-2 h-4 w-4" />
                 Detalhes
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push(`/clients/${client.id}/edit`)}>
+              <DropdownMenuItem onClick={(e) => {
+                e.stopPropagation()
+                handleEdit(client)
+              }} >
                 <Edit className="mr-2 h-4 w-4" />
                 Editar
               </DropdownMenuItem>
@@ -153,7 +186,10 @@ export default function ClientsTable() {
                 Enviar Mensagem
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem className="text-destructive" onClick={(e) => {
+                e.stopPropagation()
+                handleDelete(client.id)
+              }}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Excluir
               </DropdownMenuItem>
@@ -164,7 +200,7 @@ export default function ClientsTable() {
 
       {/* Modal */}
       {showAddModal && (
-        <AddClientModal open={showAddModal} onOpenChange={setShowAddModal} onConfirm={handleSubmit} />
+        <AddClientModal open={showAddModal} onOpenChange={handleModalChange} onConfirm={handleSubmit} defaultValues={editingItem ?? undefined} />
       )}
     </div>
   )

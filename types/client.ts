@@ -12,7 +12,7 @@ export type ClientBase = {
     applicationId?: string
     paymentMethodId?: string
     leadSourceId?: string
-    status: 'active' | 'inactive' | 'pending'
+    status?: 'active' | 'inactive' | 'pending'
 }
 
 export type ClientCreate = ClientBase
@@ -20,16 +20,63 @@ export type ClientUpdate = ClientBase & {
     id: string
 }
 
-export type ClientResponse = ClientBase & {
+export type ClientResponse = {
     id: string
-    createdAt: string
-    updatedAt: string
+    name: string
+    username?: string
+    password?: string
+    phone: string
+    phone2?: string
+    email: string
+    status: 'active' | 'inactive' | 'pending'
+    expiresAt: string
+    dueDate?: Date
+    dueTime?: Date
+    notes?: string
+    appDate?: Date
+    birthDate?: string
+    m3u?: string
+    mac?: string
+    deviceKey?: string
+    referredBy?: string
     organizationId: string
     registeredById: string
+    serverId: string
+    planId: string
+    deviceId?: string
+    applicationId?: string
+    paymentMethodId?: string
+    leadSourceId?: string
+    amount?: number
+    screens?: number
+    totalCost?: number
+    credit?: number
+    pix?: string
+    addPayment?: string
+    sendMessage?: string
+    createdAt?: string
+    updatedAt?: string
     server: ServerResponse
     plan: PlanResponse
+    registeredBy?: {
+        name: string
+        email: string
+    }
+    stats?: {
+        livValue: string
+        livIndicados: string
+        indicados: string
+        clientAge: string
+        daysUntilDue: string
+        cost: string
+    }
 }
 
+
+
+
+
 export type ClientList = ClientResponse[]
+
 
 

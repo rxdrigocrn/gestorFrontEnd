@@ -2,12 +2,12 @@
 
 import { Card, CardContent } from '@/components/ui/card'
 import { ServerIcon, HardDrive, Cpu } from 'lucide-react'
-import { Server } from '@/types/server'
+import { ServerResponse } from '@/types/server'
 import { formatCurrency } from '@/formatters/formatCurrency'
 
 
 interface ServerStatsProps {
-  servers: Server[]
+  servers: ServerResponse[]
 }
 
 export function ServerStats({ servers }: ServerStatsProps) {

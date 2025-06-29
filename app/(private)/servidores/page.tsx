@@ -18,18 +18,17 @@ import { MoreHorizontal, Eye, Edit, Trash2, PlusCircle } from 'lucide-react'
 import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddServerModal } from '@/components/servers/add-server-modal'
-import { createItem } from '@/services/api-services'
-import { ServerResponse } from '@/types/server'
+import { ServerCreate, ServerResponse, ServerUpdate } from '@/types/server'
 import { ServerStats } from '@/components/servers/server-stats'
-
-
+import { ServerFormData } from '@/lib/schemas/serverFormSchema'
 
 export default function ServersPage() {
   const router = useRouter()
-  const { items: servers, fetchItems: fetchServers, isLoading, error } = useServerStore()
+  const { items: servers, fetchItems: fetchServers, isLoading, error, createItem, updateItem, deleteItem } = useServerStore()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [editingItem, setEditingItem] = useState<ServerResponse | null>(null)
 
   useEffect(() => {
     fetchServers()
@@ -43,15 +42,46 @@ export default function ServersPage() {
     return matchesSearch
   })
 
-  const handleSubmit = async (data: any) => {
+
+  // Aqui chamamos a função createItem da store (que já está tipada e atualiza o estado interno da store)
+  const handleSubmit = async (data: ServerFormData) => {
     try {
-      await createItem('/servers', data)
+      if (data.id) {
+        await updateItem(data.id, data as ServerUpdate)
+      } else {
+        await createItem(data as ServerCreate)
+      }
       setShowAddModal(false)
+      setEditingItem(null)
       fetchServers()
     } catch (error) {
-      console.error('Erro ao criar servidor:', error)
+      console.error('Erro ao salvar método de pagamento:', error)
+
     }
   }
+
+  const handleEdit = (server: ServerResponse) => {
+    setEditingItem(server)
+    setShowAddModal(true)
+  }
+
+  const handleDelete = async (serverId: string) => {
+    if (confirm('Tem certeza que deseja excluir este servidor?')) {
+      try {
+        await deleteItem(serverId) // Marcando como excluído
+        fetchServers() // Recarrega a lista de servidores
+      } catch (error) {
+        console.error('Erro ao excluir servidor:', error)
+      }
+    }
+  }
+
+  const handleModalChange = (isOpen: boolean) => {
+    setShowAddModal(isOpen);
+    if (!isOpen) {
+      setEditingItem(null);
+    }
+  };
 
   if (isLoading) return <p>Carregando servidores...</p>
   if (error) return <p className="text-red-600">Erro: {error}</p>
@@ -83,7 +113,7 @@ export default function ServersPage() {
       <GenericTable<ServerResponse>
         data={filteredServers}
         rowKey={(row) => row.id}
-        onRowClick={(row) => router.push(`/servers/${row.id}`)}
+        onRowClick={(row) => router.push(`/servidores/${row.id}`)}
         columns={[
           {
             header: 'Nome',
@@ -125,16 +155,22 @@ export default function ServersPage() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Ações</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push(`/servers/${server.id}`)}>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => router.push(`/servidores/${server.id}`)}>
                   <Eye className="mr-2 h-4 w-4" />
                   Detalhes
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push(`/servers/${server.id}/edit`)}>
+                <DropdownMenuItem className="cursor-pointer" onClick={(e) => {
+                  e.stopPropagation()
+                  handleEdit(server)
+                }}>
                   <Edit className="mr-2 h-4 w-4" />
                   Editar
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive">
+                <DropdownMenuItem className="text-destructive cursor-pointer" onClick={(e) => {
+                  e.stopPropagation()
+                  handleDelete(server.id)
+                }}>
                   <Trash2 className="mr-2 h-4 w-4" />
                   Excluir
                 </DropdownMenuItem>
@@ -146,7 +182,12 @@ export default function ServersPage() {
 
       {/* Modal */}
       {showAddModal && (
-        <AddServerModal open={showAddModal} onOpenChange={setShowAddModal} onConfirm={handleSubmit} />
+        <AddServerModal
+          open={showAddModal}
+          onOpenChange={handleModalChange}
+          onConfirm={handleSubmit}
+          defaultValues={editingItem ?? undefined}
+        />
       )}
     </div>
   )

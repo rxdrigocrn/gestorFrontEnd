@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { clientFormSchema, ClientFormValues } from '@/lib/schemas/clientFormSchema'
+import { clientFormSchema, ClientFormData } from '@/lib/schemas/clientFormSchema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -31,10 +31,11 @@ import { useServerStore } from '@/store/serverStore'
 interface AddClientModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: (data: ClientFormValues) => void
+  onConfirm: (data: ClientFormData) => void
+  defaultValues?: Partial<ClientFormData>
 }
 
-export function AddClientModal({ open, onOpenChange, onConfirm }: AddClientModalProps) {
+export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }: AddClientModalProps) {
   const {
     control,
     register,
@@ -42,7 +43,8 @@ export function AddClientModal({ open, onOpenChange, onConfirm }: AddClientModal
     formState: { errors },
     setValue,
     watch,
-  } = useForm<ClientFormValues>({
+    reset
+  } = useForm<ClientFormData>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
       addPayment: "yes",
@@ -67,7 +69,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm }: AddClientModal
   }, [])
 
 
-  const onSubmit = (data: ClientFormValues) => {
+  const onSubmit = (data: ClientFormData) => {
     const backendData = {
       ...data,
       expiresAt: data.dueDate ? `${format(data.dueDate, 'yyyy-MM-dd')}T${data.dueTime || '00:00:00'}.000Z` : undefined,
@@ -81,9 +83,19 @@ export function AddClientModal({ open, onOpenChange, onConfirm }: AddClientModal
     })
   }
 
+  const onInvalid = (errors: any) => {
+    console.error('Form validation errors:', errors)
+  }
+
+  useEffect(() => {
+    if (open) {
+      reset(defaultValues || {});
+    }
+  }, [open, defaultValues, reset]);
+
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="Adicionar Novo Cliente" maxWidth="3xl">
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
         <Tabs defaultValue="personal" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="personal">Dados Pessoais</TabsTrigger>
@@ -177,7 +189,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm }: AddClientModal
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value}
+                          selected={field.value ?? undefined}
                           onSelect={field.onChange}
                           initialFocus
                         />
@@ -218,7 +230,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm }: AddClientModal
                   name="serverId"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar servidor" />
                       </SelectTrigger>
@@ -264,7 +276,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm }: AddClientModal
                   name="paymentMethodId"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar método de pagamento" />
                       </SelectTrigger>
@@ -394,7 +406,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm }: AddClientModal
                   name="leadSourceId"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar Captação" />
                       </SelectTrigger>
@@ -425,7 +437,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm }: AddClientModal
                   name="deviceId"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar dispositivo" />
                       </SelectTrigger>
@@ -447,7 +459,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm }: AddClientModal
                   name="applicationId"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar aplicativo" />
                       </SelectTrigger>
@@ -485,7 +497,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm }: AddClientModal
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value}
+                          selected={field.value ?? undefined}
                           onSelect={field.onChange}
                           initialFocus
                         />

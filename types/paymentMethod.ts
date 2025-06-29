@@ -1,7 +1,7 @@
 export type PaymentMethodBase = {
   name: string
   feePercentage: number
-  description?: string | null
+  description?: string | undefined
 }
 
 export type PaymentMethodCreate = PaymentMethodBase
@@ -12,8 +12,8 @@ export type PaymentMethodUpdate = PaymentMethodBase & {
 
 export type PaymentMethodResponse = PaymentMethodBase & {
   id: string
-  createdAt: string
-  updatedAt: string
+  // createdAt: string
+  // updatedAt: string
   organizationId: string
 }
 

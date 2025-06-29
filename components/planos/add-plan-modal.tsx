@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { planSchema, PlanValues } from '@/lib/schemas/planSchema'
+import { planSchema, PlanFormData } from '@/lib/schemas/planSchema'
 import { Modal } from '@/components/ui/modal'
 
 import { Input } from '@/components/ui/input'
@@ -10,14 +10,16 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { PlanResponse } from '@/types/plan'
 
 interface AddPlanModalProps {
     open: boolean
     onOpenChange: (open: boolean) => void
-    onConfirm: (data: PlanValues) => Promise<void> | void
+    onConfirm: (data: PlanFormData) => Promise<void> | void
+    defaultValues?: Partial<PlanResponse>
 }
 
-export function AddPlanModal({ open, onOpenChange, onConfirm }: AddPlanModalProps) {
+export function AddPlanModal({ open, onOpenChange, onConfirm, defaultValues }: AddPlanModalProps) {
     const {
         register,
         handleSubmit,
@@ -25,24 +27,30 @@ export function AddPlanModal({ open, onOpenChange, onConfirm }: AddPlanModalProp
         reset,
         setValue,
         watch,
-    } = useForm<PlanValues>({
+    } = useForm<PlanFormData>({
         resolver: zodResolver(planSchema),
     })
 
-    // Limpar formulário ao abrir
     useEffect(() => {
-        if (open) reset()
-    }, [open, reset])
+        if (open) {
+            reset(defaultValues || {});
+        }
+    }, [open, defaultValues, reset]);
+
+
+    const onInvalid = (errors: any) => {
+        console.error('Erros de validação do formulário:', errors);
+    };
 
     const periodType = watch('periodType')
 
-    const onSubmit = async (data: PlanValues) => {
+    const onSubmit = async (data: PlanFormData) => {
         await onConfirm(data)
     }
 
     return (
         <Modal open={open} title="Novo Plano" onOpenChange={onOpenChange}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4 p-4">
                 <div className="space-y-1">
                     <Label htmlFor="name">Nome</Label>
                     <Input
@@ -56,7 +64,7 @@ export function AddPlanModal({ open, onOpenChange, onConfirm }: AddPlanModalProp
                 <div className="space-y-1">
                     <Label htmlFor="periodType">Tipo de Período</Label>
                     <Select
-                        onValueChange={(value) => setValue('periodType', value as PlanValues['periodType'])}
+                        onValueChange={(value) => setValue('periodType', value as PlanFormData['periodType'])}
                         value={periodType}
                     >
                         <SelectTrigger>
@@ -64,7 +72,6 @@ export function AddPlanModal({ open, onOpenChange, onConfirm }: AddPlanModalProp
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="DAYS">Dias</SelectItem>
-                            <SelectItem value="WEEKS">Semanas</SelectItem>
                             <SelectItem value="MONTHS">Meses</SelectItem>
                             <SelectItem value="YEARS">Anos</SelectItem>
                         </SelectContent>

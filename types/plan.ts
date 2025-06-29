@@ -1,10 +1,10 @@
-type PeriodType = 'DAYS' | 'WEEKS' | 'MONTHS' | 'YEARS'
+type PeriodType = 'DAYS' | 'MONTHS' | 'YEARS'
 
 export type PlanBase = {
     name: string
     periodType: PeriodType
     periodValue: number
-    creditsToRenew: number
+    creditsToRenew: number | null
     description?: string | null
 }
 
@@ -16,9 +16,10 @@ export type PlanUpdate = PlanBase & {
 
 export type PlanResponse = PlanBase & {
     id: string
-    createdAt: string
-    updatedAt: string
+    // createdAt: string
+    // updatedAt: string
     organizationId: string
 }
 
 export type PlanList = PlanResponse[]
+
