@@ -19,6 +19,7 @@ import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddDeviceModal } from '@/components/dispositivos/add-dispositivos-modal'
 import { DeviceCreate, DeviceResponse, DeviceUpdate } from '@/types/device'
 import { DeviceFormData } from '@/lib/schemas/deviceSchema'
+import { ConfirmationDialog } from '@/components/ui/confirmModal'
 
 export default function DevicesTable() {
     const router = useRouter()
@@ -38,6 +39,7 @@ export default function DevicesTable() {
     const [filters, setFilters] = useState<{ [key: string]: string }>({})
     const [showAddModal, setShowAddModal] = useState(false)
     const [editingItem, setEditingItem] = useState<DeviceResponse | null>(null)
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     useEffect(() => {
         fetchDevices()
@@ -70,15 +72,23 @@ export default function DevicesTable() {
         setShowAddModal(true)
     }
 
-    const handleDelete = async (deviceId: string) => {
-        if (confirm('Tem certeza que deseja excluir este dispositivo?')) {
-            try {
-                await deleteItem(deviceId) // Marcando como excluído
-                fetchDevices() // Recarrega a lista de dispositivos
-            } catch (error) {
-                console.error('Erro ao excluir dispositivo:', error)
+    const handleDelete = async () => {
+        try {
+            if (editingItem && editingItem.id) {
+                await deleteItem(editingItem.id)
+                setEditingItem(null)
+                fetchDevices()
+            } else {
+                console.error('Nenhum cliente selecionado para exclusão.')
             }
+        } catch (error) {
+            console.error('Erro ao excluir cliente:', error)
         }
+    }
+
+    const handleOpenDialog = (device: DeviceResponse) => {
+        setIsDialogOpen(true);
+        setEditingItem(device);
     }
 
     const handleModalChange = (isOpen: boolean) => {
@@ -155,7 +165,7 @@ export default function DevicesTable() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={(e) => {
                                 e.preventDefault()
-                                handleDelete(device.id)
+                                handleOpenDialog(device)
                             }} className="text-destructive cursor-pointer">
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Excluir
@@ -169,6 +179,17 @@ export default function DevicesTable() {
             {showAddModal && (
                 <AddDeviceModal open={showAddModal} onOpenChange={handleModalChange} onConfirm={handleSubmit} defaultValues={editingItem ?? undefined} />
             )}
+
+            <ConfirmationDialog
+                isOpen={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                onConfirm={handleDelete}
+                title="Excluir Dispositivo"
+                description="Tem certeza de que deseja excluir o dispositivo?"
+                confirmText="Excluir"
+                cancelText="Cancelar"
+                variant="destructive"
+            />
         </div>
     )
 }

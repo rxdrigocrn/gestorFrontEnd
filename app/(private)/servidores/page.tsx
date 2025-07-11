@@ -12,7 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { MoreHorizontal, Eye, Edit, Trash2, PlusCircle } from 'lucide-react'
 import { GenericTable } from '@/components/table/GenericTable'
@@ -21,6 +20,7 @@ import { AddServerModal } from '@/components/servers/add-server-modal'
 import { ServerCreate, ServerResponse, ServerUpdate } from '@/types/server'
 import { ServerStats } from '@/components/servers/server-stats'
 import { ServerFormData } from '@/lib/schemas/serverFormSchema'
+import { ConfirmationDialog } from '@/components/ui/confirmModal'
 
 export default function ServersPage() {
   const router = useRouter()
@@ -29,6 +29,7 @@ export default function ServersPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingItem, setEditingItem] = useState<ServerResponse | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchServers()
@@ -65,15 +66,23 @@ export default function ServersPage() {
     setShowAddModal(true)
   }
 
-  const handleDelete = async (serverId: string) => {
-    if (confirm('Tem certeza que deseja excluir este servidor?')) {
-      try {
-        await deleteItem(serverId) // Marcando como excluído
-        fetchServers() // Recarrega a lista de servidores
-      } catch (error) {
-        console.error('Erro ao excluir servidor:', error)
+  const handleDelete = async () => {
+    try {
+      if (editingItem && editingItem.id) {
+        await deleteItem(editingItem.id)
+        setEditingItem(null)
+        fetchServers()
+      } else {
+        console.error('Nenhum cliente selecionado para exclusão.')
       }
+    } catch (error) {
+      console.error('Erro ao excluir cliente:', error)
     }
+  }
+
+  const handleOpenDialog = (server: ServerResponse) => {
+    setIsDialogOpen(true);
+    setEditingItem(server);
   }
 
   const handleModalChange = (isOpen: boolean) => {
@@ -169,7 +178,7 @@ export default function ServersPage() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-destructive cursor-pointer" onClick={(e) => {
                   e.stopPropagation()
-                  handleDelete(server.id)
+                  handleOpenDialog(server)
                 }}>
                   <Trash2 className="mr-2 h-4 w-4" />
                   Excluir
@@ -189,6 +198,17 @@ export default function ServersPage() {
           defaultValues={editingItem ?? undefined}
         />
       )}
+
+      <ConfirmationDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onConfirm={handleDelete}
+        title="Excluir Server"
+        description="Tem certeza de que deseja excluir este Server?"
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        variant="destructive"
+      />
     </div>
   )
 }

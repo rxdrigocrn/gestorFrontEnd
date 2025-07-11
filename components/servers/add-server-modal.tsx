@@ -45,6 +45,8 @@ export function AddServerModal({ open, onOpenChange, onConfirm, defaultValues }:
     }
   }, [open, defaultValues, reset]);
 
+
+
   return (
     <Modal
       open={open}
@@ -93,7 +95,7 @@ export function AddServerModal({ open, onOpenChange, onConfirm, defaultValues }:
                   id="credits"
                   placeholder="0"
                   type="number"
-                  {...register('credits', { valueAsNumber: true })}
+                  {...register('credits')}
                 />
                 {errors.credits && (
                   <p className="text-sm text-red-500">{errors.credits.message}</p>

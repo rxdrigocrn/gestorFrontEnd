@@ -68,7 +68,7 @@ export function AddPaymentMethodModal({
                 </div>
 
                 <div className="space-y-1">
-                    <Label htmlFor="description">Descrição</Label>
+                    <Label htmlFor="description">Descrição (Opcional)</Label>
                     <Textarea
                         id="description"
                         {...register('description')}

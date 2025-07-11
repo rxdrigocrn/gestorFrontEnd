@@ -17,8 +17,9 @@ import { MoreHorizontal, Eye, Edit, Trash2, MessageCircle, PlusCircle } from 'lu
 import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddPaymentMethodModal } from '@/components/paymentMethod/add-paymentmethod-modal'
-import { PaymentMethodResponse, PaymentMethodUpdate } from '@/types/paymentMethod'
+import { PaymentMethodCreate, PaymentMethodResponse, PaymentMethodUpdate } from '@/types/paymentMethod'
 import { PaymentMethodFormData } from '@/lib/schemas/paymentMethod'
+import { ConfirmationDialog } from '@/components/ui/confirmModal'
 
 export default function PaymentMethodsTable() {
     const router = useRouter()
@@ -38,6 +39,7 @@ export default function PaymentMethodsTable() {
     const [filters, setFilters] = useState<{ [key: string]: string }>({})
     const [showAddModal, setShowAddModal] = useState(false)
     const [editingItem, setEditingItem] = useState<PaymentMethodResponse | null>(null)
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     useEffect(() => {
         fetchPaymentMethods()
@@ -56,7 +58,7 @@ export default function PaymentMethodsTable() {
             if (data.id) {
                 await updateItem(data.id, data as PaymentMethodUpdate)  // editar
             } else {
-                await createItem(data)  // criar
+                await createItem(data as PaymentMethodCreate)  // criar
             }
             setShowAddModal(false)
             setEditingItem(null)
@@ -72,15 +74,23 @@ export default function PaymentMethodsTable() {
         setShowAddModal(true)
     }
 
-    const handleDelete = async (paymentMethodId: string) => {
-        if (confirm('Tem certeza que deseja excluir este Metodo?')) {
-            try {
-                await deleteItem(paymentMethodId)
+    const handleDelete = async () => {
+        try {
+            if (editingItem && editingItem.id) {
+                await deleteItem(editingItem.id)
+                setEditingItem(null)
                 fetchPaymentMethods()
-            } catch (error) {
-                console.error('Erro ao excluir servidor:', error)
+            } else {
+                console.error('Nenhum cliente selecionado para exclusão.')
             }
+        } catch (error) {
+            console.error('Erro ao excluir cliente:', error)
         }
+    }
+
+    const handleOpenDialog = (payMethod: PaymentMethodResponse) => {
+        setIsDialogOpen(true);
+        setEditingItem(payMethod);
     }
 
 
@@ -158,7 +168,7 @@ export default function PaymentMethodsTable() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-destructive cursor-pointer" onClick={(e) => {
                                 e.stopPropagation(); // Impede o clique de "borbulhar" para a linha
-                                handleDelete(method.id)
+                                handleOpenDialog(method);
                             }}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Excluir
@@ -177,6 +187,17 @@ export default function PaymentMethodsTable() {
                     defaultValues={editingItem ?? undefined}
                 />
             )}
+
+            <ConfirmationDialog
+                isOpen={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                onConfirm={handleDelete}
+                title="Excluir Metódo de Pagamento"
+                description="Tem certeza de que deseja excluir este Metódo de Pagamento?"
+                confirmText="Excluir"
+                cancelText="Cancelar"
+                variant="destructive"
+            />
         </div>
     )
 }

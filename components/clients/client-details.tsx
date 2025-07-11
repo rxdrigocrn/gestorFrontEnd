@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -17,20 +17,97 @@ import {
 } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { AddPaymentModal } from "@/components/clients/add-payment-modal"
-import { ClientResponse } from '@/types/client'
+import { ClientCreate, ClientPayment, ClientResponse, ClientUpdate } from '@/types/client'
+import { format } from 'date-fns'
+import { ClientFormData } from '@/lib/schemas/clientFormSchema'
+import { AddClientModal } from './add-client-modal'
+import { useClientStore } from '@/store/clientStore'
+import { ConfirmationDialog } from '../ui/confirmModal'
+import { useRouter } from 'next/navigation'
 
 interface ClientDetailsProps {
   clientData: ClientResponse
 }
 
 export function ClientDetails({ clientData }: ClientDetailsProps) {
+  const [showAddModal, setShowAddModal] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [editingItem, setEditingItem] = useState<ClientResponse | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const router = useRouter()
+  const { fetchItems: fetchClients, items: clients, isLoading, error, createItem, updateItem, deleteItem, addPaymentToClient } = useClientStore()
+
+  useEffect(() => {
+    fetchClients()
+  }, [])
 
   const renderField = (value: any, isDate = false) => {
     if (!value) return 'Não informado'
     if (isDate && value instanceof Date) return value.toLocaleDateString()
     return value
   }
+
+  const handleSubmit = async (formData: ClientFormData) => {
+    try {
+      if (clientData.id) {
+        await updateItem(clientData.id, formData as ClientUpdate)
+      } else {
+        await createItem(formData as ClientCreate)
+      }
+
+      setShowAddModal(false)
+      setEditingItem(null)
+      fetchClients()
+    } catch (error) {
+      console.error('Erro ao salvar cliente:', error)
+    }
+  }
+
+  const handleEdit = () => {
+    setEditingItem(clientData)
+    setShowAddModal(true)
+  }
+
+  const handleDelete = async () => {
+    try {
+      await deleteItem(clientData.id)
+      router.push('/clientes')
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Erro ao deletar cliente:', error)
+      setIsDialogOpen(false);
+    }
+  }
+
+  const handleAddPayment = () => {
+    setShowPaymentModal(true)
+  }
+
+  const handlePaymentSubmit = async (data: ClientPayment) => {
+    try {
+      if (!clientData) {
+        throw new Error('Nenhum cliente selecionado para adicionar pagamento.')
+      }
+      await addPaymentToClient(clientData.id, data)
+      setShowPaymentModal(false)
+      setEditingItem(null)
+      fetchClients()
+    } catch (error) {
+      console.error('Erro ao salvar pagamento:', error)
+    }
+  }
+
+  const handleModalChange = (isOpen: boolean) => {
+    setShowAddModal(isOpen)
+
+  }
+
+  const handlePaymentModalChange = (isOpen: boolean) => {
+    setShowPaymentModal(isOpen)
+
+  }
+
+
 
   return (
     <div className="container mx-auto px-4 space-y-6">
@@ -44,7 +121,7 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
           <Button
             variant="outline"
             className="flex-1 sm:flex-none bg-green-500/10 text-green-500 hover:bg-green-500/20"
-            onClick={() => setShowPaymentModal(true)}
+            onClick={handleAddPayment}
           >
             <CreditCard className="w-4 h-4 mr-2" />
             Add Pagamento
@@ -57,13 +134,13 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg sm:text-xl font-bold">Informações do Cliente</CardTitle>
             <div className="flex gap-2">
-              <Button variant="outline" size="icon" className="bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20">
+              {/* <Button variant="outline" size="icon" className="bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20">
                 <AlertCircle className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20">
+              </Button> */}
+              <Button variant="outline" size="icon" onClick={handleEdit} className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20">
                 <Edit2 className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" className="bg-red-500/10 text-red-500 hover:bg-red-500/20">
+              <Button variant="outline" size="icon" onClick={() => setIsDialogOpen(true)} className="bg-red-500/10 text-red-500 hover:bg-red-500/20">
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
@@ -81,10 +158,10 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
                     <p className="font-medium break-words">{clientData.username}</p>
                   </div>
                 )}
-                {clientData.dueDate && (
+                {clientData.expiresAt && (
                   <div>
                     <p className="text-sm text-muted-foreground">Vencimento</p>
-                    <p className="font-medium break-words">{renderField(clientData.dueDate, true)}</p>
+                    <p className="font-medium break-words">{clientData.expiresAt ? format(new Date(clientData.expiresAt), 'dd/MM/yyyy') : 'N/A'}</p>
                   </div>
                 )}
                 {clientData.leadSourceId && (
@@ -93,10 +170,10 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
                     <p className="font-medium break-words">{renderField(clientData.leadSourceId)}</p>
                   </div>
                 )}
-                {clientData.serverId && (
+                {clientData.server && (
                   <div>
                     <p className="text-sm text-muted-foreground">Servidor</p>
-                    <p className="font-medium break-words">{renderField(clientData.serverId)}</p>
+                    <p className="font-medium break-words">{renderField(clientData.server.name)}</p>
                   </div>
                 )}
                 {clientData.phone && (
@@ -117,10 +194,10 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
                     <p className="font-medium break-words">{renderField(clientData.applicationId)}</p>
                   </div>
                 )}
-                {clientData.planId && (
+                {clientData.plan && (
                   <div>
                     <p className="text-sm text-muted-foreground">Plano</p>
-                    <p className="font-medium break-words">{renderField(clientData.planId)}</p>
+                    <p className="font-medium break-words">{renderField(clientData.plan.name)}</p>
                   </div>
                 )}
                 {clientData.amount && (
@@ -132,7 +209,7 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
                 {clientData.paymentMethodId && (
                   <div>
                     <p className="text-sm text-muted-foreground">Forma de Pagamento</p>
-                    <p className="font-medium break-words">{renderField(clientData.paymentMethodId)}</p>
+                    <p className="font-medium break-words">{renderField(clientData.paymentMethod.name)}</p>
                   </div>
                 )}
                 {clientData.screens && (
@@ -141,10 +218,10 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
                     <p className="font-medium break-words">{renderField(clientData.screens)}</p>
                   </div>
                 )}
-                {clientData.dueDate && (
+                {clientData.createdAt && (
                   <div>
                     <p className="text-sm text-muted-foreground">Data de Cadastro</p>
-                    <p className="font-medium break-words">{renderField(clientData.dueDate, true)}</p>
+                    <p className="font-medium break-words">{renderField(clientData.createdAt ? format(new Date(clientData.createdAt), 'dd/MM/yyyy') : 'N/A')}</p>
                   </div>
                 )}
                 {clientData.status && (
@@ -301,10 +378,33 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
         </CardContent>
       </Card> */}
 
-      <AddPaymentModal
-        open={showPaymentModal}
-        onOpenChange={setShowPaymentModal}
+      <ConfirmationDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onConfirm={handleDelete}
+        title="Confirmar exclusão"
+        description="Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        variant="destructive"
       />
+
+      {showAddModal && (
+        <AddClientModal
+          open={showAddModal}
+          onOpenChange={handleModalChange}
+          onConfirm={handleSubmit}
+          defaultValues={editingItem || undefined}
+        />
+      )}
+
+      {showPaymentModal && (
+        <AddPaymentModal
+          open={showPaymentModal}
+          onOpenChange={handlePaymentModalChange}
+          onConfirm={handlePaymentSubmit}
+          defaultValues={editingItem || undefined}
+        />
+      )}
     </div>
   )
 }

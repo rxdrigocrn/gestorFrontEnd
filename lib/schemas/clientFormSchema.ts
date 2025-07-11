@@ -14,11 +14,9 @@ export const clientFormSchema = z.object({
     username: z.string().min(1, "Username is required"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     email: z.string().email("Invalid email address").optional().nullable(),
-    phone: z.string().optional().nullable(),
+    phone: z.string(),
     phone2: z.string().optional().nullable(),
-    dueDate: z.date().optional(),
-    dueTime: z.date().optional(),
-    expiresAt: z.string().optional().nullable(),
+    expiresAt: z.string(),
     notes: z.string().optional().nullable(),
 
     // Payment
@@ -35,10 +33,10 @@ export const clientFormSchema = z.object({
 
     // Additional Info
     leadSourceId: z.string().optional().nullable(),
-    referredBy: z.string().optional().nullable(),
+    referredBy: z.string().optional().nullable(), // Vai ser um id de cliente cadastrado
     deviceId: z.string().optional().nullable(),
     applicationId: z.string().optional().nullable(),
-    appDate: z.date().optional().nullable(),
+    appDate: z.string().optional().nullable(),
     m3u: z.string().optional().nullable(),
     mac: z.string().optional().nullable(),
     deviceKey: z.string().optional().nullable(),

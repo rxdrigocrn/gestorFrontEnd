@@ -1,5 +1,6 @@
 "use client"
 
+import React from 'react'
 import { ArrowDownIcon, ArrowUpIcon, DollarSign, Users, TrendingUp, Clock } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -28,19 +29,19 @@ function StatsCard({ title, value, description, icon, trend }: StatsCardProps) {
         <div className="text-2xl font-bold">{value}</div>
         <div className="flex items-center text-xs text-muted-foreground">
           {trend && (
-            <>
-              <span className={cn(
+            <span
+              className={cn(
                 "mr-1 flex items-center",
                 trend.isPositive ? "text-green-500" : "text-red-500"
-              )}>
-                {trend.isPositive ? (
-                  <ArrowUpIcon className="mr-1 h-3 w-3" />
-                ) : (
-                  <ArrowDownIcon className="mr-1 h-3 w-3" />
-                )}
-                {trend.value}
-              </span>
-            </>
+              )}
+            >
+              {trend.isPositive ? (
+                <ArrowUpIcon className="mr-1 h-3 w-3" />
+              ) : (
+                <ArrowDownIcon className="mr-1 h-3 w-3" />
+              )}
+              {trend.value}
+            </span>
           )}
           <CardDescription className="text-xs">{description}</CardDescription>
         </div>
@@ -49,51 +50,11 @@ function StatsCard({ title, value, description, icon, trend }: StatsCardProps) {
   )
 }
 
-export default function DashboardStats() {
-  // This would normally come from an API or state
-  const stats = [
-    {
-      title: "Total Revenue",
-      value: "R$ 45.231,89",
-      description: "compared to last month",
-      icon: <DollarSign className="h-5 w-5" />,
-      trend: {
-        value: "12.5%",
-        isPositive: true
-      }
-    },
-    {
-      title: "Active Clients",
-      value: "853",
-      description: "active subscribers",
-      icon: <Users className="h-5 w-5" />,
-      trend: {
-        value: "7.2%",
-        isPositive: true
-      }
-    },
-    {
-      title: "Growth Rate",
-      value: "15.8%",
-      description: "monthly growth rate",
-      icon: <TrendingUp className="h-5 w-5" />,
-      trend: {
-        value: "2.3%",
-        isPositive: true
-      }
-    },
-    {
-      title: "Average Retention",
-      value: "9.2 months",
-      description: "client retention period",
-      icon: <Clock className="h-5 w-5" />,
-      trend: {
-        value: "5.5%",
-        isPositive: true
-      }
-    }
-  ]
+interface DashboardStatsProps {
+  stats: StatsCardProps[]
+}
 
+export default function DashboardStats({ stats }: DashboardStatsProps) {
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
       {stats.map((stat, index) => (

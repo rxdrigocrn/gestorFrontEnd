@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { format } from 'date-fns'
+import { format } from "date-fns"
+import { isValid } from "date-fns"
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { CalendarIcon } from 'lucide-react'
@@ -41,7 +42,6 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
     watch,
     reset
   } = useForm<ClientFormData>({
@@ -68,30 +68,46 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
     fetchServers()
   }, [])
 
-
   const onSubmit = (data: ClientFormData) => {
-    const backendData = {
-      ...data,
-      expiresAt: data.dueDate ? `${format(data.dueDate, 'yyyy-MM-dd')}T${data.dueTime || '00:00:00'}.000Z` : undefined,
+    if (data.expiresAt) {
+      const parsedDate = new Date(data.expiresAt)
+      if (isValid(parsedDate)) {
+        data.expiresAt = parsedDate.toISOString()
+      } else {
+        console.error('Invalid expiration date:', data.expiresAt)
+        return
+      }
     }
-
-    const { dueDate, dueTime, ...rest } = backendData
-
-    onConfirm({
-      ...rest,
-      expiresAt: backendData.expiresAt
-    })
+    onConfirm(data)
   }
+
 
   const onInvalid = (errors: any) => {
     console.error('Form validation errors:', errors)
   }
 
   useEffect(() => {
-    if (open) {
-      reset(defaultValues || {});
+    if (open && defaultValues) {
+      reset({
+        ...defaultValues,
+        expiresAt: defaultValues.expiresAt
+          ? new Date(defaultValues.expiresAt).toISOString().slice(0, 16)
+          : '',
+        amount: defaultValues.amount ?? 0,
+        credit: defaultValues.credit ?? 0,
+        screens: defaultValues.screens ?? 0,
+        totalCost: defaultValues.totalCost ?? 0,
+      })
+    } else if (open) {
+      reset({
+        addPayment: "yes",
+        sendMessage: "yes",
+      })
     }
-  }, [open, defaultValues, reset]);
+  }, [open, defaultValues, reset])
+
+
+
 
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="Adicionar Novo Cliente" maxWidth="3xl">
@@ -126,7 +142,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
+                <Label htmlFor="password">Senha (Opcional)</Label>
                 <Input
                   id="password"
                   type="password"
@@ -168,47 +184,17 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
               </div>
 
               <div className="space-y-2">
-                <Label>Data de Vencimento</Label>
-                <Controller
-                  name="dueDate"
-                  control={control}
-                  render={({ field }) => (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {field.value ? format(field.value, "PPP") : "Pick a date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value ?? undefined}
-                          onSelect={field.onChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  )}
+                <Label>Data e Hora de Vencimento</Label>
+                <Input
+                  type="datetime-local"
+                  {...register('expiresAt')}
+                  className="w-full"
                 />
-                {errors.dueDate && <p className="text-sm text-red-500">{errors.dueDate.message}</p>}
+                {errors.expiresAt && (
+                  <p className="text-sm text-red-500">{errors.expiresAt.message}</p>
+                )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="dueTime">Hora de Vencimento</Label>
-                <Input
-                  id="dueTime"
-                  type="time"
-                  {...register('dueTime')}
-                />
-                {errors.dueTime && <p className="text-sm text-red-500">{errors.dueTime.message}</p>}
-              </div>
             </div>
 
             <div className="space-y-2">
@@ -389,7 +375,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="no" id="sendMessage-no" />
-                        <Label htmlFor="sendMessage-no">ão</Label>
+                        <Label htmlFor="sendMessage-no">Não</Label>
                       </div>
                     </RadioGroup>
                   )}
@@ -423,7 +409,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="referredBy">Referido Por</Label>
+                <Label htmlFor="referredBy">Indicado Por</Label>
                 <Input
                   id="referredBy"
                   {...register('referredBy')}
@@ -497,10 +483,11 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value ?? undefined}
-                          onSelect={field.onChange}
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={(date) => field.onChange(date)}
                           initialFocus
                         />
+
                       </PopoverContent>
                     </Popover>
                   )}

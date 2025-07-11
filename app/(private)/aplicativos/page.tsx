@@ -19,11 +19,11 @@ import { GenericFilters } from '@/components/table/GenericFilters'
 import AddApplicationModal from '@/components/application/add-app-modal'
 import { ApplicationCreate, ApplicationResponse, ApplicationUpdate } from '@/types/application'
 import { ApplicationFormData } from '@/lib/schemas/applicationSchema'
+import { ConfirmationDialog } from '@/components/ui/confirmModal'
 
 export default function ApplicationsTable() {
     const router = useRouter()
 
-    // Desestruture da store tudo que precisa
     const {
         items: applications,
         fetchItems: fetchApplications,
@@ -38,6 +38,7 @@ export default function ApplicationsTable() {
     const [filters, setFilters] = useState<{ [key: string]: string }>({})
     const [showAddModal, setShowAddModal] = useState(false)
     const [editingItem, setEditingItem] = useState<ApplicationResponse | null>(null)
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     useEffect(() => {
         fetchApplications()
@@ -70,15 +71,23 @@ export default function ApplicationsTable() {
         setShowAddModal(true)
     }
 
-    const handleDelete = async (applicationId: string) => {
-        if (confirm('Tem certeza que deseja excluir este aplicativo?')) {
-            try {
-                await deleteItem(applicationId)
+    const handleDelete = async () => {
+        try {
+            if (editingItem && editingItem.id) {
+                await deleteItem(editingItem.id)
+                setEditingItem(null)
                 fetchApplications()
-            } catch (error) {
-                console.error('Erro ao excluir aplicativo:', error)
+            } else {
+                console.error('Nenhum cliente selecionado para exclusão.')
             }
+        } catch (error) {
+            console.error('Erro ao excluir cliente:', error)
         }
+    }
+
+    const handleOpenDialog = (app: ApplicationResponse) => {
+        setIsDialogOpen(true);
+        setEditingItem(app);
     }
 
     const handleModalChange = (isOpen: boolean) => {
@@ -158,7 +167,7 @@ export default function ApplicationsTable() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-destructive cursor-pointer" onClick={(e) => {
                                 e.stopPropagation();
-                                handleDelete(application.id)
+                                handleOpenDialog(application);
                             }}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Excluir
@@ -172,6 +181,17 @@ export default function ApplicationsTable() {
             {showAddModal && (
                 <AddApplicationModal open={showAddModal} onOpenChange={handleModalChange} onConfirm={handleSubmit} defaultValues={editingItem ?? undefined} />
             )}
+
+            <ConfirmationDialog
+                isOpen={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                onConfirm={handleDelete}
+                title="Excluir aplicativo"
+                description="Tem certeza de que deseja excluir este aplicativo?"
+                confirmText="Excluir"
+                cancelText="Cancelar"
+                variant="destructive"
+            />
         </div>
     )
 }

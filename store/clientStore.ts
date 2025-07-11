@@ -11,9 +11,12 @@ import {
     ClientResponse,
     ClientCreate,
     ClientUpdate,
+    ClientPayment,
 } from '@/types/client'
+import { api } from '@/services/api'
 
-export const useClientStore = createGenericStore<ClientResponse, ClientCreate, ClientUpdate>(
+// Cria store base
+const baseStore = createGenericStore<ClientResponse, ClientCreate, ClientUpdate>(
     'clients',
     {
         fetchAll,
@@ -24,3 +27,16 @@ export const useClientStore = createGenericStore<ClientResponse, ClientCreate, C
     }
 )
 
+export const useClientStore = () => {
+    const store = baseStore()
+
+    const addPaymentToClient = async (clientId: string, data: any) => {
+        const response = await api.post(`/payments/client/${clientId}`, data)
+        return response.data
+    }
+
+    return {
+        ...store,
+        addPaymentToClient,
+    }
+}

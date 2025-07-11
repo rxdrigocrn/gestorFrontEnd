@@ -14,21 +14,24 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Eye, Edit, Trash2, MessageCircle, PlusCircle } from 'lucide-react'
+import { MoreHorizontal, Eye, Edit, Trash2, MessageCircle, PlusCircle, CreditCard } from 'lucide-react'
 import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddClientModal } from '@/components/clients/add-client-modal'
-import { createItem } from '@/services/api-services'
-import { ClientCreate, ClientResponse, ClientUpdate, } from '@/types/client'
+import { ClientCreate, ClientPayment, ClientResponse, ClientUpdate } from '@/types/client'
+import { format } from 'date-fns'
 import { ClientFormData } from '@/lib/schemas/clientFormSchema'
+import { AddPaymentModal } from '@/components/clients/add-payment-modal'
+import { ConfirmationDialog } from '@/components/ui/confirmModal'
 
 export default function ClientsTable() {
   const router = useRouter()
-  const { fetchItems: fetchClients, items: clients, isLoading, error, createItem, updateItem, deleteItem } = useClientStore()
-
+  const { fetchItems: fetchClients, items: clients, isLoading, error, createItem, updateItem, deleteItem, addPaymentToClient } = useClientStore()
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState<{ [key: string]: string }>({})
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [editingItem, setEditingItem] = useState<ClientResponse | null>(null)
 
   useEffect(() => {
@@ -54,44 +57,81 @@ export default function ClientsTable() {
 
     return matchesSearch && matchesPlan
   })
-  const handleSubmit = async (data: ClientFormData) => {
+
+  const handleSubmit = async (formData: ClientFormData) => {
     try {
-      if (data.id) {
-        await updateItem(data.id, data as ClientUpdate)
+      if (formData.id) {
+        await updateItem(formData.id, formData as ClientUpdate)
       } else {
-        await createItem(data as ClientCreate)
+        await createItem(formData as ClientCreate)
       }
+
       setShowAddModal(false)
       setEditingItem(null)
       fetchClients()
     } catch (error) {
-      console.error('Erro ao salvar aplicativo:', error)
-
+      console.error('Erro ao salvar cliente:', error)
     }
   }
 
-  const handleEdit = (application: ClientResponse) => {
-    setEditingItem(application)
+  const handleEdit = (client: ClientResponse) => {
+    setEditingItem(client)
     setShowAddModal(true)
   }
 
-  const handleDelete = async (applicationId: string) => {
-    if (confirm('Tem certeza que deseja excluir este aplicativo?')) {
-      try {
-        await deleteItem(applicationId)
+  const handleDelete = async () => {
+    try {
+      if (editingItem && editingItem.id) {
+        await deleteItem(editingItem.id)
+        setEditingItem(null)
         fetchClients()
-      } catch (error) {
-        console.error('Erro ao excluir aplicativo:', error)
+      } else {
+        console.error('Nenhum cliente selecionado para exclusão.')
       }
+    } catch (error) {
+      console.error('Erro ao excluir cliente:', error)
+    }
+  }
+
+  const handleOpenDialog = (client: ClientResponse) => {
+    setIsDialogOpen(true);
+    setEditingItem(client);
+  }
+
+  const handleAddPayment = (client: ClientResponse) => {
+    setShowPaymentModal(true)
+    setEditingItem(client)
+  }
+
+  const handlePaymentSubmit = async (data: ClientPayment) => {
+    try {
+      if (!editingItem) {
+        throw new Error('Nenhum cliente selecionado para adicionar pagamento.')
+      }
+      await addPaymentToClient(editingItem.id, data)
+      setShowPaymentModal(false)
+      setEditingItem(null)
+      fetchClients()
+    } catch (error) {
+      console.error('Erro ao salvar pagamento:', error)
     }
   }
 
   const handleModalChange = (isOpen: boolean) => {
-    setShowAddModal(isOpen);
+    setShowAddModal(isOpen)
     if (!isOpen) {
-      setEditingItem(null);
+      setEditingItem(null)
     }
-  };
+  }
+
+  const handlePaymentModalChange = (isOpen: boolean) => {
+    setShowPaymentModal(isOpen)
+    if (!isOpen) {
+      setEditingItem(null)
+    }
+  }
+
+
 
   if (isLoading) return <p>Carregando clientes...</p>
   if (error) return <p className="text-red-600">Erro: {error}</p>
@@ -100,10 +140,10 @@ export default function ClientsTable() {
     <div className="space-y-4">
       {/* Cabeçalho */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-        <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
         <Button onClick={() => setShowAddModal(true)}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add New Client
+          Adicionar Cliente
         </Button>
       </div>
 
@@ -122,15 +162,6 @@ export default function ClientsTable() {
             name: 'planId',
             options: planOptions,
           },
-          // {
-          //   label: 'Status',
-          //   name: 'status',
-          //   options: [
-          //     { value: 'active', label: 'Ativo' },
-          //     { value: 'inactive', label: 'Inativo' },
-          //     { value: 'pending', label: 'Pendente' },
-          //   ],
-          // },
         ]}
       />
 
@@ -158,6 +189,10 @@ export default function ClientsTable() {
             header: 'Plano',
             accessor: (client) => client.plan?.name ?? 'Sem plano',
           },
+          {
+            header: 'Expiração',
+            accessor: (client) => client.expiresAt ? format(new Date(client.expiresAt), 'dd/MM/yyyy HH:mm') : '-',
+          },
         ]}
         actions={(client) => (
           <DropdownMenu>
@@ -176,8 +211,15 @@ export default function ClientsTable() {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={(e) => {
                 e.stopPropagation()
+                handleAddPayment(client)
+              }}>
+                <CreditCard className="mr-2 h-4 w-4" />
+                Adicionar Pagamento
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => {
+                e.stopPropagation()
                 handleEdit(client)
-              }} >
+              }}>
                 <Edit className="mr-2 h-4 w-4" />
                 Editar
               </DropdownMenuItem>
@@ -188,7 +230,7 @@ export default function ClientsTable() {
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive" onClick={(e) => {
                 e.stopPropagation()
-                handleDelete(client.id)
+                handleOpenDialog(client)
               }}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Excluir
@@ -200,8 +242,33 @@ export default function ClientsTable() {
 
       {/* Modal */}
       {showAddModal && (
-        <AddClientModal open={showAddModal} onOpenChange={handleModalChange} onConfirm={handleSubmit} defaultValues={editingItem ?? undefined} />
+        <AddClientModal
+          open={showAddModal}
+          onOpenChange={handleModalChange}
+          onConfirm={handleSubmit}
+          defaultValues={editingItem || undefined}
+        />
       )}
+
+      {showPaymentModal && (
+        <AddPaymentModal
+          open={showPaymentModal}
+          onOpenChange={handlePaymentModalChange}
+          onConfirm={handlePaymentSubmit}
+          defaultValues={editingItem || undefined}
+        />
+      )}
+
+
+      <ConfirmationDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onConfirm={handleDelete}
+        title="Confirmar exclusão"
+        description="Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        variant="destructive"
+      />
     </div>
   )
 }

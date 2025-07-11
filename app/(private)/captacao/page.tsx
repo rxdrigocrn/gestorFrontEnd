@@ -19,6 +19,7 @@ import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddLeadModal } from '@/components/leads/add-leads-modal'
 import { LeadSourceCreate, LeadSourceResponse, LeadSourceUpdate } from '@/types/lead'
 import { LeadFormData } from '@/lib/schemas/leadSchema'
+import { ConfirmationDialog } from '@/components/ui/confirmModal'
 
 export default function LeadsTable() {
     const router = useRouter()
@@ -38,6 +39,7 @@ export default function LeadsTable() {
     const [filters, setFilters] = useState<{ [key: string]: string }>({})
     const [showAddModal, setShowAddModal] = useState(false)
     const [editingItem, setEditingItem] = useState<LeadSourceResponse | null>(null)
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     useEffect(() => {
         fetchLeads()
@@ -70,16 +72,25 @@ export default function LeadsTable() {
         setShowAddModal(true)
     }
 
-    const handleDelete = async (leadId: string) => {
-        if (confirm('Tem certeza que deseja excluir este lead?')) {
-            try {
-                await deleteItem(leadId)
+    const handleDelete = async () => {
+        try {
+            if (editingItem && editingItem.id) {
+                await deleteItem(editingItem.id)
+                setEditingItem(null)
                 fetchLeads()
-            } catch (error) {
-                console.error('Erro ao excluir lead:', error)
+            } else {
+                console.error('Nenhum cliente selecionado para exclusão.')
             }
+        } catch (error) {
+            console.error('Erro ao excluir cliente:', error)
         }
     }
+
+    const handleOpenDialog = (lead: LeadSourceResponse) => {
+        setIsDialogOpen(true);
+        setEditingItem(lead);
+    }
+
 
     const handleModalChange = (isOpen: boolean) => {
         setShowAddModal(isOpen);
@@ -161,7 +172,7 @@ export default function LeadsTable() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-destructive cursor-pointer" onClick={(e) => {
                                 e.stopPropagation()
-                                handleDelete(lead.id)
+                                handleOpenDialog(lead)
                             }}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Excluir
@@ -175,6 +186,17 @@ export default function LeadsTable() {
             {showAddModal && (
                 <AddLeadModal open={showAddModal} onOpenChange={handleModalChange} onConfirm={handleSubmit} defaultValues={editingItem ?? undefined} />
             )}
+
+            <ConfirmationDialog
+                isOpen={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                onConfirm={handleDelete}
+                title="Excluir Lead"
+                description="Tem certeza de que deseja excluir este lead?"
+                confirmText="Excluir"
+                cancelText="Cancelar"
+                variant="destructive"
+            />
         </div>
     )
 }

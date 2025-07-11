@@ -19,6 +19,7 @@ import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddPlanModal } from '@/components/planos/add-plan-modal'
 import { PlanCreate, PlanResponse, PlanUpdate } from '@/types/plan'
 import { PlanFormData } from '@/lib/schemas/planSchema'
+import { ConfirmationDialog } from '@/components/ui/confirmModal'
 
 export default function PlansTable() {
     const router = useRouter()
@@ -37,6 +38,7 @@ export default function PlansTable() {
     const [filters, setFilters] = useState<{ [key: string]: string }>({})
     const [showAddModal, setShowAddModal] = useState(false)
     const [editingItem, setEditingItem] = useState<PlanResponse | null>(null)
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     useEffect(() => {
         fetchPlans()
@@ -69,13 +71,23 @@ export default function PlansTable() {
         setShowAddModal(true)
     }
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = async () => {
         try {
-            await deleteItem(id)
-            fetchPlans()
+            if (editingItem && editingItem.id) {
+                await deleteItem(editingItem.id)
+                setEditingItem(null)
+                fetchPlans()
+            } else {
+                console.error('Nenhum cliente selecionado para exclusão.')
+            }
         } catch (error) {
-            console.error('Erro ao excluir plano:', error)
+            console.error('Erro ao excluir cliente:', error)
         }
+    }
+
+    const handleOpenDialog = (plan: PlanResponse) => {
+        setIsDialogOpen(true);
+        setEditingItem(plan);
     }
 
     const handleModalChange = (isOpen: boolean) => {
@@ -152,7 +164,7 @@ export default function PlansTable() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-destructive cursor-pointer" onClick={(e) => {
                                 e.stopPropagation() // Impede o clique de "borbulhar" para a linha
-                                handleDelete(plan.id)
+                                handleOpenDialog(plan)
                             }}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Excluir
@@ -166,6 +178,17 @@ export default function PlansTable() {
             {showAddModal && (
                 <AddPlanModal open={showAddModal} onOpenChange={handleModalChange} onConfirm={handleSubmit} defaultValues={editingItem ?? undefined} />
             )}
+
+            <ConfirmationDialog
+                isOpen={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                onConfirm={handleDelete}
+                title="Confirmar exclusão"
+                description="Tem certeza de que deseja excluir este plano?"
+                confirmText="Excluir"
+                cancelText="Cancelar"
+                variant="destructive"
+            />
         </div>
     )
 }

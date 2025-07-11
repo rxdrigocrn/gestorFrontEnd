@@ -1,3 +1,4 @@
+import { PaymentMethodResponse } from './paymentMethod'
 import { PlanResponse } from './plan'
 import { ServerResponse } from './server'
 export type ClientBase = {
@@ -30,10 +31,8 @@ export type ClientResponse = {
     email: string
     status: 'active' | 'inactive' | 'pending'
     expiresAt: string
-    dueDate?: Date
-    dueTime?: Date
     notes?: string
-    appDate?: Date
+    appDate?: string
     birthDate?: string
     m3u?: string
     mac?: string
@@ -58,6 +57,7 @@ export type ClientResponse = {
     updatedAt?: string
     server: ServerResponse
     plan: PlanResponse
+    paymentMethod: PaymentMethodResponse
     registeredBy?: {
         name: string
         email: string
@@ -72,6 +72,18 @@ export type ClientResponse = {
     }
 }
 
+
+export type ClientPayment = {
+    amount: number;
+    paidAt: string;
+    dueDate: string;
+    paymentMethodId: string;
+    discount: number;
+    surcharge: number;
+    notes: string;
+    sendReceipt: boolean;
+    renewClient: boolean;
+}
 
 
 

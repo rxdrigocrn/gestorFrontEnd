@@ -31,3 +31,7 @@ export default function RootLayout({
         </html>
     )
 }
+export const metadata = {
+    title: 'Gestor de Clientes',
+    description: 'Gerencie seus clientes de forma eficiente e organizada.',
+}
