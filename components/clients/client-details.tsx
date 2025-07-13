@@ -13,17 +13,19 @@ import {
   MessageCircle,
   Clock,
   Users,
-  DollarSign
+  DollarSign,
+  MoreVertical
 } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { AddPaymentModal } from "@/components/clients/add-payment-modal"
 import { ClientCreate, ClientPayment, ClientResponse, ClientUpdate } from '@/types/client'
-import { format } from 'date-fns'
+import { format, set } from 'date-fns'
 import { ClientFormData } from '@/lib/schemas/clientFormSchema'
 import { AddClientModal } from './add-client-modal'
 import { useClientStore } from '@/store/clientStore'
 import { ConfirmationDialog } from '../ui/confirmModal'
 import { useRouter } from 'next/navigation'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu'
 
 interface ClientDetailsProps {
   clientData: ClientResponse
@@ -33,16 +35,21 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
   const [showAddModal, setShowAddModal] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [editingItem, setEditingItem] = useState<ClientResponse | null>(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [showPaymentDetail, setShowPaymentDetail] = useState(false)
+  const [editingPayment, setEditingPayment] = useState<ClientPayment | null>(null)
+  const [isDialogPayment, setIsDialogPayment] = useState(false);
   const router = useRouter()
-  const { fetchItems: fetchClients, items: clients, isLoading, error, createItem, updateItem, deleteItem, addPaymentToClient } = useClientStore()
+  const payments: ClientPayment[] = clientData?.payments ?? [];
+
+  const { fetchItems: fetchClients, items: clients, isLoading, error, createItem, updateItem, deleteItem, addPaymentToClient, updatePaymentToClient, deletePaymentToClient } = useClientStore()
 
   useEffect(() => {
     fetchClients()
   }, [])
 
   const renderField = (value: any, isDate = false) => {
-    if (!value) return 'Não informado'
+    if (!value) return '-'
     if (isDate && value instanceof Date) return value.toLocaleDateString()
     return value
   }
@@ -88,8 +95,13 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
       if (!clientData) {
         throw new Error('Nenhum cliente selecionado para adicionar pagamento.')
       }
-      await addPaymentToClient(clientData.id, data)
+      if (editingPayment && editingPayment.id) {
+        await updatePaymentToClient(editingPayment.id, data as ClientPayment)
+      } else {
+        await addPaymentToClient(clientData.id, data)
+      }
       setShowPaymentModal(false)
+      setEditingPayment(null)
       setEditingItem(null)
       fetchClients()
     } catch (error) {
@@ -107,6 +119,35 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
 
   }
 
+  const viewDetails = (payment: ClientPayment) => {
+    setEditingPayment(payment)
+    setShowPaymentDetail(true)
+  }
+
+  const handleEditPayment = (payment: ClientPayment) => {
+    setEditingPayment(payment)
+    setShowPaymentModal(true)
+  }
+
+
+
+  const handleDeletePayment = async () => {
+    try {
+      if (editingPayment && editingPayment.id) {
+        await deletePaymentToClient(editingPayment.id)
+        setEditingPayment(null)
+      } else {
+        console.error('Nenhum cliente selecionado para exclusão.')
+      }
+    } catch (error) {
+      console.error('Erro ao excluir cliente:', error)
+    }
+  }
+
+  const handleOpenDialog = (payment: ClientPayment) => {
+    setIsDialogPayment(true);
+    setEditingPayment(payment);
+  }
 
 
   return (
@@ -164,10 +205,10 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
                     <p className="font-medium break-words">{clientData.expiresAt ? format(new Date(clientData.expiresAt), 'dd/MM/yyyy') : 'N/A'}</p>
                   </div>
                 )}
-                {clientData.leadSourceId && (
+                {clientData?.leadSource?.description && (
                   <div>
                     <p className="text-sm text-muted-foreground">Forma de Captação</p>
-                    <p className="font-medium break-words">{renderField(clientData.leadSourceId)}</p>
+                    <p className="font-medium break-words">{renderField(clientData.leadSource.description)}</p>
                   </div>
                 )}
                 {clientData.server && (
@@ -182,40 +223,34 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
                     <p className="font-medium break-words">{renderField(clientData.phone)}</p>
                   </div>
                 )}
-                {clientData.deviceId && (
+                {clientData.device?.name && (
                   <div>
                     <p className="text-sm text-muted-foreground">Dispositivo</p>
-                    <p className="font-medium break-words">{renderField(clientData.deviceId)}</p>
+                    <p className="font-medium break-words">{renderField(clientData.device?.name)}</p>
                   </div>
                 )}
-                {clientData.applicationId && (
+                {clientData.application && (
                   <div>
                     <p className="text-sm text-muted-foreground">Aplicativo</p>
-                    <p className="font-medium break-words">{renderField(clientData.applicationId)}</p>
+                    <p className="font-medium break-words">{renderField(clientData.application.name)}</p>
                   </div>
                 )}
                 {clientData.plan && (
                   <div>
                     <p className="text-sm text-muted-foreground">Plano</p>
-                    <p className="font-medium break-words">{renderField(clientData.plan.name)}</p>
-                  </div>
-                )}
-                {clientData.amount && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Valor Combinado</p>
-                    <p className="font-medium break-words">R$ {renderField(clientData.amount)}</p>
+                    <p className="font-medium break-words">{renderField(clientData.plan?.name)}</p>
                   </div>
                 )}
                 {clientData.paymentMethodId && (
                   <div>
                     <p className="text-sm text-muted-foreground">Forma de Pagamento</p>
-                    <p className="font-medium break-words">{renderField(clientData.paymentMethod.name)}</p>
+                    <p className="font-medium break-words">{renderField(clientData.paymentMethod?.name)}</p>
                   </div>
                 )}
-                {clientData.screens && (
+                {clientData?.screens && (
                   <div>
                     <p className="text-sm text-muted-foreground">Telas</p>
-                    <p className="font-medium break-words">{renderField(clientData.screens)}</p>
+                    <p className="font-medium break-words">{clientData?.screens}</p>
                   </div>
                 )}
                 {clientData.createdAt && (
@@ -250,7 +285,7 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
         </Card>
 
         <div className="space-y-6">
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="text-lg">Estatísticas</CardTitle>
             </CardHeader>
@@ -299,7 +334,7 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
                 <p className="text-lg text-muted-foreground">Nenhuma Estatística encontrada</p>
               </CardContent>
             )}
-          </Card>
+          </Card> */}
 
           <Card>
             <CardHeader>
@@ -329,43 +364,47 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
         </div>
       </div>
 
-      {/* <Card>
+      <Card>
         <CardHeader>
           <CardTitle className="text-lg sm:text-xl">Pagamentos</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
-          {clientData?.payments?.length > 0 ? (
+          {payments.length > 0 ? (
             <div className="min-w-[800px]">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="h-12 px-4 text-left align-middle font-medium">ID</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Plano</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Valor</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Forma De Pagamento</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Custo</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Créditos Gastos</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Telas</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Data Pagamento</th>
-                    <th className="h-12 px-4 text-right align-middle font-medium">Ações</th>
+                    <th className="h-12 px-4 text-left align-middle text-xs">Valor</th>
+                    <th className="h-12 px-4 text-left align-middle text-xs">Data Pagamento</th>
+                    <th className="h-12 px-4 text-left align-middle text-xs">Desconto</th>
+                    <th className="h-12 px-4 text-left align-middle text-xs">Acréscimo</th>
+                    <th className="h-12 px-4 text-left align-middle text-xs">Observações</th>
+                    <th className="h-12 px-4 text-left align-middle text-xs">Enviar Recibo</th>
+                    <th className="h-12 px-4 text-left align-middle text-xs">Renovar Cliente</th>
+                    <th className="h-12 px-4 text-center align-middle text-xs">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {clientData.payments.map(payment => (
-                    <tr key={payment.id} className="border-b">
-                      <td className="p-4">{renderField(payment.id)}</td>
-                      <td className="p-4">{renderField(payment.plan)}</td>
-                      <td className="p-4">R$ {renderField(payment.amount)}</td>
-                      <td className="p-4">{renderField(payment.paymentMethod)}</td>
-                      <td className="p-4">R$ {renderField(payment.cost)}</td>
-                      <td className="p-4">{renderField(payment.creditsSpent)}</td>
-                      <td className="p-4">{renderField(payment.screens)}</td>
-                      <td className="p-4">{renderField(payment.paymentDate, true)}</td>
+                  {payments.map(payment => (
+                    <tr key={payment.id} className="border-b text-xs">
+                      <td className="p-4">{`R$ ${renderField(payment.amount.toFixed(2))}`}</td>
+                      <td className="p-4">{renderField(new Date(payment.paidAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }))}</td>
+                      <td className="p-4">{`R$ ${renderField(payment.discount.toFixed(2)) || 0}`}</td>
+                      <td className="p-4">{`R$ ${renderField(payment.surcharge.toFixed(2)) || 0}`}</td>
+                      <td className="p-4">{renderField(payment.notes)}</td>
+                      <td className="p-4">{renderField(payment.sendReceipt ? 'Sim' : 'Não')}</td>
+                      <td className="p-4">{renderField(payment.renewClient ? 'Sim' : 'Não')}</td>
                       <td className="p-4 text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm">Editar</Button>
-                          <Button variant="destructive" size="sm">Excluir</Button>
-                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <MoreVertical className="w-4 h-4" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent side="bottom" align="end">
+                            <DropdownMenuItem onClick={() => viewDetails(payment)}>Visualizar</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditPayment(payment)}>Editar</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenDialog(payment)} className="text-destructive">Excluir</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))}
@@ -376,7 +415,7 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
             <p className="text-muted-foreground text-center py-4">Nenhum pagamento encontrado</p>
           )}
         </CardContent>
-      </Card> */}
+      </Card>
 
       <ConfirmationDialog
         isOpen={isDialogOpen}
@@ -402,9 +441,19 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
           open={showPaymentModal}
           onOpenChange={handlePaymentModalChange}
           onConfirm={handlePaymentSubmit}
-          defaultValues={editingItem || undefined}
+          defaultValues={editingPayment || undefined}
         />
       )}
+
+      <ConfirmationDialog
+        isOpen={isDialogPayment}
+        onOpenChange={setIsDialogPayment}
+        onConfirm={handleDeletePayment}
+        title="Confirmar exclusão"
+        description="Tem certeza que deseja excluir este pagamento? Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        variant="destructive"
+      />
     </div>
   )
 }

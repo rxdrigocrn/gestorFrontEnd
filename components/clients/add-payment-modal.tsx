@@ -69,11 +69,11 @@ export function AddPaymentModal({
     },
   });
 
-   function formatDateTimeForInput(date: Date): string {
+  function formatDateTimeForInput(date: Date): string {
     return format(date, "yyyy-MM-dd'T'HH:mm");
   }
 
-   function parseDateTimeFromInput(dateTimeString: string): Date {
+  function parseDateTimeFromInput(dateTimeString: string): Date {
     return parseISO(dateTimeString);
   }
 
@@ -110,7 +110,6 @@ export function AddPaymentModal({
   }, [open, defaultValues, reset]);
 
   const onSubmit = async (data: PaymentFormValues) => {
-    // Converter as strings de data/hora para Date antes de enviar
     const paymentData = {
       ...data,
       paidAt: parseDateTimeFromInput(data.paidAt).toISOString(),

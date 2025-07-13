@@ -47,9 +47,8 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
-      addPayment: "yes",
-      sendMessage: "yes",
-    },
+      ...defaultValues
+    }
   })
 
   const { items: plans, fetchItems: fetchPlans } = usePlanStore()
@@ -93,20 +92,10 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
         expiresAt: defaultValues.expiresAt
           ? new Date(defaultValues.expiresAt).toISOString().slice(0, 16)
           : '',
-        amount: defaultValues.amount ?? 0,
-        credit: defaultValues.credit ?? 0,
         screens: defaultValues.screens ?? 0,
-        totalCost: defaultValues.totalCost ?? 0,
-      })
-    } else if (open) {
-      reset({
-        addPayment: "yes",
-        sendMessage: "yes",
       })
     }
   }, [open, defaultValues, reset])
-
-
 
 
   return (
@@ -184,7 +173,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
               </div>
 
               <div className="space-y-2">
-                <Label>Data e Hora de Vencimento</Label>
+                <Label>Data e Hora de Expiração</Label>
                 <Input
                   type="datetime-local"
                   {...register('expiresAt')}
@@ -195,6 +184,25 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 )}
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="location">Localização</Label>
+                <Input
+                  id="location"
+                  placeholder="Localização"
+                  {...register('location')}
+                />
+                {errors.location && <p className="text-sm text-red-500">{errors.location.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="time">Time</Label>
+                <Input
+                  id="time"
+                  placeholder="Time"
+                  {...register('time')}
+                />
+                {errors.time && <p className="text-sm text-red-500">{errors.time.message}</p>}
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -239,7 +247,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                   name="planId"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar plano" />
                       </SelectTrigger>
@@ -279,16 +287,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 {errors.paymentMethodId && <p className="text-sm text-red-500">{errors.paymentMethodId.message}</p>}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="amount">Valor</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  placeholder="0.00"
-                  {...register('amount', { valueAsNumber: true })}
-                />
-                {errors.amount && <p className="text-sm text-red-500">{errors.amount.message}</p>}
-              </div>
+
 
               <div className="space-y-2">
                 <Label htmlFor="screens">Número de Telas</Label>
@@ -301,27 +300,6 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 {errors.screens && <p className="text-sm text-red-500">{errors.screens.message}</p>}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="totalCost">Custo Total</Label>
-                <Input
-                  id="totalCost"
-                  type="number"
-                  placeholder="0.00"
-                  {...register('totalCost', { valueAsNumber: true })}
-                />
-                {errors.totalCost && <p className="text-sm text-red-500">{errors.totalCost.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="credit">Crédito</Label>
-                <Input
-                  id="credit"
-                  type="number"
-                  placeholder="0.00"
-                  {...register('credit', { valueAsNumber: true })}
-                />
-                {errors.credit && <p className="text-sm text-red-500">{errors.credit.message}</p>}
-              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="pix">PIX</Label>
@@ -333,55 +311,8 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Adicionar Pagamento</Label>
-                <Controller
-                  name="addPayment"
-                  control={control}
-                  render={({ field }) => (
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="flex space-x-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="yes" id="addPayment-yes" />
-                        <Label htmlFor="addPayment-yes">Sim</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="no" id="addPayment-no" />
-                        <Label htmlFor="addPayment-no">Não</Label>
-                      </div>
-                    </RadioGroup>
-                  )}
-                />
-              </div>
 
-              <div className="space-y-2">
-                <Label>Enviar Mensagem</Label>
-                <Controller
-                  name="sendMessage"
-                  control={control}
-                  render={({ field }) => (
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="flex space-x-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="yes" id="sendMessage-yes" />
-                        <Label htmlFor="sendMessage-yes">Sim</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="no" id="sendMessage-no" />
-                        <Label htmlFor="sendMessage-no">Não</Label>
-                      </div>
-                    </RadioGroup>
-                  )}
-                />
-              </div>
-            </div>
+
           </TabsContent>
 
           <TabsContent value="info" className="space-y-4">

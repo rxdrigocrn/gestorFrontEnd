@@ -35,8 +35,20 @@ export const useClientStore = () => {
         return response.data
     }
 
+    const updatePaymentToClient = async (paymentId: string, data: any) => {
+        const response = await api.patch(`/payments/${paymentId}`, data)
+        return response.data
+    }
+
+    const deletePaymentToClient = async (paymentId: string) => {
+        const response = await api.delete(`/payments/${paymentId}`)
+        return response.data
+    }
+
     return {
         ...store,
         addPaymentToClient,
+        updatePaymentToClient,
+        deletePaymentToClient,
     }
 }
