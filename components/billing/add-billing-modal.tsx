@@ -1,239 +1,168 @@
-"use client"
+'use client'
 
-import { Button } from '@/components/ui/button'
+import { useEffect } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { billingRuleSchema, BillingRuleFormData } from '@/lib/schemas/billingRulesSchema'
+
+import { Modal } from '@/components/ui/modal'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Modal } from '@/components/ui/modal'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { useMessageStore } from '@/store/messageStore'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select'
 
-interface AddBillingModalProps {
+interface AddBillingRuleModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onConfirm: (data: BillingRuleFormData) => Promise<void> | void
+  defaultValues?: Partial<BillingRuleFormData>
 }
 
-export function AddBillingModal({ open, onOpenChange }: AddBillingModalProps) {
+export function AddBillingRuleModal({
+  open,
+  onOpenChange,
+  onConfirm,
+  defaultValues,
+}: AddBillingRuleModalProps) {
+  const { fetchItems: fetchMessageTemplates, items: messageTemplates } = useMessageStore();
 
-  const messages = [
-    { id: '1', name: 'Lembrete de Pagamento' },
-    { id: '2', name: 'Boas-vindas' }
-  ]
+  useEffect(() => {
+    fetchMessageTemplates();
+  }, []);
 
-  const servers = [
-    { id: '1', name: 'ELITE' },
-    { id: '2', name: 'VIP' }
-  ]
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+    control,
+  } = useForm<BillingRuleFormData>({
+    resolver: zodResolver(billingRuleSchema),
+    defaultValues: {
+      name: '',
+      minIntervalDays: 0,
+      maxIntervalDays: 0,
+      messageTemplateId: '',
+      clientStatus: 'PAID',
+      ...defaultValues,
+    },
+  });
 
-  const devices = [
-    { id: '1', name: 'Smart TV' },
-    { id: '2', name: 'TV Box' }
-  ]
+  useEffect(() => {
+    if (open) {
+      reset({
+        name: '',
+        minIntervalDays: 0,
+        maxIntervalDays: 0,
+        messageTemplateId: '',
+        clientStatus: 'PAID',
+        ...defaultValues,
+      });
+    }
+  }, [open, defaultValues, reset]);
 
-  const plans = [
-    { id: '1', name: 'Mensal' },
-    { id: '2', name: 'Trimestral' }
-  ]
+  const onSubmit = async (data: BillingRuleFormData) => {
+    await onConfirm(data);
+  };
 
-  const apps = [
-    { id: '1', name: 'QuickPlayer' },
-    { id: '2', name: 'IPTV Pro' }
-  ]
-
-  const paymentMethods = [
-    { id: '1', name: 'PIX' },
-    { id: '2', name: 'Cartão' }
-  ]
+  const onInvalid = (errors: any) => {
+    console.error('Form errors:', errors);
+  };
 
   return (
-    <Modal 
-      open={open} 
-      onOpenChange={onOpenChange} 
-      title="Nova Cobrança"
-      maxWidth="3xl"
-    >
-      <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
-          <TabsTrigger value="advanced">Configurações Avançadas</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="basic" className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome</Label>
-              <Input id="name" placeholder="Nome da cobrança" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Mensagem</Label>
-              <Select>
+    <Modal open={open} title="Nova regra de cobrança" onOpenChange={onOpenChange}>
+      <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4 p-4">
+        <div className="space-y-1">
+          <Label htmlFor="name">Nome</Label>
+          <Input
+            id="name"
+            {...register('name')}
+            placeholder="Nome da regra de cobrança"
+          />
+          {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="minIntervalDays">Mínimo de dias</Label>
+          <Input
+            id="minIntervalDays"
+            {...register('minIntervalDays')}
+            type="number"
+            placeholder="Mínimo de dias"
+          />
+          {errors.minIntervalDays && (
+            <p className="text-sm text-red-600">{errors.minIntervalDays.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="maxIntervalDays">Máximo de dias</Label>
+          <Input
+            id="maxIntervalDays"
+            {...register('maxIntervalDays')}
+            type="number"
+            placeholder="Máximo de dias"
+          />
+          {errors.maxIntervalDays && (
+            <p className="text-sm text-red-600">{errors.maxIntervalDays.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="messageTemplateId">Template de mensagem</Label>
+          <Controller
+            control={control}
+            name="messageTemplateId"
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma mensagem" />
+                  <SelectValue placeholder="Selecione um template" />
                 </SelectTrigger>
                 <SelectContent>
-                  {messages.map(message => (
-                    <SelectItem key={message.id} value={message.id}>
-                      {message.name}
+                  {messageTemplates.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Servidor</Label>
-              <Select>
+            )}
+          />
+          {errors.messageTemplateId && (
+            <p className="text-sm text-red-600">{errors.messageTemplateId.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="clientStatus">Status do cliente</Label>
+          <Controller
+            control={control}
+            name="clientStatus"
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione um servidor" />
+                  <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
                 <SelectContent>
-                  {servers.map(server => (
-                    <SelectItem key={server.id} value={server.id}>
-                      {server.name}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="PAID">Pago</SelectItem>
+                  <SelectItem value="PENDING">Pendente</SelectItem>
+                  <SelectItem value="OVERDUE">Atrasado</SelectItem>
+                  <SelectItem value="CANCELED">Cancelado</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Dispositivo</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um dispositivo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {devices.map(device => (
-                    <SelectItem key={device.id} value={device.id}>
-                      {device.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Plano</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um plano" />
-                </SelectTrigger>
-                <SelectContent>
-                  {plans.map(plan => (
-                    <SelectItem key={plan.id} value={plan.id}>
-                      {plan.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Aplicativo</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um aplicativo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {apps.map(app => (
-                    <SelectItem key={app.id} value={app.id}>
-                      {app.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Forma de Pagamento</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma forma de pagamento" />
-                </SelectTrigger>
-                <SelectContent>
-                  {paymentMethods.map(method => (
-                    <SelectItem key={method.id} value={method.id}>
-                      {method.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="advanced" className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="intervalMin">Intervalo Mínimo</Label>
-              <Input id="intervalMin" type="number" min="0" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="intervalMax">Intervalo Máximo</Label>
-              <Input id="intervalMax" type="number" min="0" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Tipo de Cobrança</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="automatic">Automática</SelectItem>
-                  <SelectItem value="manual">Manual</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Situação do Cliente</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a situação" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Ativo</SelectItem>
-                  <SelectItem value="inactive">Inativo</SelectItem>
-                  <SelectItem value="pending">Pendente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Tipo de Período</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="days">Dias</SelectItem>
-                  <SelectItem value="months">Meses</SelectItem>
-                  <SelectItem value="years">Anos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="registrationPeriod">Período de Cadastro</Label>
-              <Input id="registrationPeriod" type="number" min="0" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="duePeriod">Período de Vencimento</Label>
-              <Input id="duePeriod" type="number" min="0" />
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-      
-      <div className="flex justify-end space-x-2 mt-6">
-        <Button variant="outline" onClick={() => onOpenChange(false)}>
-          Cancelar
+            )}
+          />
+          {errors.clientStatus && (
+            <p className="text-sm text-red-600">{errors.clientStatus.message}</p>
+          )}
+
+        </div>
+
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+          {isSubmitting ? 'Salvando...' : 'Salvar'}
         </Button>
-        <Button>Salvar</Button>
-      </div>
+      </form>
     </Modal>
-  )
+  );
 }

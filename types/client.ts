@@ -100,7 +100,12 @@ export type ClientPayment = {
 }
 
 
-
+export enum PaymentStatus {
+    PAID,
+    PENDING,
+    OVERDUE,
+    CANCELED
+}
 
 export type ClientList = ClientResponse[]
 
