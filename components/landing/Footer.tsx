@@ -5,7 +5,7 @@ import { Globe, Sun, Moon } from "lucide-react"
 import { useTheme } from "next-themes"
 
 export function Footer() {
-    const { theme, setTheme } = useTheme()
+    // const { theme, setTheme } = useTheme()
 
     return (
         <footer className="relative z-10 bg-slate-900 text-white py-12">
