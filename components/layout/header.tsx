@@ -18,9 +18,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTheme } from "next-themes"
+import { useState } from "react"
+import ConfigModal from "../configuracoes/ConfigModal"
 
-export default function Header() {
+interface HeaderProps {
+  sidebarOpen: boolean
+  setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   const { theme, setTheme } = useTheme()
+  const [showSettings, setShowSettings] = useState(false)
 
   const signOut = () => {
     sessionStorage.removeItem("token")
@@ -32,7 +40,13 @@ export default function Header() {
       <div className="flex h-16 items-center justify-between">
         {/* Logo e botão mobile */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="md:hidden">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label="Abrir menu lateral"
+          >
             <Menu className="h-5 w-5" />
           </Button>
 
@@ -72,13 +86,15 @@ export default function Header() {
               <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer">Perfil</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">Configurações</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => setShowSettings(true)}>Configurações</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer" onClick={() => signOut()}>Sair</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
+
+      {showSettings && <ConfigModal open={showSettings} onOpenChange={setShowSettings} />}
     </header>
   )
 }
