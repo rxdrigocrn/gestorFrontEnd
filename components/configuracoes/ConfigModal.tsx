@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Modal } from '../ui/modal'
 import { api } from '@/services/api'
 import { Button } from '../ui/button'
+import { RefreshCcw } from 'lucide-react'
 
 interface ConfigModalProps {
     open: boolean
@@ -87,23 +88,29 @@ const ConfigModal = ({ open, onOpenChange }: ConfigModalProps) => {
                 return (
                     <div>
                         <h3 className="text-xl font-semibold mb-2">Configurações do WhatsApp</h3>
-                        {!connected ? (
-                            <Button onClick={connectWpp} disabled={loading} className="mb-4">
-                                {loading ? 'Conectando...' : 'Clique aqui para conectar seu WhatsApp'}
-                            </Button>
-                        ) : (
-                            <Button variant="destructive" onClick={disconnectWpp} disabled={loading} className="mb-4">
-                                {loading ? 'Desconectando...' : 'Desconectar WhatsApp'}
-                            </Button>
-                        )}
-
-                        {qrCodeBase64 && (
-                            <div>
-                                <p className="mb-2">Escaneie o QR Code com o seu app WhatsApp para conectar:</p>
-                                <img src={qrCodeBase64} alt="QR Code para conexão WhatsApp" className="max-w-xs" />
-                            </div>
-                        )}
-                        {connected && <p className="text-green-600">WhatsApp conectado com sucesso!</p>}
+                        <div className="flex justify-between w-full">
+                            {!connected ? (
+                                <Button onClick={connectWpp} disabled={loading} className="mb-4">
+                                    {loading ? 'Conectando...' : 'Clique aqui para conectar seu WhatsApp'}
+                                </Button>
+                            ) : (
+                                <Button variant="destructive" onClick={disconnectWpp} disabled={loading} className="mb-4">
+                                    {loading ? 'Desconectando...' : 'Desconectar WhatsApp'}
+                                </Button>
+                            )}
+                            <button onClick={disconnectWpp} disabled={loading} className="flex items-center justify-center text-white rounded">
+                                <RefreshCcw className="h-4 w-4" />
+                            </button>
+                        </div>
+                        <div className="mx-auto">
+                            {qrCodeBase64 && (
+                                <div>
+                                    <p className="mb-2">Escaneie o QR Code com o seu app WhatsApp para conectar:</p>
+                                    <img src={qrCodeBase64} alt="QR Code para conexão WhatsApp" className="max-w-xs" />
+                                </div>
+                            )}
+                            {connected && <p className="text-green-600">WhatsApp conectado com sucesso!</p>}
+                        </div>
                     </div>
                 )
             case 'mensagens':
