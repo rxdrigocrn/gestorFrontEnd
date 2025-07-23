@@ -21,10 +21,13 @@ import { ServerCreate, ServerResponse, ServerUpdate } from '@/types/server'
 import { ServerStats } from '@/components/servers/server-stats'
 import { ServerFormData } from '@/lib/schemas/serverFormSchema'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
+import { useSimpleToast } from '@/hooks/use-toast'
 
 export default function ServersPage() {
   const router = useRouter()
   const { items: servers, fetchItems: fetchServers, isLoading, error, createItem, updateItem, deleteItem } = useServerStore()
+
+  const { showToast } = useSimpleToast()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
@@ -49,13 +52,22 @@ export default function ServersPage() {
     try {
       if (data.id) {
         await updateItem(data.id, data as ServerUpdate)
+        showToast("success", "Servidor atualizado", {
+          description: "As alterações foram salvas com sucesso",
+        })
       } else {
         await createItem(data as ServerCreate)
+        showToast("success", "Servidor criado", {
+          description: "O novo servidor foi registrado no sistema",
+        })
       }
       setShowAddModal(false)
       setEditingItem(null)
       fetchServers()
     } catch (error) {
+      showToast("error", "Erro ao salvar método de pagamento", {
+        description: "Ocorreu um erro ao salvar o método de pagamento",
+      })
       console.error('Erro ao salvar método de pagamento:', error)
 
     }
@@ -70,12 +82,18 @@ export default function ServersPage() {
     try {
       if (editingItem && editingItem.id) {
         await deleteItem(editingItem.id)
+        showToast("success", "Servidor excluido", {
+          description: "O servidor foi excluido com sucesso",
+        })
         setEditingItem(null)
         fetchServers()
       } else {
         console.error('Nenhum cliente selecionado para exclusão.')
       }
     } catch (error) {
+      showToast("error", "Erro ao excluir", {
+        description: "Ocorreu um erro ao excluir o servidor",
+      })
       console.error('Erro ao excluir cliente:', error)
     }
   }

@@ -20,6 +20,7 @@ import { AddPlanModal } from '@/components/planos/add-plan-modal'
 import { PlanCreate, PlanResponse, PlanUpdate } from '@/types/plan'
 import { PlanFormData } from '@/lib/schemas/planSchema'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
+import { useSimpleToast } from '@/hooks/use-toast'
 
 export default function PlansTable() {
     const router = useRouter()
@@ -33,6 +34,8 @@ export default function PlansTable() {
         updateItem,
         deleteItem
     } = usePlanStore()
+
+    const { showToast } = useSimpleToast()
 
     const [searchTerm, setSearchTerm] = useState('')
     const [filters, setFilters] = useState<{ [key: string]: string }>({})
@@ -55,13 +58,22 @@ export default function PlansTable() {
         try {
             if (data.id) {
                 await updateItem(data.id, data as PlanUpdate)
+                showToast("success", "Plano atualizado", {
+                    description: "As alterações foram salvas com sucesso",
+                })
             } else {
                 await createItem(data as PlanCreate)
+                showToast("success", "Plano criado", {
+                    description: "O novo plano foi registrado no sistema",
+                })
             }
             setShowAddModal(false)
             setEditingItem(null)
             fetchPlans()
         } catch (error) {
+            showToast("error", "Erro ao salvar plano", {
+                description: "Ocorreu um erro ao salvar o plano",
+            })
             console.error('Erro ao salvar método de pagamento:', error)
         }
     }
@@ -75,12 +87,18 @@ export default function PlansTable() {
         try {
             if (editingItem && editingItem.id) {
                 await deleteItem(editingItem.id)
+                showToast("success", "Plano excluido", {
+                    description: "O plano foi excluido com sucesso",
+                })
                 setEditingItem(null)
                 fetchPlans()
             } else {
                 console.error('Nenhum cliente selecionado para exclusão.')
             }
         } catch (error) {
+            showToast("error", "Erro ao excluir", {
+                description: "Ocorreu um erro ao excluir o plano",
+            })
             console.error('Erro ao excluir cliente:', error)
         }
     }

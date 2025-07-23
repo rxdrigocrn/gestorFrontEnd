@@ -20,11 +20,11 @@ import { AddBillingRuleModal } from '@/components/billing/add-billing-modal'
 import { BillingRuleCreate, BillingRuleResponse, BillingRuleUpdate } from '@/types/billingRules'
 import { BillingRuleFormData } from '@/lib/schemas/billingRulesSchema'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
+import { useSimpleToast } from '@/hooks/use-toast'
 
 export default function BillingRulesTable() {
     const router = useRouter()
 
-    // Desestruture da store tudo que precisa
     const {
         items: billingRules,
         fetchItems: fetchBillingRules,
@@ -34,6 +34,9 @@ export default function BillingRulesTable() {
         updateItem,
         deleteItem,
     } = useBillingRuleStore()
+
+    const { showToast } = useSimpleToast()
+
 
     const [searchTerm, setSearchTerm] = useState('')
     const [filters, setFilters] = useState<{ [key: string]: string }>({})
@@ -56,13 +59,22 @@ export default function BillingRulesTable() {
         try {
             if (data.id) {
                 await updateItem(data.id, data as BillingRuleUpdate)
+                showToast("success", "Regra de cobrança atualizada", {
+                    description: "As alterações foram salvas com sucesso",
+                })
             } else {
                 await createItem(data as BillingRuleCreate)
+                showToast("success", "Regra de cobrança criada", {
+                    description: "A nova regra de cobrança foi registrado no sistema",
+                })
             }
             setShowAddModal(false)
             setEditingItem(null)
             fetchBillingRules()
         } catch (error) {
+            showToast("error", "Erro ao salvar regra de cobrança", {
+                description: "Ocorreu um erro ao salvar a regra de cobrança",
+            })
             console.error('Erro ao salvar regra de cobrança:', error)
         }
     }
@@ -76,12 +88,18 @@ export default function BillingRulesTable() {
         try {
             if (editingItem && editingItem.id) {
                 await deleteItem(editingItem.id)
+                showToast("success", "Regra de cobrança excluida", {
+                    description: "A regra de cobrança foi excluida com sucesso",
+                })
                 setEditingItem(null)
                 fetchBillingRules()
             } else {
                 console.error('Nenhuma regra de cobrança selecionada para exclusão.')
             }
         } catch (error) {
+            showToast("error", "Erro ao excluir regra de cobrança", {
+                description: "Ocorreu um erro ao excluir a regra de cobrança",
+            })
             console.error('Erro ao excluir regra de cobrança:', error)
         }
     }

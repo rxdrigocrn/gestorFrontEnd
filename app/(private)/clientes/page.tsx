@@ -27,6 +27,7 @@ import { File } from 'lucide-react'
 import { fetchAll } from '@/services/api-services'
 import { api } from '@/services/api'
 import { ImportExcelModal } from '@/components/clients/import-excel'
+import { useSimpleToast } from '@/hooks/use-toast'
 
 export default function ClientsTable() {
   const router = useRouter()
@@ -38,6 +39,8 @@ export default function ClientsTable() {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [editingItem, setEditingItem] = useState<ClientResponse | null>(null)
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)
+
+  const { showToast } = useSimpleToast();
 
   useEffect(() => {
     fetchClients()
@@ -67,14 +70,23 @@ export default function ClientsTable() {
     try {
       if (formData.id) {
         await updateItem(formData.id, formData as ClientUpdate)
+        showToast("success", "Cliente atualizado", {
+          description: "As alterações foram salvas com sucesso",
+        })
       } else {
         await createItem(formData as ClientCreate)
+        showToast("success", "Cliente criado", {
+          description: "O novo cliente foi registrado no sistema",
+        })
       }
 
       setShowAddModal(false)
       setEditingItem(null)
       fetchClients()
     } catch (error) {
+      showToast("error", "Erro ao salvar", {
+        description: "Ocorreu um erro ao salvar o cliente",
+      })
       console.error('Erro ao salvar cliente:', error)
     }
   }
@@ -88,12 +100,18 @@ export default function ClientsTable() {
     try {
       if (editingItem && editingItem.id) {
         await deleteItem(editingItem.id)
+        showToast("success", "Cliente excluido", {
+          description: "O cliente foi excluido com sucesso",
+        })
         setEditingItem(null)
         fetchClients()
       } else {
         console.error('Nenhum cliente selecionado para exclusão.')
       }
     } catch (error) {
+      showToast("error", "Erro ao excluir", {
+        description: "Ocorreu um erro ao excluir o cliente",
+      })
       console.error('Erro ao excluir cliente:', error)
     }
   }
@@ -114,10 +132,16 @@ export default function ClientsTable() {
         throw new Error('Nenhum cliente selecionado para adicionar pagamento.')
       }
       await addPaymentToClient(editingItem.id, data)
+      showToast("success", "Pagamento adicionado", {
+        description: "O pagamento foi adicionado com sucesso",
+      })
       setShowPaymentModal(false)
       setEditingItem(null)
       fetchClients()
     } catch (error) {
+      showToast("error", "Erro ao adicionar pagamento", {
+        description: "Ocorreu um erro ao adicionar o pagamento",
+      })
       console.error('Erro ao salvar pagamento:', error)
     }
   }
@@ -137,20 +161,29 @@ export default function ClientsTable() {
   }
 
   const handleExportExcel = async () => {
-    const res = await api.get('/clients/export/excel', {
-      responseType: 'blob',
-      headers: {
-        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      }
-    });
-
-    const blob = res.data;
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `clientes_${new Date().toISOString()}.xlsx`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    try {
+      const res = await api.get('/clients/export/excel', {
+        responseType: 'blob',
+        headers: {
+          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        }
+      });
+      showToast("success", "Excel gerado", {
+        description: "O Excel foi gerado com sucesso",
+      })
+      const blob = res.data;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `clientes_${new Date().toISOString()}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      showToast("error", "Erro ao gerar Excel", {
+        description: "Ocorreu um erro ao gerar o Excel",
+      })
+      console.error('Erro ao gerar Excel:', error)
+    }
   }
 
 

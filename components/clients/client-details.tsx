@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { AddPaymentModal } from "@/components/clients/add-payment-modal"
-import { ClientCreate, ClientPayment, ClientResponse, ClientUpdate } from '@/types/client'
+import { ClientCreate, ClientPayment, ClientPaymentResponse, ClientResponse, ClientUpdate } from '@/types/client'
 import { format, set } from 'date-fns'
 import { ClientFormData } from '@/lib/schemas/clientFormSchema'
 import { AddClientModal } from './add-client-modal'
@@ -26,6 +26,8 @@ import { useClientStore } from '@/store/clientStore'
 import { ConfirmationDialog } from '../ui/confirmModal'
 import { useRouter } from 'next/navigation'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu'
+import { useSimpleToast } from '@/hooks/use-toast'
+import { PaymentDetailsModal } from './payment-details'
 
 interface ClientDetailsProps {
   clientData: ClientResponse
@@ -37,12 +39,14 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
   const [editingItem, setEditingItem] = useState<ClientResponse | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [showPaymentDetail, setShowPaymentDetail] = useState(false)
-  const [editingPayment, setEditingPayment] = useState<ClientPayment | null>(null)
+  const [editingPayment, setEditingPayment] = useState<ClientPaymentResponse | ClientPayment | null>(null)
   const [isDialogPayment, setIsDialogPayment] = useState(false);
   const router = useRouter()
   const payments: ClientPayment[] = clientData?.payments ?? [];
 
   const { fetchItems: fetchClients, items: clients, isLoading, error, createItem, updateItem, deleteItem, addPaymentToClient, updatePaymentToClient, deletePaymentToClient } = useClientStore()
+
+  const { showToast } = useSimpleToast();
 
   useEffect(() => {
     fetchClients()
@@ -58,14 +62,23 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
     try {
       if (clientData.id) {
         await updateItem(clientData.id, formData as ClientUpdate)
+        showToast("success", "Cliente atualizado", {
+          description: "As alterações foram salvas com sucesso",
+        })
       } else {
         await createItem(formData as ClientCreate)
+        showToast("success", "Cliente criado", {
+          description: "O novo cliente foi registrado no sistema",
+        })
       }
 
       setShowAddModal(false)
       setEditingItem(null)
       fetchClients()
     } catch (error) {
+      showToast("error", "Erro ao salvar", {
+        description: "Ocorreu um erro ao salvar o cliente",
+      })
       console.error('Erro ao salvar cliente:', error)
     }
   }
@@ -78,9 +91,15 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
   const handleDelete = async () => {
     try {
       await deleteItem(clientData.id)
+      showToast("success", "Cliente deletado", {
+        description: "O cliente foi deletado com sucesso",
+      })
       router.push('/clientes')
       setIsDialogOpen(false);
     } catch (error) {
+      showToast("error", "Erro ao deletar", {
+        description: "Ocorreu um erro ao deletar o cliente",
+      })
       console.error('Erro ao deletar cliente:', error)
       setIsDialogOpen(false);
     }
@@ -97,14 +116,23 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
       }
       if (editingPayment && editingPayment.id) {
         await updatePaymentToClient(editingPayment.id, data as ClientPayment)
+        showToast("success", "Pagamento atualizado", {
+          description: "O pagamento foi atualizado com sucesso",
+        })
       } else {
         await addPaymentToClient(clientData.id, data)
+        showToast("success", "Pagamento adicionado", {
+          description: "O pagamento foi adicionado com sucesso",
+        })
       }
       setShowPaymentModal(false)
       setEditingPayment(null)
       setEditingItem(null)
       fetchClients()
     } catch (error) {
+      showToast("error", "Erro ao adicionar pagamento", {
+        description: "Ocorreu um erro ao adicionar o pagamento",
+      })
       console.error('Erro ao salvar pagamento:', error)
     }
   }
@@ -119,10 +147,11 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
 
   }
 
-  const viewDetails = (payment: ClientPayment) => {
+  const viewDetails = (payment: ClientPaymentResponse) => {
     setEditingPayment(payment)
     setShowPaymentDetail(true)
   }
+
 
   const handleEditPayment = (payment: ClientPayment) => {
     setEditingPayment(payment)
@@ -131,15 +160,23 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
 
 
 
+
+
   const handleDeletePayment = async () => {
     try {
       if (editingPayment && editingPayment.id) {
         await deletePaymentToClient(editingPayment.id)
+        showToast("success", "Pagamento deletado", {
+          description: "O pagamento foi deletado com sucesso",
+        })
         setEditingPayment(null)
       } else {
         console.error('Nenhum cliente selecionado para exclusão.')
       }
     } catch (error) {
+      showToast("error", "Erro ao excluir", {
+        description: "Ocorreu um erro ao excluir o pagamento",
+      })
       console.error('Erro ao excluir cliente:', error)
     }
   }
@@ -394,13 +431,13 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
                       <td className="p-4">{renderField(payment.notes)}</td>
                       <td className="p-4">{renderField(payment.sendReceipt ? 'Sim' : 'Não')}</td>
                       <td className="p-4">{renderField(payment.renewClient ? 'Sim' : 'Não')}</td>
-                      <td className="p-4 text-right">
+                      <td className="p-4 text-right cursor-pointer">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <MoreVertical className="w-4 h-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent side="bottom" align="end">
-                            <DropdownMenuItem onClick={() => viewDetails(payment)}>Visualizar</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => viewDetails(payment as ClientPaymentResponse)}>Visualizar</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditPayment(payment)}>Editar</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleOpenDialog(payment)} className="text-destructive">Excluir</DropdownMenuItem>
                           </DropdownMenuContent>
@@ -441,7 +478,15 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
           open={showPaymentModal}
           onOpenChange={handlePaymentModalChange}
           onConfirm={handlePaymentSubmit}
-          defaultValues={editingPayment || undefined}
+          defaultValues={editingPayment as ClientPayment || undefined}
+        />
+      )}
+
+      {showPaymentDetail && (
+        <PaymentDetailsModal
+          open={showPaymentDetail}
+          onOpenChange={setShowPaymentDetail}
+          payment={editingPayment as ClientPaymentResponse}
         />
       )}
 

@@ -108,7 +108,7 @@ function transformKpisToStats(kpis: KpiResponse) {
         },
         {
             title: 'Período Médio de Retenção',
-            value: '9,2 meses', // Se n o tiver no backend, pode deixar fixo ou adaptar depois
+            value: '9,2 meses',
             description: 'Período médio de retenção dos clientes',
             icon: <Clock className="h-5 w-5" />,
             trend: {

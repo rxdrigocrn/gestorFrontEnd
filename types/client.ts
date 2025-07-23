@@ -100,6 +100,33 @@ export type ClientPayment = {
 }
 
 
+export type ClientPaymentResponse = {
+    id: string;
+    amount: number;
+    clientId: string;
+    createdAt: string;
+    discount: number;
+    dueDate: string | null;
+    fee: number;
+    netAmount: number;
+    notes: string | null;
+    paidAt: string;
+    paymentMethod: {
+        id: string;
+        name: string;
+        feePercentage: number | null;
+        description: string | null;
+        createdAt: string;
+        organizationId: string;
+        updatedAt: string;
+    };
+    paymentMethodId: string;
+    renewClient: boolean;
+    sendReceipt: boolean;
+    status: PaymentStatus;
+    surcharge: number;
+}
+
 export enum PaymentStatus {
     PAID,
     PENDING,

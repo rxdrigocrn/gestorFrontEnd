@@ -55,11 +55,11 @@ export default function PaymentHistory({ payments }: Props) {
         <CardDescription>Transações recentes de clientes</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-1">
           {payments.map((payment) => (
             <div
               key={payment.id}
-              className="p-4 border rounded-lg space-y-2"
+              className="p-4 border rounded-lg"
             >
               <div className="flex justify-between items-center">
                 <div className="font-medium">{payment.client.name}</div>

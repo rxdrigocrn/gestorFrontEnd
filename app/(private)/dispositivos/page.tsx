@@ -20,6 +20,7 @@ import { AddDeviceModal } from '@/components/dispositivos/add-dispositivos-modal
 import { DeviceCreate, DeviceResponse, DeviceUpdate } from '@/types/device'
 import { DeviceFormData } from '@/lib/schemas/deviceSchema'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
+import { useSimpleToast } from '@/hooks/use-toast'
 
 export default function DevicesTable() {
     const router = useRouter()
@@ -40,6 +41,7 @@ export default function DevicesTable() {
     const [showAddModal, setShowAddModal] = useState(false)
     const [editingItem, setEditingItem] = useState<DeviceResponse | null>(null)
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const { showToast } = useSimpleToast();
 
     useEffect(() => {
         fetchDevices()
@@ -56,13 +58,22 @@ export default function DevicesTable() {
         try {
             if (data.id) {
                 await updateItem(data.id, data as DeviceUpdate)
+                showToast("success", "Dispositivo atualizado", {
+                    description: "As alterações foram salvas com sucesso",
+                });
             } else {
                 await createItem(data as DeviceCreate)
+                showToast("success", "Dispositivo criado", {
+                    description: "O novo dispositivo foi registrado no sistema",
+                });
             }
             setShowAddModal(false)
             setEditingItem(null)
             fetchDevices()
         } catch (error) {
+            showToast("error", "Erro ao salvar", {
+                description: "Ocorreu um erro ao salvar o dispositivo",
+            })
             console.error('Erro ao salvar dispositivo:', error)
         }
     }
@@ -76,12 +87,18 @@ export default function DevicesTable() {
         try {
             if (editingItem && editingItem.id) {
                 await deleteItem(editingItem.id)
+                showToast("success", "Dispositivo excluido", {
+                    description: "O dispositivo foi excluido com sucesso",
+                })
                 setEditingItem(null)
                 fetchDevices()
             } else {
                 console.error('Nenhum cliente selecionado para exclusão.')
             }
         } catch (error) {
+            showToast("error", "Erro ao excluir", {
+                description: "Ocorreu um erro ao excluir o dispositivo",
+            })
             console.error('Erro ao excluir cliente:', error)
         }
     }

@@ -28,6 +28,7 @@ export type BillingRuleResponse = BillingRuleBase & {
     devices: DeviceResponse[]
     applications: ApplicationResponse[]
     paymentMethods: PaymentMethodResponse[]
+    
 }
 
 export type BillingRuleList = BillingRuleResponse[]

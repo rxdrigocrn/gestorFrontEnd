@@ -20,6 +20,7 @@ import { AddPaymentMethodModal } from '@/components/paymentMethod/add-paymentmet
 import { PaymentMethodCreate, PaymentMethodResponse, PaymentMethodUpdate } from '@/types/paymentMethod'
 import { PaymentMethodFormData } from '@/lib/schemas/paymentMethod'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
+import { useSimpleToast } from '@/hooks/use-toast'
 
 export default function PaymentMethodsTable() {
     const router = useRouter()
@@ -34,6 +35,8 @@ export default function PaymentMethodsTable() {
         updateItem,
         deleteItem
     } = usePaymentMethodStore()
+
+    const { showToast } = useSimpleToast()
 
     const [searchTerm, setSearchTerm] = useState('')
     const [filters, setFilters] = useState<{ [key: string]: string }>({})
@@ -56,14 +59,23 @@ export default function PaymentMethodsTable() {
     const handleSubmit = async (data: PaymentMethodFormData) => {
         try {
             if (data.id) {
-                await updateItem(data.id, data as PaymentMethodUpdate)  // editar
+                await updateItem(data.id, data as PaymentMethodUpdate) 
+                showToast("success", "Método de pagamento atualizado", {
+                    description: "As alterações foram salvas com sucesso",
+                })
             } else {
-                await createItem(data as PaymentMethodCreate)  // criar
+                await createItem(data as PaymentMethodCreate)
+                showToast("success", "Método de pagamento criado", {
+                    description: "O método de pagamento foi criado com sucesso",
+                })
             }
             setShowAddModal(false)
             setEditingItem(null)
             fetchPaymentMethods()
         } catch (error) {
+            showToast("error", "Erro ao salvar método de pagamento", {
+                description: "Ocorreu um erro ao salvar o método de pagamento",
+            })
             console.error('Erro ao salvar método de pagamento:', error)
         }
     }
@@ -78,12 +90,18 @@ export default function PaymentMethodsTable() {
         try {
             if (editingItem && editingItem.id) {
                 await deleteItem(editingItem.id)
+                showToast("success", "Método de pagamento excluido", {
+                    description: "O método de pagamento foi excluido com sucesso",
+                })
                 setEditingItem(null)
                 fetchPaymentMethods()
             } else {
                 console.error('Nenhum cliente selecionado para exclusão.')
             }
         } catch (error) {
+            showToast("error", "Erro ao excluir", {
+                description: "Ocorreu um erro ao excluir o cliente",
+            })
             console.error('Erro ao excluir cliente:', error)
         }
     }

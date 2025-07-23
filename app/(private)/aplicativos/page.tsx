@@ -20,6 +20,7 @@ import AddApplicationModal from '@/components/application/add-app-modal'
 import { ApplicationCreate, ApplicationResponse, ApplicationUpdate } from '@/types/application'
 import { ApplicationFormData } from '@/lib/schemas/applicationSchema'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
+import { useSimpleToast } from '@/hooks/use-toast'
 
 export default function ApplicationsTable() {
     const router = useRouter()
@@ -39,6 +40,7 @@ export default function ApplicationsTable() {
     const [showAddModal, setShowAddModal] = useState(false)
     const [editingItem, setEditingItem] = useState<ApplicationResponse | null>(null)
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const { showToast } = useSimpleToast();
 
     useEffect(() => {
         fetchApplications()
@@ -54,15 +56,25 @@ export default function ApplicationsTable() {
         try {
             if (data.id) {
                 await updateItem(data.id, data as ApplicationUpdate)
+                showToast("success", "Aplicativo atualizado", {
+                    description: "As alterações foram salvas com sucesso",
+                });
+
             } else {
                 await createItem(data as ApplicationCreate)
+                showToast("success", "Aplicativo criado", {
+                    description: "O novo aplicativo foi registrado no sistema",
+                });
             }
             setShowAddModal(false)
             setEditingItem(null)
             fetchApplications()
+
         } catch (error) {
             console.error('Erro ao salvar aplicativo:', error)
-
+            showToast("error", "Erro ao salvar", {
+                description: "Ocorreu um erro ao salvar o aplicativo",
+            })
         }
     }
 
@@ -75,12 +87,18 @@ export default function ApplicationsTable() {
         try {
             if (editingItem && editingItem.id) {
                 await deleteItem(editingItem.id)
+                showToast("success", "Aplicativo excluido", {
+                    description: "O aplicativo foi excluido com sucesso",
+                })
                 setEditingItem(null)
                 fetchApplications()
             } else {
                 console.error('Nenhum cliente selecionado para exclusão.')
             }
         } catch (error) {
+            showToast("error", "Erro ao excluir", {
+                description: "Ocorreu um erro ao excluir o aplicativo",
+            })
             console.error('Erro ao excluir cliente:', error)
         }
     }
@@ -125,7 +143,6 @@ export default function ApplicationsTable() {
             <GenericTable<ApplicationResponse>
                 data={filteredApplications}
                 rowKey={(row) => row.id}
-                onRowClick={(row) => router.push(`/applications/${row.id}`)}
                 columns={[
                     {
                         header: 'Application',

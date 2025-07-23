@@ -20,6 +20,7 @@ import { AddMessageTemplateModal } from '@/components/message/add-message-modal'
 import { MessageTemplateCreate, MessageTemplateResponse, MessageTemplateUpdate } from '@/types/message' // Presumed types for message
 import { MessageTemplateFormData } from '@/lib/schemas/messageTemplateSchema' // Presumed schema for message
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
+import { useSimpleToast } from '@/hooks/use-toast'
 
 export default function MessagesTable() {
   const router = useRouter()
@@ -33,6 +34,8 @@ export default function MessagesTable() {
     updateItem,
     deleteItem,
   } = useMessageStore()
+
+  const { showToast } = useSimpleToast()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState<{ [key: string]: string }>({})
@@ -54,13 +57,22 @@ export default function MessagesTable() {
     try {
       if (data.id) {
         await updateItem(data.id, data as MessageTemplateUpdate)
+        showToast("success", "Mensagem atualizada", {
+          description: "As alterações foram salvas com sucesso",
+        })
       } else {
         await createItem(data as MessageTemplateCreate)
+        showToast("success", "Mensagem criada", {
+          description: "A mensagem foi criada com sucesso",
+        })
       }
       setShowAddModal(false)
       setEditingItem(null)
       fetchMessages()
     } catch (error) {
+      showToast("error", "Erro ao salvar mensagem", {
+
+      })
       console.error('Erro ao salvar mensagem:', error)
     }
   }
@@ -74,12 +86,19 @@ export default function MessagesTable() {
     try {
       if (editingItem && editingItem.id) {
         await deleteItem(editingItem.id)
+        showToast("success", "Mensagem excluida", {
+          description: "A mensagem foi excluida com sucesso",
+        })
         setEditingItem(null)
         fetchMessages()
       } else {
         console.error('Nenhuma mensagem selecionada para exclusão.')
+
       }
     } catch (error) {
+      showToast("error", "Erro ao excluir mensagem", {
+        description: "Ocorreu um erro ao excluir a mensagem",
+      })
       console.error('Erro ao excluir mensagem:', error)
     }
   }

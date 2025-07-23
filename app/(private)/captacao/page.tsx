@@ -20,6 +20,7 @@ import { AddLeadModal } from '@/components/leads/add-leads-modal'
 import { LeadSourceCreate, LeadSourceResponse, LeadSourceUpdate } from '@/types/lead'
 import { LeadFormData } from '@/lib/schemas/leadSchema'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
+import { useSimpleToast } from '@/hooks/use-toast'
 
 export default function LeadsTable() {
     const router = useRouter()

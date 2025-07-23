@@ -1,90 +1,182 @@
-// "use client";
+"use client";
 
-// import { useEffect, useState } from "react";
-// import { useForm } from "react-hook-form";
-// import { z } from "zod";
-// import { zodResolver } from "@hookform/resolvers/zod";
-// import { usePaymentMethodStore } from "@/store/paymentMethodStore";
-// import { usePlanStore } from "@/store/planStore";
-// import { Modal } from "@/components/ui/modal";
-// import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input";
-// import { Label } from "@/components/ui/label";
-// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-// import {
-//     Select,
-//     SelectContent,
-//     SelectItem,
-//     SelectTrigger,
-//     SelectValue,
-// } from "@/components/ui/select";
-// import { Textarea } from "@/components/ui/textarea";
-// import { ClientPayment } from "@/types/client";
-// import { format, parseISO } from "date-fns";
-// import { Switch } from "../ui/switch";
+import { Modal } from "@/components/ui/modal";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { ClientPaymentResponse, PaymentStatus } from "@/types/client";
 
-// const paymentSchema = z.object({
-//     amount: z.coerce.number().positive("Informe um valor"),
-//     paidAt: z.string().min(1, "Data/hora do pagamento é obrigatória"),
-//     dueDate: z.string().min(1, "Data/hora de vencimento é obrigatória"),
-//     paymentMethodId: z.string().uuid("Selecione uma forma de pagamento"),
-//     discount: z.coerce.number().min(0).optional().default(0),
-//     surcharge: z.coerce.number().min(0).optional().default(0),
-//     notes: z.string().optional().default(""),
-//     sendReceipt: z.coerce.boolean(),
-//     renewClient: z.coerce.boolean(),
-// });
+interface PaymentDetailsModalProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    payment: ClientPaymentResponse | null;
+}
 
-// type PaymentFormValues = z.infer<typeof paymentSchema>;
+export function PaymentDetailsModal({
+    open,
+    onOpenChange,
+    payment,
+}: PaymentDetailsModalProps) {
+    const formatDate = (dateString: string) => {
+        return format(parseISO(dateString), "dd/MM/yyyy 'às' HH:mm", {
+            locale: ptBR,
+        });
+    };
 
-// interface AddPaymentModalProps {
-//     open: boolean;
-//     onOpenChange: (open: boolean) => void;
-//     onConfirm: (data: ClientPayment) => Promise<void> | void;
-//     defaultValues?: Partial<ClientPayment>;
-// }
+    const getStatusBadge = (status: PaymentStatus) => {
+        switch (status) {
+            case PaymentStatus.PAID:
+                return <Badge variant="default">Pago</Badge>;
+            case PaymentStatus.PENDING:
+                return <Badge variant="secondary">Pendente</Badge>;
+            case PaymentStatus.OVERDUE:
+                return <Badge variant="destructive">Vencido</Badge>;
+            case PaymentStatus.CANCELED:
+                return <Badge variant="destructive">Cancelado</Badge>;
+            default:
+                return <Badge>{status}</Badge>;
+        }
+    };
 
-// export function AddPaymentModal({
-//     open,
-//     onOpenChange,
-//     onConfirm,
-//     defaultValues,
-// }: AddPaymentModalProps) {
-//     const { data: paymentMethods } = usePaymentMethodStore();
-//     const { data: plans } = usePlanStore();
-//     const {
-//         register,
-//         handleSubmit,
-//         setValue,
-//         formState: { errors },
-//     } = useForm<PaymentFormValues>({
-//         resolver: zodResolver(paymentSchema),
-//         defaultValues,
-//     });
+    if (!payment) {
+        return null;
+    }
 
-//     useEffect(() => {
-//         if (defaultValues) {
-//             Object.keys(defaultValues).forEach((key) =>
-//                 setValue(key, defaultValues[key])
-//             );
-//         }
-//     }, [defaultValues, setValue]);
+    return (
+        <Modal
+            open={open}
+            onOpenChange={onOpenChange}
+            title="Detalhes do Pagamento"
+            maxWidth="2xl"
+        >
+            <div className="space-y-6">
+                {/* Cabeçalho com status e valor */}
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border">
+                    <div className="flex items-center space-x-3">
+                        <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                        {getStatusBadge(payment.status)}
+                    </div>
+                    <div className="text-right">
+                        <p className="text-sm font-medium text-gray-500">Valor Total</p>
+                        <p className="text-2xl font-bold text-primary">
+                            {payment.amount.toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                            })}
+                        </p>
+                    </div>
+                </div>
 
-//     const onSubmit = async (data: PaymentFormValues) => {
-//         await onConfirm(data);
-//         onOpenChange(false);
-//     };
+                {/* Grid de informações principais */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Card de Datas */}
+                    <div className="p-4 border rounded-lg bg-white">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-3">Datas</h3>
+                        <div className="space-y-3">
+                            <div>
+                                <p className="text-xs text-gray-500">Pagamento</p>
+                                <p className="font-medium">{formatDate(payment.paidAt)}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500">Vencimento</p>
+                                <p className="font-medium">
+                                    {payment.dueDate ? formatDate(payment.dueDate) : "Não informado"}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
-//     return (
-//         <Modal
-//             open={open}
-//             onOpenChange={onOpenChange}
-//             title="Adicionar Pagamento"
-//             maxWidth="2xl"
-//             onSubmit={handleSubmit(onSubmit)}
-//         >
+                    {/* Card de Método de Pagamento */}
+                    <div className="p-4 border rounded-lg bg-white">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-3">Método de Pagamento</h3>
+                        <div className="flex items-center justify-between">
+                            <span className="font-medium capitalize">
+                                {payment.paymentMethod.name.toLowerCase()}
+                            </span>
+                            {payment.paymentMethod.feePercentage && (
+                                <Badge variant="outline">
+                                    Taxa: {payment.paymentMethod.feePercentage}%
+                                </Badge>
+                            )}
+                        </div>
+                    </div>
 
+                    {/* Card de Valores */}
+                    <div className="p-4 border rounded-lg bg-white md:col-span-2">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-3">Detalhes Financeiros</h3>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="text-center p-2 bg-primary/10 rounded">
+                                <p className="text-xs text-gray-500">Desconto</p>
+                                <p className="font-medium text-blue-600">
+                                    {payment.discount.toLocaleString("pt-BR", {
+                                        style: "currency",
+                                        currency: "BRL",
+                                    })}
+                                </p>
+                            </div>
+                            <div className="text-center p-2 bg-primary/10 rounded">
+                                <p className="text-xs text-gray-500">Acréscimo</p>
+                                <p className="font-medium text-purple-600">
+                                    {payment.surcharge.toLocaleString("pt-BR", {
+                                        style: "currency",
+                                        currency: "BRL",
+                                    })}
+                                </p>
+                            </div>
+                            <div className="text-center p-2 bg-primary/10 rounded">
+                                <p className="text-xs text-primary">Valor Líquido</p>
+                                <p className="font-bold text-primary">
+                                    {payment.netAmount.toLocaleString("pt-BR", {
+                                        style: "currency",
+                                        currency: "BRL",
+                                    })}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
-//         </Modal>
-//     );
-// }
+                    {/* Card de Configurações */}
+                    <div className="p-4 border rounded-lg bg-white">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-3">Configurações</h3>
+                        <div className="space-y-3">
+                            <div className="flex justify-between">
+                                <p className="text-sm text-gray-600">Recibo Enviado</p>
+                                <Badge variant={payment.sendReceipt ? "default" : "secondary"}>
+                                    {payment.sendReceipt ? "Sim" : "Não"}
+                                </Badge>
+                            </div>
+                            <div className="flex justify-between">
+                                <p className="text-sm text-gray-600">Renovação</p>
+                                <Badge variant={payment.renewClient ? "default" : "secondary"}>
+                                    {payment.renewClient ? "Sim" : "Não"}
+                                </Badge>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card de Observações (se existir) */}
+                    {payment.notes && (
+                        <div className="p-4 border rounded-lg bg-white">
+                            <h3 className="text-sm font-semibold text-gray-700 mb-3">Observações</h3>
+                            <p className="text-sm text-gray-700 p-3 bg-gray-50 rounded-md">
+                                {payment.notes}
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Rodapé */}
+                <div className="flex justify-end pt-2">
+                    <Button 
+                        onClick={() => onOpenChange(false)}
+                        variant="outline"
+                        className="min-w-[120px]"
+                    >
+                        Fechar
+                    </Button>
+                </div>
+            </div>
+        </Modal>
+    );
+}
