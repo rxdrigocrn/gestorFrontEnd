@@ -140,6 +140,8 @@ export default function MessagesTable() {
       <GenericTable<MessageTemplateResponse>
         data={filteredMessages}
         rowKey={(row) => row.id}
+         isLoading={isLoading}
+        error={error ?? undefined}
         columns={[
           {
             header: 'Titulo',

@@ -139,6 +139,8 @@ export default function ServersPage() {
       {/* Tabela */}
       <GenericTable<ServerResponse>
         data={filteredServers}
+        isLoading={isLoading}
+        error={error ?? undefined}
         rowKey={(row) => row.id}
         onRowClick={(row) => router.push(`/servidores/${row.id}`)}
         columns={[

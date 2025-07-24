@@ -128,6 +128,8 @@ export default function LeadsTable() {
             <GenericTable<LeadSourceResponse>
                 data={filteredLeads}
                 rowKey={(row) => row.id}
+                isLoading={isLoading}
+                error={error ?? undefined}
                 // onRowClick={(row) => router.push(`/leads/${row.id}`)}
                 columns={[
                     {

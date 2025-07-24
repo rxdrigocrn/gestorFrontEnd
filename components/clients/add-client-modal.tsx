@@ -15,7 +15,9 @@ import { format } from "date-fns"
 import { isValid } from "date-fns"
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon, Eye, EyeOff } from 'lucide-react'
+import 'react-phone-number-input/style.css'
+import PhoneInput from 'react-phone-number-input'
 import { Modal } from '@/components/ui/modal'
 import {
   Popover,
@@ -51,6 +53,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
     }
   })
 
+  const [showPassword, setShowPassword] = useState(false)
   const { items: plans, fetchItems: fetchPlans } = usePlanStore()
   const { items: paymentMethods, fetchItems: fetchPaymentMethods } = usePaymentMethodStore()
   const { items: devices, fetchItems: fetchDevices } = useDeviceStore()
@@ -132,14 +135,27 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
 
               <div className="space-y-2">
                 <Label htmlFor="password">Senha (Opcional)</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Senha"
-                  {...register('password')}
-                />
-                {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Senha"
+                    {...register('password')}
+                    className="pr-10" // dá espaço pro ícone
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-sm text-red-500">{errors.password.message}</p>
+                )}
               </div>
+
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -152,25 +168,54 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="phone">Telefone Principal</Label>
-                <Input
-                  id="phone"
-                  placeholder="+55 (85) 9987654321"
-                  {...register('phone')}
-                />
-                {errors.phone && <p className="text-sm text-red-500">{errors.phone.message}</p>}
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="phone2">Telefone Secundário</Label>
-                <Input
-                  id="phone2"
-                  placeholder="+55 (85) 99876543210"
-                  {...register('phone2')}
-                />
-                {errors.phone2 && <p className="text-sm text-red-500">{errors.phone2.message}</p>}
-              </div>
+              <Controller
+                name="phone"
+                control={control}
+                render={({ field }) => (
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telefone Principal</Label>
+                    <PhoneInput
+                      id="phone"
+                      country="BR"
+                      international
+                      withCountryCallingCode
+                      placeholder="+55 (85) 99876-5432"
+                      value={field.value ?? undefined}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      inputComponent={Input}
+                    />
+                    {errors.phone && (
+                      <p className="text-sm text-red-500">{errors.phone.message}</p>
+                    )}
+                  </div>
+                )}
+              />
+
+              <Controller
+                name="phone2"
+                control={control}
+                render={({ field }) => (
+                  <div className="space-y-2">
+                    <Label htmlFor="phone2">Telefone Secundario</Label>
+                    <PhoneInput
+                      id="phone2"
+                      country="BR"
+                      international
+                      withCountryCallingCode
+                      placeholder="+55 (85) 99876-5432"
+                      value={field.value ?? undefined}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      inputComponent={Input}
+                    />
+                    {errors.phone2 && (
+                      <p className="text-sm text-red-500">{errors.phone2.message}</p>
+                    )}
+                  </div>
+                )}
+              />
 
               <div className="space-y-2">
                 <Label>Data e Hora de Expiração</Label>

@@ -115,8 +115,6 @@ export default function ApplicationsTable() {
         }
     };
 
-    if (isLoading) return <p>Carregando aplicativos...</p>
-    if (error) return <p className="text-red-600">Erro: {error}</p>
 
     return (
         <div className="space-y-4">
@@ -142,6 +140,8 @@ export default function ApplicationsTable() {
             {/* Tabela */}
             <GenericTable<ApplicationResponse>
                 data={filteredApplications}
+                isLoading={isLoading}
+                error={error ?? undefined}
                 rowKey={(row) => row.id}
                 columns={[
                     {

@@ -7,6 +7,9 @@ import {
     TableRow
 } from '@/components/ui/table'
 
+import Loader from '@/components/loaders/loader'
+import ErrorBadge from '@/components/ui/error-badge'
+
 export interface Column<T> {
     header: string
     accessor: keyof T | ((row: T) => React.ReactNode)
@@ -19,6 +22,10 @@ interface GenericTableProps<T> {
     rowKey: (row: T) => string
     actions?: (row: T) => React.ReactNode
     onRowClick?: (row: T) => void
+
+    // Novas props:
+    isLoading?: boolean
+    error?: boolean | string
 }
 
 export function GenericTable<T>({
@@ -26,8 +33,27 @@ export function GenericTable<T>({
     columns,
     rowKey,
     actions,
-    onRowClick
+    onRowClick,
+    isLoading,
+    error,
 }: GenericTableProps<T>) {
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-[50vh]">
+                <Loader />
+            </div>
+        )
+    }
+
+    if (error) {
+        const message = typeof error === 'string' ? error : 'Erro ao carregar os dados.'
+        return (
+            <div className="flex justify-center items-center min-h-[30vh]">
+                <ErrorBadge message={message} />
+            </div>
+        )
+    }
+
     return (
         <div className="rounded-md border">
             <Table>

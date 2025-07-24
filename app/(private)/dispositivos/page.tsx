@@ -142,6 +142,8 @@ export default function DevicesTable() {
             {/* Tabela */}
             <GenericTable<DeviceResponse>
                 data={filteredDevices}
+                isLoading={isLoading}
+                error={error ?? undefined}
                 rowKey={(row) => row.id}
                 // onRowClick={(row) => router.push(`/dispositivos/${row.id}`)}
                 columns={[

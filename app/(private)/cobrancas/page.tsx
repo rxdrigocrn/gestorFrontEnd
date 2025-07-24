@@ -144,6 +144,8 @@ export default function BillingRulesTable() {
             <GenericTable<BillingRuleResponse>
                 data={filteredBillingRules}
                 rowKey={(row) => row.id}
+                 isLoading={isLoading}
+        error={error ?? undefined}
                 // onRowClick={(row) => router.push(`/regras-de-cobranca/${row.id}`)}
                 columns={[
                     {

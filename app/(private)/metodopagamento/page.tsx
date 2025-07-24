@@ -148,6 +148,8 @@ export default function PaymentMethodsTable() {
             <GenericTable<PaymentMethodResponse>
                 data={filteredPaymentMethods}
                 rowKey={(row) => row.id}
+                 isLoading={isLoading}
+        error={error ?? undefined}
                 // onRowClick={(row) => router.push(`/payment-methods/${row.id}`)}
                 columns={[
                     {

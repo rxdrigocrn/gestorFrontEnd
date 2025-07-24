@@ -143,6 +143,8 @@ export default function PlansTable() {
             <GenericTable<PlanResponse>
                 data={filteredPlans}
                 rowKey={(row) => row.id}
+                isLoading={isLoading}
+                error={error ?? undefined}
                 onRowClick={(row) => router.push(`/plans/${row.id}`)}
                 columns={[
                     {

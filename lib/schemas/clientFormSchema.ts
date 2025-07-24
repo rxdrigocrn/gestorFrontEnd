@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidPhoneNumber } from 'libphonenumber-js'
 
 const numberOrUndefined = z
     .preprocess((val) => {
@@ -21,8 +22,22 @@ export const clientFormSchema = z.object({
     username: z.string().min(1, "Usu rio  obrigat rio"),
     password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
     email: z.string().email("Endere o de e-mail inv lido").optional().nullable(),
-    phone: z.string(),
-    phone2: z.string().optional().nullable(),
+    phone: z
+        .string()
+        .refine((val) => isValidPhoneNumber(val), {
+            message: 'Número de telefone inválido',
+        }),
+
+    phone2: z
+        .string()
+        .optional()
+        .nullable()
+        .refine((val) => {
+            if (!val) return true
+            return isValidPhoneNumber(val)
+        }, {
+            message: 'Número de telefone secundário inválido',
+        }),
     expiresAt: z.string(),
     notes: z.string().optional().nullable(),
     location: z.string().optional().nullable(),

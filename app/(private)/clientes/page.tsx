@@ -188,9 +188,6 @@ export default function ClientsTable() {
 
 
 
-  if (isLoading) return <p>Carregando clientes...</p>
-  if (error) return <p className="text-red-600">Erro: {error}</p>
-
   return (
     <div className="space-y-4">
       {/* Cabeçalho */}
@@ -239,6 +236,8 @@ export default function ClientsTable() {
         data={filteredClients}
         rowKey={(row) => row.id}
         onRowClick={(row) => router.push(`/clientes/${row.id}`)}
+        isLoading={isLoading}
+        error={error ?? undefined}
         columns={[
           {
             header: 'Cliente',
