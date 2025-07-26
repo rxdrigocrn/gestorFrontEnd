@@ -1,80 +1,164 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useState } from 'react';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 
-// Sample data - would come from API in production
-const monthlyProjections = [
-  { month: 'May', projected: 5200, actual: 5100 },
-  { month: 'Jun', projected: 5800, actual: 5600 },
-  { month: 'Jul', projected: 6500, actual: 6300 },
-  { month: 'Aug', projected: 7200, actual: null },
-  { month: 'Sep', projected: 8000, actual: null },
-  { month: 'Oct', projected: 8800, actual: null },
+interface ChartDataPoint {
+  label: string; // ex: "May", "Jun"
+  revenue: number;
+  expenses: number;
+}
+
+interface ProfitProjectionsProps {
+  data: ChartDataPoint[];
+}
+
+const meses = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
-const quarterlyProjections = [
-  { quarter: 'Q2 2024', projected: 15600, actual: 15200 },
-  { quarter: 'Q3 2024', projected: 19500, actual: null },
-  { quarter: 'Q4 2024', projected: 24000, actual: null },
-  { quarter: 'Q1 2025', projected: 28000, actual: null },
-];
+function proximoMes(mes: string): string {
+  const idx = meses.indexOf(mes);
+  return meses[(idx + 1) % 12];
+}
 
-export default function ProfitProjections() {
-  const [activeTab, setActiveTab] = useState('monthly');
-  const data = activeTab === 'monthly' ? monthlyProjections : quarterlyProjections;
-  const xKey = activeTab === 'monthly' ? 'month' : 'quarter';
+function gerarDadosProjecao(
+  data: ChartDataPoint[],
+  filtro: "mensal" | "trimestral",
+  crescimentoMensal = 0.05
+) {
+  if (!data || data.length === 0) return [];
+
+  const lucros = data.map(({ label, revenue, expenses }) => ({
+    label,
+    lucro: revenue - expenses,
+  }));
+
+  const ultimoMes = lucros[lucros.length - 1];
+  let lucroBase = ultimoMes.lucro;
+  let mesAtual = ultimoMes.label;
+
+  if (filtro === "mensal") {
+    const mesProj = proximoMes(mesAtual);
+    const proj = lucroBase * (1 + crescimentoMensal);
+
+    return [
+      {
+        month: mesAtual,
+        projected: lucroBase,
+        actual: lucroBase,
+      },
+      {
+        month: mesProj,
+        projected: proj,
+        actual: null,
+      },
+    ];
+  } else {
+    const resultado = [];
+
+    const ultimos3 = lucros.slice(-3);
+    ultimos3.forEach(({ label, lucro }) => {
+      const trimestre = `T${Math.floor(meses.indexOf(label) / 3) + 1} 2024`;
+      resultado.push({
+        quarter: trimestre,
+        projected: lucro,
+        actual: lucro,
+      });
+    });
+
+    for (let i = 1; i <= 3; i++) {
+      mesAtual = proximoMes(mesAtual);
+      lucroBase = lucroBase * (1 + crescimentoMensal);
+
+      const trimestre = `T${Math.floor(meses.indexOf(mesAtual) / 3) + 1} 2024`;
+      resultado.push({
+        quarter: trimestre,
+        projected: lucroBase,
+        actual: null,
+      });
+    }
+
+    return resultado;
+  }
+}
+
+export default function ProjecoesLucro({ data }: ProfitProjectionsProps) {
+  const [abaAtiva, setAbaAtiva] = useState<"mensal" | "trimestral">("mensal");
+  const dadosProjecao = gerarDadosProjecao(data, abaAtiva);
+  const xKey = abaAtiva === "mensal" ? "month" : "quarter";
 
   return (
     <Card className="col-span-1">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Profit Projections</CardTitle>
-            <CardDescription>Future profit estimates vs actual</CardDescription>
+            <CardTitle>Projeções de Lucro</CardTitle>
+            <CardDescription>Estimativas futuras vs reais</CardDescription>
           </div>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-[200px]">
+          <Tabs
+            value={abaAtiva}
+            onValueChange={(value) => setAbaAtiva(value as "mensal" | "trimestral")}
+            className="w-[200px]"
+          >
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="monthly">Monthly</TabsTrigger>
-              <TabsTrigger value="quarterly">Quarterly</TabsTrigger>
+              <TabsTrigger value="mensal">Mensal</TabsTrigger>
+              <TabsTrigger value="trimestral">Trimestral</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
       </CardHeader>
       <CardContent className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={data}
-            margin={{
-              top: 5,
-              right: 10,
-              left: 10,
-              bottom: 5,
-            }}
-          >
+          <LineChart data={dadosProjecao} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey={xKey} />
             <YAxis />
-            <Tooltip 
-              formatter={(value) => `R$ ${value}`}
-              labelFormatter={(label) => `Period: ${label}`}
+            <Tooltip
+              formatter={(value: number) => `R$ ${value.toFixed(2)}`}
+              labelFormatter={(label) => `Período: ${label}`}
             />
-            <Line 
-              type="monotone" 
-              dataKey="projected" 
-              stroke="hsl(var(--chart-1))" 
+            <Line
+              type="monotone"
+              dataKey="projected"
+              stroke="hsl(var(--chart-1))"
               strokeWidth={2}
               strokeDasharray="5 5"
-              name="Projected"
+              name="Projetado"
             />
-            <Line 
-              type="monotone" 
-              dataKey="actual" 
-              stroke="hsl(var(--chart-2))" 
+            <Line
+              type="monotone"
+              dataKey="actual"
+              stroke="hsl(var(--chart-2))"
               strokeWidth={2}
-              name="Actual"
+              name="Real"
             />
           </LineChart>
         </ResponsiveContainer>

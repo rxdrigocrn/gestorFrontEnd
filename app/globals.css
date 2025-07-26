@@ -17,7 +17,7 @@
   }
 }
 
-@layer base {
+/* @layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
@@ -72,7 +72,105 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+} */
+
+/* Theme Green */
+@layer base {
+  :root {
+    /* Background principal: bege suave */
+    --background: 45 100% 98%;
+    /* #FEF9E6 */
+    --foreground: 0 0% 8%;
+    /* texto escuro (#141414) */
+
+    /* Cartões, popovers, etc */
+    --card: 60 100% 99%;
+    /* #FFFDF6 */
+    --card-foreground: 0 0% 10%;
+
+    /* Verde primário: forte e vibrante */
+    --primary: 75 100% 43%;
+    /* #A4DD00 */
+    --primary-foreground: 0 0% 8%;
+    /* texto escuro para contraste */
+
+    /* Verde secundário: mais suave */
+    --secondary: 75 80% 32%;
+    /* #7DA900 */
+    --secondary-foreground: 0 0% 100%;
+    /* texto branco */
+
+    /* Muted: bege mais apagado */
+    --muted: 45 40% 92%;
+    --muted-foreground: 0 0% 35%;
+
+    /* Accent: verde médio vibrante */
+    --accent: 75 100% 48%;
+    /* #B6F500 */
+    --accent-foreground: 0 0% 10%;
+
+    --border: 45 20% 80%;
+    --input: 45 20% 80%;
+    --ring: 75 100% 35%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --radius: 0.5rem;
+
+    --popover: 60 100% 98%;
+    --popover-foreground: 0 0% 10%;
+
+    /* Cores para gráficos */
+    --chart-1: 75 100% 48%;
+    /* #B6F500 */
+    --chart-2: 72 100% 46%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    --background: 120 8% 10%;
+    /* verde-escuro suave */
+    --foreground: 0 0% 92%;
+    /* texto claro (#EBEBEB) */
+
+    --card: 120 10% 12%;
+    --card-foreground: 0 0% 92%;
+
+    --popover: 120 10% 12%;
+    --popover-foreground: 0 0% 92%;
+
+    --primary: 75 100% 40%;
+    /* igual ao light */
+    --primary-foreground: 0 0% 8%;
+    /* texto escuro (pro contraste em light bg) */
+
+    --secondary: 75 80% 32%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 120 5% 20%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 90 80% 45%;
+    --accent-foreground: 0 0% 8%;
+
+    --border: 120 5% 25%;
+    --input: 120 5% 25%;
+    --ring: 75 100% 35%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --chart-1: 75 100% 48%;
+    --chart-2: 72 100% 46%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
 }
+
 
 @layer base {
   * {

@@ -8,26 +8,51 @@ import SystemLogs from '@/components/dashboard/system-logs'
 import ProfitProjections from '@/components/dashboard/profit-projections'
 import { DashboardFilter } from '@/components/dashboard/dashboard-filter'
 import { fetchAll } from '@/services/api-services'
-import { KpiResponse } from '@/types/dashboard'
+import { KpiResponse, KpiResponseByDate } from '@/types/dashboard'
 import { DollarSign, Users, TrendingUp, Clock } from 'lucide-react'
 
 export default function DashboardPage() {
-    const [kpis, setKpis] = useState<KpiResponse | null>(null)
+    const [kpis, setKpis] = useState<KpiResponse | KpiResponseByDate | null>(null)
     const [chartData, setChartData] = useState<any>(null)
     const [recentPayments, setRecentPayments] = useState<any>(null)
     const [recentLogs, setRecentLogs] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
 
-    useEffect(() => {
+    const [periodFilter, setPeriodFilter] = useState<string>('7d')
+    const [customDateFilter, setCustomDateFilter] = useState<Date | undefined>()
+
+    const mapPeriodToDays = (period: string): number => {
+        switch (period) {
+            case '7d': return 7
+            case '30d': return 30
+            case '90d': return 90
+            case '12m': return 365
+            default: return 30
+        }
+    }
+
+    const fetchDashboardData = (period: string, customDate?: Date) => {
         setLoading(true)
         setError('')
 
+        let kpiUrl = ''
+        let queryParams = new URLSearchParams()
+
+        if (period === 'custom' && customDate) {
+            queryParams.set('date', customDate.toISOString())
+            kpiUrl = `/dashboard/kpi-cards/by-date?${queryParams.toString()}`
+        } else {
+            const days = mapPeriodToDays(period)
+            queryParams.set('period', days.toString())
+            kpiUrl = `/dashboard/kpi-cards?${queryParams.toString()}`
+        }
+
         Promise.all([
-            fetchAll('/dashboard/kpi-cards'),
-            fetchAll('/dashboard/revenue-expense-chart'),
-            fetchAll('/dashboard/recent-payments'),
-            fetchAll('/dashboard/recent-logs'),
+            fetchAll(kpiUrl),
+            fetchAll(`/dashboard/revenue-expense-chart`),
+            fetchAll(`/dashboard/recent-payments`),
+            fetchAll(`/dashboard/recent-logs`),
         ])
             .then(([kpisData, chartData, payments, logs]) => {
                 setKpis(kpisData)
@@ -40,7 +65,17 @@ export default function DashboardPage() {
                 setError('Erro ao carregar dados do dashboard.')
             })
             .finally(() => setLoading(false))
-    }, [])
+    }
+
+    const handlePeriodChange = (period: string, customDate?: Date) => {
+        setPeriodFilter(period)
+        setCustomDateFilter(customDate)
+    }
+
+    useEffect(() => {
+        fetchDashboardData(periodFilter, customDateFilter)
+    }, [periodFilter, customDateFilter])
+
 
     if (loading) return <p>Carregando dashboard...</p>
     if (error) return <p>{error}</p>
@@ -52,14 +87,18 @@ export default function DashboardPage() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                 <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                <DashboardFilter />
+                <DashboardFilter
+                    onPeriodChange={handlePeriodChange}
+                    period={periodFilter}
+                    date={customDateFilter}
+                />
             </div>
 
             <DashboardStats stats={stats} />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <RevenueChart data={chartData} />
-                <ProfitProjections />
+                <RevenueChart />
+                <ProfitProjections data={chartData} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -70,7 +109,55 @@ export default function DashboardPage() {
     )
 }
 
-function transformKpisToStats(kpis: KpiResponse) {
+function transformKpisToStats(kpis: any) {
+    const isByDate = kpis?.dailyRevenue !== undefined
+
+    if (isByDate) {
+        return [
+            {
+                title: 'Receita do Dia',
+                value: `R$ ${kpis.dailyRevenue.toFixed(2).replace('.', ',')}`,
+                description: `Acumulado: R$ ${kpis.overallTotalRevenue.toFixed(2).replace('.', ',')}`,
+                icon: <DollarSign className="h-5 w-5" />,
+                trend: {
+                    value: 'N/A',
+                    isPositive: true,
+                },
+            },
+            {
+                title: 'Clientes Ativos',
+                value: kpis.totalActiveClients.toString(),
+                description: 'Inscritos ativos',
+                icon: <Users className="h-5 w-5" />,
+                trend: {
+                    value: 'N/A',
+                    isPositive: true,
+                },
+            },
+            {
+                title: 'Novos Clientes no Dia',
+                value: kpis.newClientsToday.toString(),
+                description: 'Clientes adquiridos hoje',
+                icon: <TrendingUp className="h-5 w-5" />,
+                trend: {
+                    value: 'N/A',
+                    isPositive: true,
+                },
+            },
+            {
+                title: 'Data selecionada',
+                value: new Date(kpis.date).toLocaleDateString('pt-BR'),
+                description: 'Data da análise',
+                icon: <Clock className="h-5 w-5" />,
+                trend: {
+                    value: '',
+                    isPositive: true,
+                },
+            },
+        ]
+    }
+
+    // Caso padrão (por período)
     return [
         {
             title: 'Receita Total',
@@ -78,11 +165,13 @@ function transformKpisToStats(kpis: KpiResponse) {
             description: `Antes: R$ ${kpis.previousPeriodRevenue.toFixed(2).replace('.', ',')}`,
             icon: <DollarSign className="h-5 w-5" />,
             trend: {
-                value: kpis.previousPeriodRevenue === 0
-                    ? 'N/A'
-                    : `${(
-                        ((kpis.totalRevenue - kpis.previousPeriodRevenue) / kpis.previousPeriodRevenue) * 100
-                    ).toFixed(1)}%`,
+                value:
+                    kpis.previousPeriodRevenue === 0
+                        ? 'N/A'
+                        : `${(
+                            ((kpis.totalRevenue - kpis.previousPeriodRevenue) / kpis.previousPeriodRevenue) *
+                            100
+                        ).toFixed(1)}%`,
                 isPositive: kpis.totalRevenue >= kpis.previousPeriodRevenue,
             },
         },

@@ -19,9 +19,9 @@ export const clientFormSchema = z.object({
     // Personal Data
     id: z.string().uuid().optional().nullable(),
     name: z.string().optional().nullable(),
-    username: z.string().min(1, "Usu rio  obrigat rio"),
+    username: z.string().min(1, "Usuário  obrigatório"),
     password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-    email: z.string().email("Endere o de e-mail inv lido").optional().nullable(),
+    email: z.string().email("Endereço de e-mail inválido").optional().nullable(),
     phone: z
         .string()
         .refine((val) => isValidPhoneNumber(val), {

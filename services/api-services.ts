@@ -4,8 +4,15 @@ type Resource = string
 type ID = string | number
 type Data = Record<string, any>
 
-export const fetchAll = async (resource: Resource) => {
-    const response = await api.get(resource)
+export const fetchAll = async (resource: string, query: Record<string, any> = {}) => {
+    const queryString = new URLSearchParams(
+        Object.entries(query).reduce((acc, [key, val]) => {
+            if (val !== undefined && val !== '') acc[key] = String(val)
+            return acc
+        }, {} as Record<string, string>)
+    ).toString()
+
+    const response = await api.get(`${resource}${queryString ? `?${queryString}` : ''}`)
     return response.data
 }
 

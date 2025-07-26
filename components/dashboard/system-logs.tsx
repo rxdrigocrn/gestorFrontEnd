@@ -41,7 +41,7 @@ export default function SystemLogs({ logs }: SystemLogsProps) {
         <CardTitle>Registros do Sistema</CardTitle>
         <CardDescription>Eventos e atividades recentes do sistema</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-8">
         {logs.map((log) => (
           <div key={log.id} className="flex items-start gap-3 sm:space-x-4">
             {log.user ? (
@@ -53,19 +53,21 @@ export default function SystemLogs({ logs }: SystemLogsProps) {
                 <AvatarFallback>SIS</AvatarFallback>
               </Avatar>
             )}
-            <div className="space-y-1 flex-1 min-w-0">
+            <div className="space-y-1 flex-1 min-w-0 border-b pb-2">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-medium break-words">{log.description}</p>
+                  <p className="text-sm font-medium break-words max-w-xs">{log.description}</p>
+                </div>
+                <div className="flex justify-end top-0 relative">
                   {getLogBadge()}
                 </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  {formatDistanceToNow(new Date(log.timestamp), {
-                    addSuffix: true,
-                    locale: ptBR
-                  })}
-                </span>
               </div>
+              <span className="text-xs text-muted-foreground whitespace-nowrap flex justify-end">
+                {formatDistanceToNow(new Date(log.timestamp), {
+                  addSuffix: true,
+                  locale: ptBR
+                })}
+              </span>
             </div>
           </div>
         ))}

@@ -19,7 +19,7 @@ export function HeroSection({ isVisible }: HeroSectionProps) {
                         Mais de 1.000 IPTVs confiam em nós
                     </Badge>
 
-                    <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 dark:from-white dark:via-blue-100 dark:to-purple-100 bg-clip-text text-transparent leading-tight">
+                    <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 bg-clip-text text-transparent leading-tight">
                         Gerencie seu IPTV
                         <br />
                         <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -27,14 +27,14 @@ export function HeroSection({ isVisible }: HeroSectionProps) {
                         </span>
                     </h1>
 
-                    <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+                    <p className="text-xl md:text-2xl text-slate-600 mb-8 max-w-3xl mx-auto leading-relaxed">
                         A plataforma completa para gestão de provedores de internet.
                         Automatize processos, monitore servidores e aumente sua receita.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
                         <Link href="/auth/register">
-                            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                            <Button size="lg" className="bg-gradient-to-r text-white from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                                 Começar Gratuitamente
                                 <ArrowRight className="ml-2 w-5 h-5" />
                             </Button>
@@ -45,7 +45,7 @@ export function HeroSection({ isVisible }: HeroSectionProps) {
                         </Button>
                     </div>
 
-                    <div className="flex items-center justify-center space-x-8 text-sm text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center justify-center space-x-8 text-sm text-slate-500 ">
                         <div className="flex items-center">
                             <Check className="w-4 h-4 text-green-500 mr-2" />
                             Teste grátis por 14 dias

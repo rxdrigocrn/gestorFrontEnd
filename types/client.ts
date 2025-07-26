@@ -28,6 +28,7 @@ export type ClientResponse = {
     id: string
     publicId?: string
     name: string
+    total: number;
     username?: string
     password?: string
     phone: string

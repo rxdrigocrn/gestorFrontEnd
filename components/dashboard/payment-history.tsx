@@ -59,7 +59,7 @@ export default function PaymentHistory({ payments }: Props) {
           {payments.map((payment) => (
             <div
               key={payment.id}
-              className="p-4 border rounded-lg"
+              className="px-4 py-2 border rounded-lg"
             >
               <div className="flex justify-between items-center">
                 <div className="font-medium">{payment.client.name}</div>
@@ -72,8 +72,8 @@ export default function PaymentHistory({ payments }: Props) {
               </div>
 
               <div className="text-sm text-muted-foreground">
-                Criado em: {format(new Date(payment.createdAt), 'PPPpp')} <br />
-                Pago em: {format(new Date(payment.paidAt), 'PPPpp')} <br />
+                Criado em: {format(new Date(payment.createdAt), 'dd/MM/yyyy \'às\' HH:mm')}<br />
+                Pago em: {format(new Date(payment.paidAt), 'dd/MM/yyyy \'às\' HH:mm')} <br />
               </div>
 
               {(payment.discount > 0 || payment.surcharge > 0) && (

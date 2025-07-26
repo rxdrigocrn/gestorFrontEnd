@@ -9,6 +9,8 @@ import {
 
 import Loader from '@/components/loaders/loader'
 import ErrorBadge from '@/components/ui/error-badge'
+import { Pagination } from './Pagination'
+import { Button } from '../ui/button'
 
 export interface Column<T> {
     header: string
@@ -22,8 +24,13 @@ interface GenericTableProps<T> {
     rowKey: (row: T) => string
     actions?: (row: T) => React.ReactNode
     onRowClick?: (row: T) => void
-
-    // Novas props:
+    pagination?: {
+        page: number
+        limit: number
+        total: number
+        onPageChange: (page: number) => void
+        onLimitChange: (limit: number) => void
+    }
     isLoading?: boolean
     error?: boolean | string
 }
@@ -34,6 +41,7 @@ export function GenericTable<T>({
     rowKey,
     actions,
     onRowClick,
+    pagination,
     isLoading,
     error,
 }: GenericTableProps<T>) {
@@ -88,6 +96,15 @@ export function GenericTable<T>({
                     ))}
                 </TableBody>
             </Table>
+            {pagination && (
+                <Pagination
+                    page={pagination.page}
+                    limit={pagination.limit}
+                    total={pagination.total}
+                    onPageChange={pagination.onPageChange}
+                    onLimitChange={pagination.onLimitChange}
+                />
+            )}
         </div>
     )
 }

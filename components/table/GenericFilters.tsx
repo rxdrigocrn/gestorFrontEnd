@@ -2,7 +2,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Search, Filter, X } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface FilterOption {
     label: string
@@ -16,6 +16,7 @@ interface GenericFiltersProps {
     onSearchChange?: (value: string) => void
     onFilterChange?: (name: string, value: string) => void
     onReset?: () => void
+    onFiltersOpen?: (open: boolean) => void
 }
 
 export function GenericFilters({
@@ -23,10 +24,17 @@ export function GenericFilters({
     filters = [],
     onSearchChange,
     onFilterChange,
-    onReset
+    onReset,
+    onFiltersOpen,
 }: GenericFiltersProps) {
-    const [showFilters, setShowFilters] = useState(false)
-    const hasFilters = filters && filters.length > 0
+    const [showFilters, setShowFilters] = useState(false);
+    const [localSearch, setLocalSearch] = useState('');
+    const [localFilters, setLocalFilters] = useState<{ [key: string]: string }>({});
+    const hasFilters = filters.length > 0;
+
+    useEffect(() => {
+        onFiltersOpen?.(showFilters)
+    }, [showFilters, onFiltersOpen])
 
     return (
         <div className="space-y-4">
@@ -36,7 +44,8 @@ export function GenericFilters({
                     <Input
                         placeholder={searchPlaceholder}
                         className="pl-8"
-                        onChange={(e) => onSearchChange?.(e.target.value)}
+                        value={localSearch}
+                        onChange={(e) => setLocalSearch(e.target.value)}
                     />
                 </div>
                 {hasFilters && (
@@ -55,7 +64,10 @@ export function GenericFilters({
                     {filters.map((filter) => (
                         <Select
                             key={filter.name}
-                            onValueChange={(val) => onFilterChange?.(filter.name, val)}
+                            value={localFilters[filter.name]}
+                            onValueChange={(val) =>
+                                setLocalFilters((prev) => ({ ...prev, [filter.name]: val }))
+                            }
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder={filter.label} />
@@ -69,16 +81,33 @@ export function GenericFilters({
                             </SelectContent>
                         </Select>
                     ))}
+
                     <div className="flex gap-2">
-                        <Button className="flex-1" onClick={() => { }}>
+                        <Button
+                            className="flex-1"
+                            onClick={() => {
+                                onSearchChange?.(localSearch);
+                                Object.entries(localFilters).forEach(([name, value]) => {
+                                    onFilterChange?.(name, value);
+                                });
+                            }}
+                        >
                             Aplicar Filtros
                         </Button>
-                        <Button variant="ghost" onClick={onReset}>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setLocalSearch('');
+                                setLocalFilters({});
+                                onReset?.();
+                            }}
+                        >
                             Resetar
                         </Button>
                     </div>
                 </div>
             )}
         </div>
-    )
+    );
 }
+

@@ -6,7 +6,7 @@ import { Globe } from "lucide-react"
 
 export function Navbar() {
     return (
-        <nav className="relative z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-white/20 sticky top-0">
+        <nav className="relative z-50 bg-white/80   backdrop-blur-md border-b border-white/20 sticky top-0">
             <div className="container mx-auto px-4 py-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
@@ -18,20 +18,20 @@ export function Navbar() {
                         </span>
                     </div>
                     <div className="hidden md:flex items-center space-x-4">
-                        <a href="#features" className="text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors">
+                        <a href="#features" className="text-slate-600   hover:text-blue-600 transition-colors">
                             Recursos
                         </a>
-                        <a href="#pricing" className="text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors">
+                        <a href="#pricing" className="text-slate-600   hover:text-blue-600 transition-colors">
                             Preços
                         </a>
-                        <a href="#testimonials" className="text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors">
+                        <a href="#testimonials" className="text-slate-600   hover:text-blue-600 transition-colors">
                             Depoimentos
                         </a>
                         <Link href="/auth/login">
                             <Button variant="link" size="lg" className="bg-white border-slate-200 text-slate-900 hover:bg-slate-100">Entrar</Button>
                         </Link>
                         <Link href="/auth/register">
-                            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 dark:!text-white hover:to-purple-700">
+                            <Button className="bg-gradient-to-r text-white from-blue-600 to-purple-600 hover:from-blue-700   hover:to-purple-700">
                                 Começar Grátis
                             </Button>
                         </Link>

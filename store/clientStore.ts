@@ -11,11 +11,10 @@ import {
     ClientResponse,
     ClientCreate,
     ClientUpdate,
-    ClientPayment,
 } from '@/types/client'
 import { api } from '@/services/api'
 
-// Cria store base
+// Cria store base com parseListResponse customizado para clients
 const baseStore = createGenericStore<ClientResponse, ClientCreate, ClientUpdate>(
     'clients',
     {
@@ -24,6 +23,12 @@ const baseStore = createGenericStore<ClientResponse, ClientCreate, ClientUpdate>
         createItem,
         updateItem,
         deleteItem,
+    },
+    {
+        parseListResponse: (data) => ({
+            items: data.items,
+            total: data.total,
+        }),
     }
 )
 

@@ -21,6 +21,7 @@ import { BillingRuleCreate, BillingRuleResponse, BillingRuleUpdate } from '@/typ
 import { BillingRuleFormData } from '@/lib/schemas/billingRulesSchema'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
 import { useSimpleToast } from '@/hooks/use-toast'
+import { mapBillingResToFormData } from '@/types/billingRules'
 
 export default function BillingRulesTable() {
     const router = useRouter()
@@ -144,8 +145,8 @@ export default function BillingRulesTable() {
             <GenericTable<BillingRuleResponse>
                 data={filteredBillingRules}
                 rowKey={(row) => row.id}
-                 isLoading={isLoading}
-        error={error ?? undefined}
+                isLoading={isLoading}
+                error={error ?? undefined}
                 // onRowClick={(row) => router.push(`/regras-de-cobranca/${row.id}`)}
                 columns={[
                     {
@@ -204,7 +205,12 @@ export default function BillingRulesTable() {
 
             {/* Modal */}
             {showAddModal && (
-                <AddBillingRuleModal open={showAddModal} onOpenChange={handleModalChange} onConfirm={handleSubmit} defaultValues={editingItem ?? undefined} />
+                <AddBillingRuleModal
+                    open={showAddModal}
+                    onOpenChange={handleModalChange}
+                    onConfirm={handleSubmit}
+                    defaultValues={editingItem ? mapBillingResToFormData(editingItem) : undefined}
+                />
             )}
 
             <ConfirmationDialog

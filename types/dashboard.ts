@@ -7,3 +7,12 @@ export type KpiResponse = {
 }
 
 
+export type KpiResponseByDate = {
+    activeClients: number
+    currentPeriodRevenue: number
+    growthRate: number
+    overallTotalRevenue: number
+    dailyRevenue: number
+}
+
+

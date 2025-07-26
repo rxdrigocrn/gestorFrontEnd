@@ -1,12 +1,11 @@
-"use client"
+'use client'
 
-import { useState } from 'react'
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { CalendarIcon } from 'lucide-react'
@@ -19,13 +18,16 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 
-export function DashboardFilter() {
-  const [date, setDate] = useState<Date>()
-  const [selectedRange, setSelectedRange] = useState('7d')
+interface DashboardFilterProps {
+  period: string
+  date?: Date
+  onPeriodChange?: (period: string, customDate?: Date) => void
+}
 
+export function DashboardFilter({ period, date, onPeriodChange }: DashboardFilterProps) {
   return (
     <div className="flex flex-col sm:flex-row gap-2">
-      <Select value={selectedRange} onValueChange={setSelectedRange}>
+      <Select value={period} onValueChange={(val) => onPeriodChange?.(val, date)}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Select range" />
         </SelectTrigger>
@@ -37,26 +39,27 @@ export function DashboardFilter() {
           <SelectItem value="custom">Custom range</SelectItem>
         </SelectContent>
       </Select>
-      
-      {selectedRange === 'custom' && (
+
+      {period === 'custom' && (
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
+              type='button'
               className={cn(
-                "w-[240px] justify-start text-left font-normal",
-                !date && "text-muted-foreground"
+                'w-[240px] justify-start text-left font-normal',
+                !date && 'text-muted-foreground'
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {date ? format(date, "PPP") : "Pick a date"}
+              {date ? format(date, 'PPP') : 'Pick a date'}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
               selected={date}
-              onSelect={setDate}
+              onSelect={(newDate) => onPeriodChange?.(period, newDate)}
               initialFocus
             />
           </PopoverContent>

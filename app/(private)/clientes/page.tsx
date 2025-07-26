@@ -28,13 +28,26 @@ import { fetchAll } from '@/services/api-services'
 import { api } from '@/services/api'
 import { ImportExcelModal } from '@/components/clients/import-excel'
 import { useSimpleToast } from '@/hooks/use-toast'
+import { useDeviceStore } from '@/store/deviceStore'
+import { usePlanStore } from '@/store/planStore'
+import { useApplicationStore } from '@/store/applicationStore'
+import { useLeadSourceStore } from '@/store/leadStore'
+import { usePaymentMethodStore } from '@/store/paymentMethodStore'
+import { useServerStore } from '@/store/serverStore'
 
 export default function ClientsTable() {
   const router = useRouter()
-  const { fetchItems: fetchClients, items: clients, isLoading, error, createItem, updateItem, deleteItem, addPaymentToClient } = useClientStore()
+  const { fetchItems: fetchClients, items: clients, total, isLoading, error, createItem, updateItem, deleteItem, addPaymentToClient } = useClientStore()
+  const { fetchItems: fetchDevices, items: devices } = useDeviceStore()
+  const { fetchItems: fetchPlans, items: plans } = usePlanStore()
+  const { fetchItems: fetchApplications, items: applications } = useApplicationStore()
+  const { fetchItems: fetchLeadSources, items: leadSources } = useLeadSourceStore()
+  const { fetchItems: fetchPaymentMethods, items: paymentMethods } = usePaymentMethodStore()
+  const { fetchItems: fetchServers, items: servers } = useServerStore()
+
+
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filters, setFilters] = useState<{ [key: string]: string }>({})
+
   const [showAddModal, setShowAddModal] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [editingItem, setEditingItem] = useState<ClientResponse | null>(null)
@@ -42,19 +55,113 @@ export default function ClientsTable() {
 
   const { showToast } = useSimpleToast();
 
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filters, setFilters] = useState<{ [key: string]: string }>({})
+  const [appliedFilters, setAppliedFilters] = useState<{ [key: string]: string }>({})
+
+  const [hasLoadedPlans, setHasLoadedPlans] = useState(false)
+  const [hasLoadedServers, setHasLoadedServers] = useState(false)
+  const [hasLoadedApplications, setHasLoadedApplications] = useState(false)
+  const [hasLoadedDevices, setHasLoadedDevices] = useState(false)
+  const [hasLoadedPaymentMethods, setHasLoadedPaymentMethods] = useState(false)
+  const [hasLoadedLeadSources, setHasLoadedLeadSources] = useState(false)
+
+  const handleFiltersOpen = () => {
+    if (!hasLoadedPlans) {
+      fetchPlans()
+      setHasLoadedPlans(true)
+    }
+    if (!hasLoadedServers) {
+      fetchServers()
+      setHasLoadedServers(true)
+    }
+    if (!hasLoadedApplications) {
+      fetchApplications()
+      setHasLoadedApplications(true)
+    }
+    if (!hasLoadedDevices) {
+      fetchDevices()
+      setHasLoadedDevices(true)
+    }
+    if (!hasLoadedPaymentMethods) {
+      fetchPaymentMethods()
+      setHasLoadedPaymentMethods(true)
+    }
+    if (!hasLoadedLeadSources) {
+      fetchLeadSources()
+      setHasLoadedLeadSources(true)
+    }
+  }
+
   useEffect(() => {
-    fetchClients()
-  }, [])
+    const params: { [key: string]: string | number } = {
+      page,
+      limit,
+    };
+
+    if (searchTerm.trim()) {
+      params.name = searchTerm.trim();
+    }
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value && value !== '') {
+        params[key] = value;
+      }
+    });
+
+    fetchClients(params);
+
+  }, [searchTerm, filters, page, limit]);
+
+
+  useEffect(() => {
+    console.log(clients)
+  }, [clients])
 
   const planOptions = useMemo(() => {
-    const uniquePlans = new Map<string, string>()
-    clients.forEach((client) => {
-      if (client.plan?.id && client.plan?.name) {
-        uniquePlans.set(client.plan.id, client.plan.name)
-      }
-    })
-    return Array.from(uniquePlans).map(([value, label]) => ({ value, label }))
-  }, [clients])
+    return plans.map(({ id, name }) => ({
+      value: id,
+      label: name,
+    }))
+  }, [plans])
+
+  const serverOptions = useMemo(() => {
+    return servers.map(({ id, name }) => ({
+      value: id,
+      label: name,
+    }))
+  }, [servers])
+
+  const applicationOptions = useMemo(() => {
+    return applications.map(({ id, name }) => ({
+      value: id,
+      label: name,
+    }))
+  }, [applications])
+
+  const deviceOptions = useMemo(() => {
+    return devices.map(({ id, name }) => ({
+      value: id,
+      label: name,
+    }))
+  }, [devices])
+
+  const paymentMethodOptions = useMemo(() => {
+    return paymentMethods.map(({ id, name }) => ({
+      value: id,
+      label: name,
+    }))
+  }, [paymentMethods])
+
+  const leadSourceOptions = useMemo(() => {
+    return leadSources.map(({ id, type }) => ({
+      value: id,
+      label: type,
+    }))
+  }, [leadSources])
+
 
   const filteredClients = clients.filter((client) => {
     const matchesSearch =
@@ -217,10 +324,11 @@ export default function ClientsTable() {
       <GenericFilters
         searchPlaceholder="Buscar clientes..."
         onSearchChange={setSearchTerm}
-        onFilterChange={(name: string, value: string) => setFilters((prev) => ({ ...prev, [name]: value }))}
+        onFilterChange={(name, value) => setFilters((prev) => ({ ...prev, [name]: value }))}
+        onFiltersOpen={handleFiltersOpen}
         onReset={() => {
-          setSearchTerm('')
-          setFilters({})
+          setSearchTerm('');
+          setFilters({});
         }}
         filters={[
           {
@@ -228,8 +336,35 @@ export default function ClientsTable() {
             name: 'planId',
             options: planOptions,
           },
+          {
+            label: 'Servidor',
+            name: 'serverId',
+            options: serverOptions,
+          },
+          {
+            label: 'Aplicação',
+            name: 'applicationId',
+            options: applicationOptions,
+          },
+          {
+            label: 'Dispositivo',
+            name: 'deviceId',
+            options: deviceOptions,
+          },
+          {
+            label: 'Método de Pagamento',
+            name: 'paymentMethodId',
+            options: paymentMethodOptions,
+          },
+          {
+            label: 'Origem do Lead',
+            name: 'leadSourceId',
+            options: leadSourceOptions,
+          },
         ]}
       />
+
+
 
       {/* Tabela */}
       <GenericTable<ClientResponse>
@@ -238,6 +373,16 @@ export default function ClientsTable() {
         onRowClick={(row) => router.push(`/clientes/${row.id}`)}
         isLoading={isLoading}
         error={error ?? undefined}
+        pagination={{
+          page,
+          limit,
+          total,
+          onPageChange: setPage,
+          onLimitChange: (newLimit) => {
+            setLimit(newLimit)
+            setPage(1)
+          },
+        }}
         columns={[
           {
             header: 'Cliente',
