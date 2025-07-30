@@ -28,50 +28,39 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationLink, PaginationNext } from '@/components/ui/pagination'
-import { Filter, X } from 'lucide-react'
-import { useState } from 'react'
-
-// Dados mockados para exemplo
-const mockLogs = Array.from({ length: 50 }, (_, i) => ({
-    id: `log-${i + 1}`,
-    description: [
-        'O usuário admin criou um novo cliente',
-        'O sistema atualizou as configurações',
-        'Usuário teste fez login no sistema',
-        'Registro de erro no processamento',
-        'Backup automático realizado',
-        'Atualização de permissões do usuário'
-    ][Math.floor(Math.random() * 6)],
-    timestamp: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-    user: {
-        name: ['Admin', 'Usuário Teste', 'Sistema', 'Backend'][Math.floor(Math.random() * 4)],
-        email: ['admin@exemplo.com', 'teste@exemplo.com', 'sistema@exemplo.com'][Math.floor(Math.random() * 3)]
-    },
-    actionType: ['create', 'update', 'delete', 'login', 'system'][Math.floor(Math.random() * 5)]
-}))
+import { X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useLogStore } from '@/store/logsStore'
+import { Pagination } from '@/components/table/Pagination'
 
 export default function LogsPage() {
     const [searchTerm, setSearchTerm] = useState('')
     const [actionTypeFilter, setActionTypeFilter] = useState('all')
     const [currentPage, setCurrentPage] = useState(1)
-    const itemsPerPage = 10
+    const [itemsPerPage, setItemsPerPage] = useState(10)
 
-    // Filtros client-side
-    const filteredLogs = mockLogs.filter(log => {
-        const matchesSearch = log.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            log.user.name.toLowerCase().includes(searchTerm.toLowerCase())
-        const matchesActionType = actionTypeFilter === 'all' || log.actionType === actionTypeFilter
+    const {
+        items: logs,
+        total,
+        isLoading: loading,
+        fetchItems,
+    } = useLogStore()
 
-        return matchesSearch && matchesActionType
-    })
 
-    // Paginação
-    const totalPages = Math.ceil(filteredLogs.length / itemsPerPage)
-    const paginatedLogs = filteredLogs.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    )
+    const hasFilters = searchTerm || actionTypeFilter !== 'all'
+
+    useEffect(() => {
+        const query: Record<string, any> = {
+            page: currentPage,
+            limit: itemsPerPage,
+        }
+
+        if (searchTerm) query.search = searchTerm
+        if (actionTypeFilter !== 'all') query.actionType = actionTypeFilter
+
+        fetchItems(query)
+    }, [searchTerm, actionTypeFilter, currentPage, itemsPerPage])
+
 
     const resetFilters = () => {
         setSearchTerm('')
@@ -103,15 +92,13 @@ export default function LogsPage() {
         )
     }
 
-    const hasFilters = searchTerm || actionTypeFilter !== 'all'
-
     return (
         <div className="space-y-6">
             <Card>
                 <CardHeader>
                     <div className="flex justify-between items-start">
                         <div>
-                            <CardTitle className='mb-3'>Registros do Sistema</CardTitle>
+                            <CardTitle className="mb-3">Registros do Sistema</CardTitle>
                             <CardDescription>
                                 Histórico de atividades
                             </CardDescription>
@@ -172,10 +159,10 @@ export default function LogsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {paginatedLogs.length > 0 ? (
-                                    paginatedLogs.map((log) => (
+                                {!loading && logs.length > 0 ? (
+                                    logs.map((log) => (
                                         <TableRow key={log.id}>
-                                            <TableCell>{getActionTypeBadge(log.actionType)}</TableCell>
+                                            <TableCell>{getActionTypeBadge(log?.actionType)}</TableCell>
                                             <TableCell className="max-w-[300px]">
                                                 <div className="line-clamp-2">
                                                     {log.description}
@@ -185,18 +172,16 @@ export default function LogsPage() {
                                                 <div className="flex items-center gap-2">
                                                     <Avatar className="h-8 w-8">
                                                         <AvatarFallback>
-                                                            {log.user.name
-                                                                .split(' ')
+                                                            {log.user?.name
+                                                                ?.split(' ')
                                                                 .map((n) => n[0])
                                                                 .join('')
                                                                 .toUpperCase()}
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <p className="font-medium">{log.user.name}</p>
-                                                        <p className="text-xs text-muted-foreground">
-                                                            {log.user.email}
-                                                        </p>
+                                                        <p className="font-medium">{log.user?.name}</p>
+                                                       
                                                     </div>
                                                 </div>
                                             </TableCell>
@@ -210,21 +195,21 @@ export default function LogsPage() {
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={4} className="h-24 text-center">
-                                            {hasFilters ? (
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <span>Nenhum registro encontrado com os filtros atuais</span>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={resetFilters}
-                                                        className="flex items-center gap-2"
-                                                    >
-                                                        <X className="h-4 w-4" />
-                                                        Limpar filtros
-                                                    </Button>
-                                                </div>
-                                            ) : (
-                                                'Nenhum registro encontrado'
+                                            {loading ? 'Carregando logs...' : (
+                                                hasFilters ? (
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <span>Nenhum registro encontrado com os filtros atuais</span>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={resetFilters}
+                                                            className="flex items-center gap-2"
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                            Limpar filtros
+                                                        </Button>
+                                                    </div>
+                                                ) : 'Nenhum registro encontrado'
                                             )}
                                         </TableCell>
                                     </TableRow>
@@ -233,60 +218,14 @@ export default function LogsPage() {
                         </Table>
                     </div>
 
-                    {totalPages > 1 && (
-                        <Pagination className="mt-6">
-                            <PaginationContent>
-                                <PaginationItem>
-                                    <PaginationPrevious
-                                        href="#"
-                                        onClick={(e) => {
-                                            e.preventDefault()
-                                            if (currentPage > 1) setCurrentPage(currentPage - 1)
-                                        }}
-                                        isActive={currentPage > 1}
-                                    />
-                                </PaginationItem>
-
-                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                    let pageNum
-                                    if (totalPages <= 5) {
-                                        pageNum = i + 1
-                                    } else if (currentPage <= 3) {
-                                        pageNum = i + 1
-                                    } else if (currentPage >= totalPages - 2) {
-                                        pageNum = totalPages - 4 + i
-                                    } else {
-                                        pageNum = currentPage - 2 + i
-                                    }
-
-                                    return (
-                                        <PaginationItem key={pageNum}>
-                                            <PaginationLink
-                                                href="#"
-                                                onClick={(e) => {
-                                                    e.preventDefault()
-                                                    setCurrentPage(pageNum)
-                                                }}
-                                                isActive={pageNum === currentPage}
-                                            >
-                                                {pageNum}
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                    )
-                                })}
-
-                                <PaginationItem>
-                                    <PaginationNext
-                                        href="#"
-                                        onClick={(e) => {
-                                            e.preventDefault()
-                                            if (currentPage < totalPages) setCurrentPage(currentPage + 1)
-                                        }}
-                                        isActive={currentPage < totalPages}
-                                    />
-                                </PaginationItem>
-                            </PaginationContent>
-                        </Pagination>
+                    {total > itemsPerPage && (
+                        <Pagination
+                            page={currentPage}
+                            limit={itemsPerPage}
+                            total={total}
+                            onPageChange={setCurrentPage}
+                            onLimitChange={setItemsPerPage}
+                        />
                     )}
                 </CardContent>
             </Card>
