@@ -10,6 +10,7 @@ import { DashboardFilter } from '@/components/dashboard/dashboard-filter'
 import { fetchAll } from '@/services/api-services'
 import { KpiResponse, KpiResponseByDate } from '@/types/dashboard'
 import { DollarSign, Users, TrendingUp, Clock } from 'lucide-react'
+import Loader from '@/components/loaders/loader'
 
 export default function DashboardPage() {
     const [kpis, setKpis] = useState<KpiResponse | KpiResponseByDate | null>(null)
@@ -76,8 +77,13 @@ export default function DashboardPage() {
         fetchDashboardData(periodFilter, customDateFilter)
     }, [periodFilter, customDateFilter])
 
-
-    if (loading) return <p>Carregando dashboard...</p>
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-[100vh] mb-[64px]">
+                <Loader />
+            </div>
+        )
+    }
     if (error) return <p>{error}</p>
     if (!kpis) return null
 

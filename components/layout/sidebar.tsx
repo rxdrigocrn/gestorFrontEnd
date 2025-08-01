@@ -14,6 +14,7 @@ import {
   DollarSign,
   MessageCircle,
   Globe,
+  UserCog,
 } from "lucide-react"
 
 interface SidebarLink {
@@ -24,6 +25,7 @@ interface SidebarLink {
 
 const links: SidebarLink[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Usuários", href: "/usuarios", icon: UserCog },
   { name: "Clientes", href: "/clientes", icon: Users },
   { name: "Servidores", href: "/servidores", icon: Server },
   { name: "Dispositivos", href: "/dispositivos", icon: Smartphone },

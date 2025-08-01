@@ -288,6 +288,10 @@ export default function ClientsTable() {
     }
   }
 
+  const handleSendMessage = (client: ClientResponse) => {
+    console.log('Enviar mensagem para:', client.name)
+  }
+
 
 
   return (
