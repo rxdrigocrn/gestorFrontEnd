@@ -20,10 +20,11 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { usePaymentMethodStore } from '@/store/paymentMethodStore'
 import { cn } from '@/lib/utils'
+import { useClientStore } from '@/store/clientStore'
 import { PaymentMethodResponse } from '@/types/paymentMethod'
+import { SearchTable } from '@/components/table/SearchTable'
 
 export default function PaymentsPage() {
-  const [clientId, setClientId] = useState('all')
   const [status, setStatus] = useState('all')
   const [method, setMethod] = useState('all')
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
@@ -32,7 +33,17 @@ export default function PaymentsPage() {
 
   const { items: paymentMethods, fetchItems: fetchPaymentMethods } = usePaymentMethodStore()
   const { items: payments, total, isLoading, fetchItems } = usePaymentStore()
+  const {
+    fetchItems: fetchClients,
+    items: clientList,
+    total: clientTotal,
+  } = useClientStore()
   const [paymentMethodId, setPaymentMethodId] = useState('all')
+
+  const [clientModalOpen, setClientModalOpen] = useState(false)
+  const [selectedClient, setSelectedClient] = useState<{ id: string, name: string } | null>(null)
+  const [clientId, setClientId] = useState<string | number>('all')
+
 
   const hasFilters = clientId !== 'all' || status !== 'all' || method !== 'all';
 
@@ -83,19 +94,14 @@ export default function PaymentsPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6 flex-wrap">
-            <Select value={clientId} onValueChange={(value) => {
-              setClientId(value)
-              setCurrentPage(1)
-            }}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos Clientes</SelectItem>
-                {/* Substituir pelos clientes reais */}
-  
-              </SelectContent>
-            </Select>
+            <Button
+              variant="outline"
+              className="w-[200px] justify-start"
+              onClick={() => setClientModalOpen(true)}
+            >
+              {selectedClient ? selectedClient.name : 'Selecionar cliente'}
+            </Button>
+
 
             <Select value={paymentMethodId} onValueChange={(value) => {
               setPaymentMethodId(value)
@@ -213,6 +219,41 @@ export default function PaymentsPage() {
           )}
         </CardContent>
       </Card>
+
+
+
+      <SearchTable<{ id: string; name: string; email: string }>
+        open={clientModalOpen}
+        onOpenChange={setClientModalOpen}
+        title="Selecionar Cliente"
+        columns={[
+          { key: 'name', label: 'Nome' },
+          { key: 'email', label: 'Email' },
+        ]}
+        fetchData={async ({ search, searchKey, page, limit }) => {
+          await fetchClients({
+            page,
+            limit,
+            [searchKey]: search?.trim() || undefined,
+          })
+
+          return {
+            data: clientList.map(client => ({
+              id: client.id,
+              name: client.name,
+              email: client.email || '',  
+            })),
+            total: clientTotal,
+          }
+        }}
+        onSelect={(client) => {
+          setSelectedClient({ id: client.id, name: client.name })
+          setClientId(client.id)
+          setCurrentPage(1)
+        }}
+      />
+
+
     </div>
   )
 }

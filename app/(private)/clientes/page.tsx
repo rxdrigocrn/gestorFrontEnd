@@ -115,11 +115,6 @@ export default function ClientsTable() {
 
   }, [searchTerm, filters, page, limit]);
 
-
-  useEffect(() => {
-    console.log(clients)
-  }, [clients])
-
   const planOptions = useMemo(() => {
     return plans.map(({ id, name }) => ({
       value: id,

@@ -52,7 +52,8 @@ const ConfigModal = ({ open, onOpenChange }: ConfigModalProps) => {
         try {
             setLoading(true)
             const res = await api.post('/whatsapp-session/connect')
-            const qrBase64 = res.data.data.qrcode.base64
+            console.log('Conectando WhatsApp:', res.data.data)
+            const qrBase64 = res.data.data?.qrcode?.base64 || res.data.data.base64 || null
             if (qrBase64) {
                 setQrCodeBase64(qrBase64)
                 setState('waiting_qrcode')
