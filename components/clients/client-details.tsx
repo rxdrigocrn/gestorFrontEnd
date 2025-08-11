@@ -28,6 +28,7 @@ import { useRouter } from 'next/navigation'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu'
 import { useSimpleToast } from '@/hooks/use-toast'
 import { PaymentDetailsModal } from './payment-details'
+import SendMessageModal from './send-message-modal'
 
 interface ClientDetailsProps {
   clientData: ClientResponse
@@ -36,6 +37,8 @@ interface ClientDetailsProps {
 export function ClientDetails({ clientData }: ClientDetailsProps) {
   const [showAddModal, setShowAddModal] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [showMessageModal, setShowMessageModal] = useState(false)
+
   const [editingItem, setEditingItem] = useState<ClientResponse | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [showPaymentDetail, setShowPaymentDetail] = useState(false)
@@ -159,9 +162,6 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
   }
 
 
-
-
-
   const handleDeletePayment = async () => {
     try {
       if (editingPayment && editingPayment.id) {
@@ -186,13 +186,18 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
     setEditingPayment(payment);
   }
 
+  const handleOpenMessageModal = () => {
+    setEditingItem(clientData)
+    setShowMessageModal(true)
+  }
+
 
   return (
     <div className="container mx-auto px-4 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Detalhes do Cliente</h1>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-          <Button variant="outline" className="flex-1 sm:flex-none bg-blue-500/10 text-blue-500 hover:bg-blue-500/20">
+          <Button onClick={handleOpenMessageModal} variant="outline" className="flex-1 sm:flex-none bg-blue-500/10 text-blue-500 hover:bg-blue-500/20">
             <MessageSquare className="w-4 h-4 mr-2" />
             Enviar Mensagem
           </Button>
@@ -498,6 +503,13 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
         description="Tem certeza que deseja excluir este pagamento? Esta ação não pode ser desfeita."
         confirmText="Excluir"
         variant="destructive"
+      />
+
+
+      <SendMessageModal
+        client={editingItem || undefined}
+        isOpen={showMessageModal}
+        onClose={() => setShowMessageModal(false)}
       />
     </div>
   )
