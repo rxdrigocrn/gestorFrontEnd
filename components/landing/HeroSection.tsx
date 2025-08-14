@@ -14,15 +14,15 @@ export function HeroSection({ isVisible }: HeroSectionProps) {
         <section className="relative z-10 pt-20 pb-32">
             <div className="container mx-auto px-4 text-center">
                 <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                    <Badge className="mb-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 px-4 py-2">
+                    <Badge className="mb-6 bg-gradient-to-r from-lime-300 to-green-600 text-white border-0 px-4 py-2">
                         <Star className="w-4 h-4 mr-2" />
                         Mais de 1.000 IPTVs confiam em nós
                     </Badge>
 
-                    <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 bg-clip-text text-transparent leading-tight">
+                    <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-emerald-400 via-lime-400 to-green-900 bg-clip-text text-transparent leading-tight">
                         Gerencie seu IPTV
                         <br />
-                        <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        <span className="bg-gradient-to-r from-lime-400 to-green-600 bg-clip-text text-transparent">
                             com Inteligência
                         </span>
                     </h1>
@@ -34,7 +34,7 @@ export function HeroSection({ isVisible }: HeroSectionProps) {
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
                         <Link href="/auth/register">
-                            <Button size="lg" className="bg-gradient-to-r text-white from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                            <Button size="lg" className="bg-gradient-to-r text-white from-lime-300 to-green-600 hover:from-lime-400 hover:to-green-700 text-lg px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                                 Começar Gratuitamente
                                 <ArrowRight className="ml-2 w-5 h-5" />
                             </Button>

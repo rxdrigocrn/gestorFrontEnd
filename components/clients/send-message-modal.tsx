@@ -37,7 +37,7 @@ const SendMessageModal = ({ client, isOpen, onClose }: SendMessageModalProps) =>
         }
 
         try {
-            const res = await createItem(`/send-message`, {
+            const res = await createItem(`whatsapp-session/send-message`, {
                 to: client?.phone,
                 message: messageToSend,
             })

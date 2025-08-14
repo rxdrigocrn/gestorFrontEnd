@@ -37,7 +37,7 @@ export function FeaturesSection() {
     <section id="features" className="relative z-10 py-20 bg-white/50 backdrop-blur-sm">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-slate-900 to-blue-900 bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-lime-300 to-green-600 bg-clip-text text-transparent">
             Recursos Poderosos
           </h2>
           <p className="text-xl text-slate-600  max-w-2xl mx-auto">
@@ -60,7 +60,7 @@ export function FeaturesSection() {
                 >
                   <div className="flex items-start space-x-4">
                     <div className={`p-3 rounded-xl ${activeFeature === index
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600'
+                      ? 'bg-gradient-to-r from-lime-300 to-green-600'
                       : 'bg-slate-100  '
                       } transition-all duration-300`}>
                       <Icon className={`w-6 h-6 ${activeFeature === index ? 'text-white' : 'text-slate-600 '
@@ -81,7 +81,7 @@ export function FeaturesSection() {
           </div>
 
           <div className="relative">
-            <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl p-8 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
+            <div className="bg-gradient-to-br from-lime-300 to-green-600 rounded-3xl p-8 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
               <div className="bg-white  rounded-2xl p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold text-slate-900 ">Dashboard Principal</h4>
@@ -103,7 +103,7 @@ export function FeaturesSection() {
                   {[40, 65, 45, 80, 60, 90, 75].map((height, i) => (
                     <div
                       key={i}
-                      className="bg-gradient-to-t from-blue-600 to-purple-600 rounded-sm w-4 transition-all duration-1000 delay-100"
+                      className="bg-gradient-to-t from-lime-300 to-green-600 rounded-sm w-4 transition-all duration-1000 delay-100"
                       style={{ height: `${height}%` }}
                     />
                   ))}
@@ -118,7 +118,7 @@ export function FeaturesSection() {
             const Icon = stat.icon
             return (
               <div key={index} className="text-center group">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-16 h-16 bg-gradient-to-br from-lime-300 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                   <Icon className="w-8 h-8 text-white" />
                 </div>
                 <div className="text-3xl font-bold text-slate-900  mb-2">{stat.value}</div>
