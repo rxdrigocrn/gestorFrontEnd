@@ -55,7 +55,7 @@ export const clientFormSchema = z.object({
     referredBy: z.string().optional().nullable(),
     deviceId: z.string().optional().nullable(),
     applicationId: z.string().optional().nullable(),
-    appDate: z.string().optional().nullable(),
+    appDate: z.date().optional().nullable(),
     m3u: z.string().optional().nullable(),
     mac: z.string().optional().nullable(),
     deviceKey: z.string().optional().nullable(),

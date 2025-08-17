@@ -103,8 +103,6 @@ const ConfigModal = ({ open, onOpenChange }: ConfigModalProps) => {
                         <span>Conectado - Você já está online no WhatsApp</span>
                     </div>
                 )
-            case 'disconnected':
-            case 'not_connected':
             case 'close':
                 return (
                     <div className="flex items-center gap-2 text-red-600 mb-2">
@@ -112,7 +110,7 @@ const ConfigModal = ({ open, onOpenChange }: ConfigModalProps) => {
                         <span>Desconectado - Clique em conectar para iniciar</span>
                     </div>
                 )
-            case 'waiting_qrcode':
+            case 'connecting':
                 return (
                     <div className="flex items-center gap-2 text-blue-600 mb-2">
                         <Loader2 className="h-4 w-4 animate-spin" />

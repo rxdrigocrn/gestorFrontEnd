@@ -114,10 +114,10 @@ export default function UsersPage() {
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-                <h1 className="text-3xl font-bold tracking-tight">Usuários</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Funcionários</h1>
                 <Button onClick={() => setShowAddModal(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Adicionar Usuário
+                    Adicionar Funcionários
                 </Button>
             </div>
 
@@ -132,7 +132,6 @@ export default function UsersPage() {
                 isLoading={isLoading}
                 error={error ?? undefined}
                 rowKey={(row) => row.id ?? ''}
-                onRowClick={(row) => router.push(`/usuarios/${row.id}`)}
                 columns={[
                     { header: 'Nome', accessor: 'name' },
                     { header: 'Email', accessor: 'email' },

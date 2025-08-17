@@ -33,7 +33,6 @@ export function AddUserModal({
     defaultValues,
 }: AddUserModalProps) {
     const [showPassword, setShowPassword] = useState(false)
-
     const {
         register,
         handleSubmit,
@@ -68,11 +67,11 @@ export function AddUserModal({
     }
 
     return (
-        <Modal open={open} title="Novo usuário" onOpenChange={onOpenChange}>
+        <Modal open={open} title="Novo funcionário" onOpenChange={onOpenChange}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
                 <div className="space-y-1">
                     <Label htmlFor="name">Nome</Label>
-                    <Input id="name" {...register('name')} placeholder="Nome do usuário" />
+                    <Input id="name" {...register('name')} placeholder="Nome do funcionário" />
                     {errors.name && (
                         <p className="text-sm text-red-600">{errors.name.message}</p>
                     )}
