@@ -32,7 +32,7 @@ export function TestimonialsSection() {
         <section id="testimonials" className="relative z-10 py-20 bg-white/50  backdrop-blur-sm">
             <div className="container mx-auto px-4">
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-slate-900 to-blue-900  bg-clip-text text-transparent">
+                    <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-neutral-800 to-lime-900  bg-clip-text text-transparent">
                         O que nossos clientes dizem
                     </h2>
                     <p className="text-xl text-slate-600 max-w-2xl mx-auto">

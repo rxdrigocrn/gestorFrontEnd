@@ -24,7 +24,7 @@ import { ClientFormData } from '@/lib/schemas/clientFormSchema'
 import { AddPaymentModal } from '@/components/clients/add-payment-modal'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
 import { File } from 'lucide-react'
-import { fetchAll } from '@/services/api-services'
+import { createItem, fetchAll } from '@/services/api-services'
 import { api } from '@/services/api'
 import { ImportExcelModal } from '@/components/clients/import-excel'
 import { useSimpleToast } from '@/hooks/use-toast'
@@ -34,10 +34,11 @@ import { useApplicationStore } from '@/store/applicationStore'
 import { useLeadSourceStore } from '@/store/leadStore'
 import { usePaymentMethodStore } from '@/store/paymentMethodStore'
 import { useServerStore } from '@/store/serverStore'
+import SendMessageModal from '@/components/clients/send-message-modal'
 
 export default function ClientsTable() {
   const router = useRouter()
-  const { fetchItems: fetchClients, items: clients, total, isLoading, error, createItem, updateItem, deleteItem, addPaymentToClient } = useClientStore()
+  const { fetchItems: fetchClients, items: clients, total, isLoading, error, createItem: createClient, updateItem, deleteItem, addPaymentToClient } = useClientStore()
   const { fetchItems: fetchDevices, items: devices } = useDeviceStore()
   const { fetchItems: fetchPlans, items: plans } = usePlanStore()
   const { fetchItems: fetchApplications, items: applications } = useApplicationStore()
@@ -50,6 +51,7 @@ export default function ClientsTable() {
 
   const [showAddModal, setShowAddModal] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [showMessageModal, setShowMessageModal] = useState(false)
   const [editingItem, setEditingItem] = useState<ClientResponse | null>(null)
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)
 
@@ -176,7 +178,7 @@ export default function ClientsTable() {
           description: "As alterações foram salvas com sucesso",
         })
       } else {
-        await createItem(formData as ClientCreate)
+        await createClient(formData as ClientCreate)
         showToast("success", "Cliente criado", {
           description: "O novo cliente foi registrado no sistema",
         })
@@ -226,6 +228,11 @@ export default function ClientsTable() {
   const handleAddPayment = (client: ClientResponse) => {
     setShowPaymentModal(true)
     setEditingItem(client)
+  }
+
+  const handleOpenMessageModal = (client: ClientResponse) => {
+    setEditingItem(client)
+    setShowMessageModal(true)
   }
 
   const handlePaymentSubmit = async (data: ClientPayment) => {
@@ -288,9 +295,7 @@ export default function ClientsTable() {
     }
   }
 
-  const handleSendMessage = (client: ClientResponse) => {
-    console.log('Enviar mensagem para:', client.name)
-  }
+
 
 
 
@@ -435,7 +440,10 @@ export default function ClientsTable() {
                 <Edit className="mr-2 h-4 w-4" />
                 Editar
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => {
+                e.stopPropagation()
+                handleOpenMessageModal(client)
+              }}>
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Enviar Mensagem
               </DropdownMenuItem>
@@ -489,6 +497,12 @@ export default function ClientsTable() {
           fetchClients()
           setIsImportModalOpen(false)
         }}
+      />
+
+      <SendMessageModal
+        client={editingItem || undefined}
+        isOpen={showMessageModal}
+        onClose={() => setShowMessageModal(false)}
       />
     </div>
   )

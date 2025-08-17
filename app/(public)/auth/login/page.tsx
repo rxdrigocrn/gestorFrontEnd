@@ -33,7 +33,7 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+        `http://localhost:5001/auth/login`,
         data,
         { withCredentials: true }
       )

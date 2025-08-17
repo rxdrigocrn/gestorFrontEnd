@@ -57,7 +57,7 @@ export function PricingSection() {
     <section id="pricing" className="relative z-10 py-20">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-slate-900 to-blue-900 bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-lime-300 to-green-600 bg-clip-text text-transparent">
             Planos Transparentes
           </h2>
           <p className="text-xl text-slate-600   max-w-2xl mx-auto">
@@ -69,13 +69,13 @@ export function PricingSection() {
           {plans.map((plan, index) => (
             <Card
               key={index}
-              className={`relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 ${plan.popular
-                ? 'border-2 border-blue-500 shadow-xl bg-gradient-to-br from-blue-50 to-purple-50 '
-                : 'border border-slate-200  bg-white/70 '
+              className={`relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 flex flex-col ${plan.popular
+                ? 'border-2 border-lime-500 shadow-xl bg-gradient-to-br from-blue-50 to-purple-50 '
+                : 'border border-lime-200 bg-white/70 '
                 }`}
             >
               {plan.popular && (
-                <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center py-2 text-sm font-medium">
+                <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-lime-300 to-green-600 text-white text-center py-2 text-sm font-medium">
                   Mais Popular
                 </div>
               )}
@@ -89,29 +89,33 @@ export function PricingSection() {
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
+              <CardContent className="flex flex-col flex-1">
                 <ul className="space-y-3">
                   {plan.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-center">
                       <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                      <span className="text-slate-700 ">{feature}</span>
+                      <span className="text-slate-700">{feature}</span>
                     </li>
                   ))}
                 </ul>
 
-                <Link href="/auth/register" className="block">
-                  <Button
-                    className={`w-full mt-6 ${plan.popular
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
-                      : 'bg-slate-900 hover:bg-slate-800 text-white'
-                      }`}
-                    size="lg"
-                  >
-                    Começar Agora
-                  </Button>
-                </Link>
+                {/* Empurra o botão para o final */}
+                <div className="mt-auto pt-6">
+                  <Link href="/auth/register" className="block">
+                    <Button
+                      className={`w-full ${plan.popular
+                        ? 'bg-gradient-to-r from-lime-300 to-green-600 hover:from-lime-400 hover:to-green-700 text-white'
+                        : 'bg-slate-900 hover:bg-slate-800 text-white'
+                        }`}
+                      size="lg"
+                    >
+                      Começar Agora
+                    </Button>
+                  </Link>
+                </div>
               </CardContent>
             </Card>
+
           ))}
         </div>
       </div>
