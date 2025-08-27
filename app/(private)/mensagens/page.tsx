@@ -124,7 +124,7 @@ export default function MessagesTable() {
         <h1 className="text-3xl font-bold tracking-tight">Mensagens</h1>
         <Button onClick={() => setShowAddModal(true)}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Mensagem
+          Nova Mensagem
         </Button>
       </div>
 

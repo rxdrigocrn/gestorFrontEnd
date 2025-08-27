@@ -127,7 +127,7 @@ export default function BillingRulesTable() {
                 <h1 className="text-3xl font-bold tracking-tight">Regras de Cobrança</h1>
                 <Button onClick={() => setShowAddModal(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Adicionar Regra de Cobrança
+                    Nova Regra de Cobrança
                 </Button>
             </div>
 

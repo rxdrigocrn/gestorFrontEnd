@@ -100,17 +100,17 @@ export default function LeadsTable() {
         }
     };
 
-    if (isLoading) return <p>Carregando leads...</p>
+    if (isLoading) return <p>Carregando captações...</p>
     if (error) return <p className="text-red-600">Erro: {error}</p>
 
     return (
         <div className="space-y-4">
             {/* Cabeçalho */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-                <h1 className="text-3xl font-bold tracking-tight">Leads</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Captação</h1>
                 <Button onClick={() => setShowAddModal(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Adicionar Lead
+                    Nova Captação
                 </Button>
             </div>
 

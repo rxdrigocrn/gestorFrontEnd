@@ -1,6 +1,5 @@
 export type DeviceBase = {
   name: string
-  isDefault: boolean
 }
 
 export type DeviceCreate = DeviceBase

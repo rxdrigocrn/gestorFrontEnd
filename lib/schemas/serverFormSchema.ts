@@ -13,11 +13,11 @@ const optionalNumber = z.preprocess((val) => {
 
 
 export const serverSchema = z.object({
-    id: z.string().uuid().optional(), // para edição pode ter id
+    id: z.string().uuid().optional(), 
     name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
     cost: z.number().positive("Valor deve ser positivo"),
     credits: optionalNumber,
-    panelLink: z.string().url("Deve ser uma URL válida"),
+    panelLink: urlOrUndefined,
     whatsappSession: z.string().optional().nullable(),
     androidAppUrl: urlOrUndefined,
     androidAppUrlSec: urlOrUndefined,

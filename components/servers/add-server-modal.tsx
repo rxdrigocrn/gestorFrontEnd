@@ -120,7 +120,7 @@ export function AddServerModal({ open, onOpenChange, onConfirm, defaultValues }:
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="panelLink">Link do Painel*</Label>
+                <Label htmlFor="panelLink">Link do Painel</Label>
                 <Input
                   id="panelLink"
                   placeholder="https://"

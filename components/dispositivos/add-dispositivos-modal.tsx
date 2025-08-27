@@ -9,8 +9,8 @@ import { Modal } from '@/components/ui/modal'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
-import { Controller } from 'react-hook-form'
+// import { Switch } from '@/components/ui/switch'
+// import { Controller } from 'react-hook-form'
 
 interface AddDeviceModalProps {
     open: boolean
@@ -37,7 +37,7 @@ export function AddDeviceModal({
         resolver: zodResolver(deviceSchema),
         defaultValues: {
             name: '',
-            isDefault: false,
+            // isDefault: false,
             ...defaultValues,
         },
     })
@@ -45,14 +45,14 @@ export function AddDeviceModal({
     useEffect(() => {
         if (open) {
             reset({
-                isDefault: false,
+                // isDefault: false,
                 ...defaultValues,
             });
         }
     }, [open, defaultValues, reset]);
 
 
-    const isDefault = watch('isDefault')
+    // const isDefault = watch('isDefault')
 
     const onSubmit = async (data: DeviceFormData) => {
         await onConfirm(data)
@@ -77,7 +77,7 @@ export function AddDeviceModal({
                     )}
                 </div>
 
-                <div className="flex items-center justify-between space-y-1">
+                {/* <div className="flex items-center justify-between space-y-1">
                     <Label htmlFor="isDefault">Padrão</Label>
                     <Controller
                         control={control}
@@ -93,7 +93,7 @@ export function AddDeviceModal({
                 </div>
                 {errors.isDefault && (
                     <p className="text-sm text-red-600">{errors.isDefault.message}</p>
-                )}
+                )} */}
 
                 <Button type="submit" disabled={isSubmitting} className="w-full">
                     {isSubmitting ? 'Salvando...' : 'Salvar'}

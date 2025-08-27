@@ -319,7 +319,7 @@ export default function ClientsTable() {
           </DropdownMenu>
           <Button onClick={() => setShowAddModal(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Adicionar Cliente
+            Novo Cliente
           </Button>
         </div>
       </div>

@@ -22,6 +22,7 @@ import {
 
 import { MoreHorizontal, Eye, Edit, Trash2, PlusCircle } from 'lucide-react'
 import { CreateUserFormData } from '@/lib/schemas/userSchema'
+import { UserUpdate } from '@/types/user'
 import { Role } from '@/types/user'
 
 export default function UsersPage() {
@@ -54,7 +55,7 @@ export default function UsersPage() {
     const handleSubmit = async (data: CreateUserFormData) => {
         try {
             if (data.id) {
-                await updateItem(data.id, data)
+                await updateItem(data.id, data as UserUpdate)
                 showToast('success', 'Usuário atualizado', {
                     description: 'As alterações foram salvas com sucesso',
                 })
@@ -117,7 +118,7 @@ export default function UsersPage() {
                 <h1 className="text-3xl font-bold tracking-tight">Funcionários</h1>
                 <Button onClick={() => setShowAddModal(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Adicionar Funcionários
+                    Novo Funcionário
                 </Button>
             </div>
 

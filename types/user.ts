@@ -10,7 +10,7 @@ export type UserBase = {
     name: string
     email: string
     password: string
-    role: Role
+    role: typeof Role[keyof typeof Role]
     organizationId?: string
 }
 

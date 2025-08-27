@@ -1,6 +1,5 @@
 export type ApplicationBase = {
   name: string
-  isDefault: boolean
 }
 
 export type ApplicationCreate = ApplicationBase

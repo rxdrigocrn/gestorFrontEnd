@@ -37,7 +37,6 @@ export function Modal({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange} {...props}>
       <DialogPrimitive.Portal >
-        {/* Overlay */}
         <AnimatePresence>
           {open && (
             <>
@@ -46,7 +45,7 @@ export function Modal({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
+                  className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-6"
                 />
               </DialogPrimitive.Overlay>
 
@@ -58,7 +57,7 @@ export function Modal({
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.1, ease: "easeOut" }}
                   className={cn(
-                    "fixed left-1/2 top-1/2 z-50 grid w-full gap-4 border bg-background p-6 shadow-lg rounded-lg ",
+                    "fixed left-1/2 top-1/2 z-50 grid w-full gap-4 border bg-background p-6 shadow-lg rounded-lg overflow-y-auto max-h-[85vh]",
                     maxWidthClasses[maxWidth]
                   )}
                 >

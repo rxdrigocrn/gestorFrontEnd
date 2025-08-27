@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { format } from "date-fns"
@@ -105,11 +104,18 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
     <Modal open={open} onOpenChange={onOpenChange} title="Adicionar Novo Cliente" maxWidth="3xl">
       <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
         <Tabs defaultValue="personal" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="personal">Dados Pessoais</TabsTrigger>
-            <TabsTrigger value="payment">Pagamento</TabsTrigger>
-            <TabsTrigger value="info">Informações Adicionais</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 text-xs sm:text-sm">
+            <TabsTrigger className="py-1 px-2 sm:px-3 text-xs sm:text-sm" value="personal">
+              Dados Pessoais
+            </TabsTrigger>
+            <TabsTrigger className="py-1 px-2 sm:px-3 text-xs sm:text-sm" value="payment">
+              Pagamento
+            </TabsTrigger>
+            <TabsTrigger className="py-1 px-2 sm:px-3 text-xs sm:text-sm" value="info">
+              Informações Adicionais
+            </TabsTrigger>
           </TabsList>
+
 
           <TabsContent value="personal" className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -141,7 +147,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Senha"
                     {...register('password')}
-                    className="pr-10" // dá espaço pro ícone
+                    className="pr-10"
                   />
                   <button
                     type="button"
@@ -177,7 +183,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                     <Label htmlFor="phone">Telefone Principal</Label>
                     <PhoneInput
                       id="phone"
-                      country="BR"
+                      defaultCountry='BR'
                       international
                       withCountryCallingCode
                       placeholder="+55 (85) 99876-5432"
@@ -201,7 +207,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                     <Label htmlFor="phone2">Telefone Secundario</Label>
                     <PhoneInput
                       id="phone2"
-                      country="BR"
+                      defaultCountry="BR"
                       international
                       withCountryCallingCode
                       placeholder="+55 (85) 99876-5432"

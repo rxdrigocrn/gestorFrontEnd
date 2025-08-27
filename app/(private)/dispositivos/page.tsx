@@ -125,7 +125,7 @@ export default function DevicesTable() {
                 <h1 className="text-3xl font-bold tracking-tight">Dispositivos</h1>
                 <Button onClick={() => setShowAddModal(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Adicionar Dispositivo
+                    Novo Dispositivo
                 </Button>
             </div>
 
