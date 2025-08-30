@@ -38,6 +38,7 @@ export const clientFormSchema = z.object({
         }, {
             message: 'Número de telefone secundário inválido',
         }),
+        
     expiresAt: z.string(),
     notes: z.string().optional().nullable(),
     location: z.string().optional().nullable(),
@@ -55,7 +56,7 @@ export const clientFormSchema = z.object({
     referredBy: z.string().optional().nullable(),
     deviceId: z.string().optional().nullable(),
     applicationId: z.string().optional().nullable(),
-    appDate: z.date().optional().nullable(),
+    appDate: z.union([z.string(), z.date()]).optional().nullable(),
     m3u: z.string().optional().nullable(),
     mac: z.string().optional().nullable(),
     deviceKey: z.string().optional().nullable(),
