@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { clientFormSchema, ClientFormData } from '@/lib/schemas/clientFormSchema'
+import { clientFormSchema, ClientFormData } from '@/schemas/clientFormSchema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -29,6 +29,7 @@ import { useApplicationStore } from '@/store/applicationStore'
 import { usePaymentMethodStore } from '@/store/paymentMethodStore'
 import { useLeadSourceStore } from '@/store/leadStore'
 import { useServerStore } from '@/store/serverStore'
+import { formatPhoneToE164 } from '@/utils/phone'
 
 interface AddClientModalProps {
   open: boolean
@@ -91,13 +92,16 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
     if (open && defaultValues) {
       reset({
         ...defaultValues,
+        phone: defaultValues.phone ? formatPhoneToE164(defaultValues.phone) : "",
+        phone2: defaultValues.phone2 ? formatPhoneToE164(defaultValues.phone2) : "",
         expiresAt: defaultValues.expiresAt
           ? new Date(defaultValues.expiresAt).toISOString().slice(0, 16)
-          : '',
+          : "",
         screens: defaultValues.screens ?? 0,
       })
     }
   }, [open, defaultValues, reset])
+
 
 
   return (
