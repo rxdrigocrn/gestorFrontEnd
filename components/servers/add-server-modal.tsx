@@ -9,7 +9,7 @@ import { ServerResponse } from '@/types/server'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ServerFormData, serverSchema } from '@/lib/schemas/serverFormSchema'
+import { ServerFormData, serverSchema } from '@/schemas/serverFormSchema'
 import { useEffect } from 'react'
 
 interface AddServerModalProps {

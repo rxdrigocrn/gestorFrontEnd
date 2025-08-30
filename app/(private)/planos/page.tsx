@@ -18,7 +18,7 @@ import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddPlanModal } from '@/components/planos/add-plan-modal'
 import { PlanCreate, PlanResponse, PlanUpdate } from '@/types/plan'
-import { PlanFormData } from '@/lib/schemas/planSchema'
+import { PlanFormData } from '@/schemas/planSchema'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
 import { useSimpleToast } from '@/hooks/use-toast'
 

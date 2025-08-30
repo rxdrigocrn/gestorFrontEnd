@@ -1,64 +1,94 @@
-import { ServerResponse } from "node:http"
-import { ApplicationResponse } from "./application"
-import { PaymentStatus } from "./client"
-import { DeviceResponse } from "./device"
-import { PaymentMethodResponse } from "./paymentMethod"
-import { PlanResponse } from "./plan"
-import { BillingRuleFormData } from "@/lib/schemas/billingRulesSchema"
+import { BillingRuleFormData, BillingRuleClientStatus, BillingRuleType, AutomaticRuleType } from "@/schemas/billingRulesSchema"
 
 export type BillingRuleBase = {
     name: string
-    minIntervalDays: number
-    maxIntervalDays: number
-    clientStatus?: PaymentStatus
     messageTemplateId: string
+    clientStatus: BillingRuleClientStatus
+    minIntervalDays?: number
+    maxIntervalDays?: number
 }
 
 export type BillingRuleCreate = BillingRuleBase
+export type BillingRuleUpdate = BillingRuleBase & { id: string }
 
-export type BillingRuleUpdate = BillingRuleBase & {
+export type BillingRuleResponse = {
     id: string
-}
-
-export type BillingRuleResponse = BillingRuleBase & {
-    id: string
+    name: string
+    type: BillingRuleType
+    clientStatus?: BillingRuleClientStatus
+    messageTemplateId: string
     createdAt: string
     updatedAt: string
-    servers: ServerResponse[]
-    plans: PlanResponse[]
-    devices: DeviceResponse[]
-    applications: ApplicationResponse[]
-    paymentMethods: PaymentMethodResponse[]
+
+    // --- Filtros ---
+    deviceIds: string[]
+    applicationIds: string[]
+    serverIds: string[]
+    planIds: string[]
+    leadSourceIds: string[]
+    paymentMethodIds: string[]  
+
+    // --- Automáticas ---
+    automaticType?: AutomaticRuleType | null
+    days?: number | null
+    startDay?: number | null
+    endDay?: number | null
+
 
 }
 
 export type BillingRuleList = BillingRuleResponse[]
 
-
-
-
-
-
 export function mapBillingResToFormData(response: BillingRuleResponse): BillingRuleFormData {
     return {
-        id: response.id ?? null,
+        id: response.id,
         name: response.name,
-        minIntervalDays: response.minIntervalDays,
-        maxIntervalDays: response.maxIntervalDays,
+        type: response.type,
         messageTemplateId: response.messageTemplateId,
-        clientStatus: mapPaymentStatus(response.clientStatus),
+
+        // filtros
+        deviceIds: response.deviceIds ?? [],
+        applicationIds: response.applicationIds ?? [],
+        serverIds: response.serverIds ?? [],
+        planIds: response.planIds ?? [],
+        leadSourceIds: response.leadSourceIds ?? [],
+ 
+        // status (fallback = TODOS)
+        clientStatus: response.clientStatus ?? BillingRuleClientStatus.TODOS,
+
+        // automáticas
+        automaticType: response.automaticType ?? undefined,
+        days: response.days ?? undefined,
+        startDay: response.startDay ?? undefined,
+        endDay: response.endDay ?? undefined,
+
+
     }
 }
 
+export function mapFormDataToBillingDto(
+    form: BillingRuleFormData
+): Omit<BillingRuleResponse, "id" | "createdAt" | "updatedAt"> {
+    return {
+        name: form.name,
+        type: form.type,
+        messageTemplateId: form.messageTemplateId,
+        clientStatus: form.clientStatus ?? BillingRuleClientStatus.TODOS,
 
-export function mapPaymentStatus(status?: PaymentStatus): BillingRuleFormData["clientStatus"] {
-    switch (status) {
-        case PaymentStatus.PAID:
-        case PaymentStatus.PENDING:
-        case PaymentStatus.OVERDUE:
-        case PaymentStatus.CANCELED:
-            return status as unknown as BillingRuleFormData["clientStatus"]
-        default:
-            return undefined
+        // filtros
+        deviceIds: form.deviceIds ?? [],
+        applicationIds: form.applicationIds ?? [],
+        serverIds: form.serverIds ?? [],
+        planIds: form.planIds ?? [],
+        leadSourceIds: form.leadSourceIds ?? [],
+        paymentMethodIds: form.paymentMethodIds ?? [],
+
+        // automáticas
+        automaticType: form.automaticType,
+        days: form.days,
+        startDay: form.startDay,
+        endDay: form.endDay,
+
+
     }
 }

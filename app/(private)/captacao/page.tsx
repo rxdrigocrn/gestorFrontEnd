@@ -18,7 +18,7 @@ import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddLeadModal } from '@/components/leads/add-leads-modal'
 import { LeadSourceCreate, LeadSourceResponse, LeadSourceUpdate } from '@/types/lead'
-import { LeadFormData } from '@/lib/schemas/leadSchema'
+import { LeadFormData } from '@/schemas/leadSchema'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
 import { useSimpleToast } from '@/hooks/use-toast'
 

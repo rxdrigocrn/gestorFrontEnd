@@ -1,7 +1,7 @@
 'use client'
 
 import { useForm } from 'react-hook-form'
-import { loginSchema } from '@/lib/schemas/loginSchema'
+import { loginSchema } from '@/schemas/loginSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useState } from 'react'

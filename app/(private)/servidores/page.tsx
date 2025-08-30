@@ -19,7 +19,7 @@ import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddServerModal } from '@/components/servers/add-server-modal'
 import { ServerCreate, ServerResponse, ServerUpdate } from '@/types/server'
 import { ServerStats } from '@/components/servers/server-stats'
-import { ServerFormData } from '@/lib/schemas/serverFormSchema'
+import { ServerFormData } from '@/schemas/serverFormSchema'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
 import { useSimpleToast } from '@/hooks/use-toast'
 

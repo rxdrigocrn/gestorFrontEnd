@@ -18,7 +18,7 @@ import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddMessageTemplateModal } from '@/components/message/add-message-modal' // Presumed modal for adding messages
 import { MessageTemplateCreate, MessageTemplateResponse, MessageTemplateUpdate } from '@/types/message' // Presumed types for message
-import { MessageTemplateFormData } from '@/lib/schemas/messageTemplateSchema' // Presumed schema for message
+import { MessageTemplateFormData } from '@/schemas/messageTemplateSchema' // Presumed schema for message
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
 import { useSimpleToast } from '@/hooks/use-toast'
 

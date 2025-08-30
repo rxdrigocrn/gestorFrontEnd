@@ -18,7 +18,7 @@ import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import AddApplicationModal from '@/components/application/add-app-modal'
 import { ApplicationCreate, ApplicationResponse, ApplicationUpdate } from '@/types/application'
-import { ApplicationFormData } from '@/lib/schemas/applicationSchema'
+import { ApplicationFormData } from '@/schemas/applicationSchema'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
 import { useSimpleToast } from '@/hooks/use-toast'
 

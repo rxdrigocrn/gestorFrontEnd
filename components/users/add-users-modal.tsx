@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { createUserSchema, CreateUserFormData } from '@/lib/schemas/userSchema'
+import { createUserSchema, CreateUserFormData } from '@/schemas/userSchema'
 import { Role } from '@/types/user'
 
 import { Modal } from '@/components/ui/modal'

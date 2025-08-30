@@ -18,7 +18,7 @@ import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddPaymentMethodModal } from '@/components/paymentMethod/add-paymentmethod-modal'
 import { PaymentMethodCreate, PaymentMethodResponse, PaymentMethodUpdate } from '@/types/paymentMethod'
-import { PaymentMethodFormData } from '@/lib/schemas/paymentMethod'
+import { PaymentMethodFormData } from '@/schemas/paymentMethod'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
 import { useSimpleToast } from '@/hooks/use-toast'
 

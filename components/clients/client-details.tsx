@@ -20,7 +20,7 @@ import { Progress } from "@/components/ui/progress"
 import { AddPaymentModal } from "@/components/clients/add-payment-modal"
 import { ClientCreate, ClientPayment, ClientPaymentResponse, ClientResponse, ClientUpdate } from '@/types/client'
 import { format, set } from 'date-fns'
-import { ClientFormData } from '@/lib/schemas/clientFormSchema'
+import { ClientFormData } from '@/schemas/clientFormSchema'
 import { AddClientModal } from './add-client-modal'
 import { useClientStore } from '@/store/clientStore'
 import { ConfirmationDialog } from '../ui/confirmModal'

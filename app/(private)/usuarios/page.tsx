@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 import { MoreHorizontal, Eye, Edit, Trash2, PlusCircle } from 'lucide-react'
-import { CreateUserFormData } from '@/lib/schemas/userSchema'
+import { CreateUserFormData } from '@/schemas/userSchema'
 import { UserUpdate } from '@/types/user'
 import { Role } from '@/types/user'
 

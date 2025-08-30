@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { paymentMethodSchema, PaymentMethodFormData } from '@/lib/schemas/paymentMethod'
+import { paymentMethodSchema, PaymentMethodFormData } from '@/schemas/paymentMethod'
 
 import { Modal } from '@/components/ui/modal'
 import { Input } from '@/components/ui/input'

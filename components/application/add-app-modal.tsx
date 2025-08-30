@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { applicationSchema, ApplicationFormData } from '@/lib/schemas/applicationSchema'
+import { applicationSchema, ApplicationFormData } from '@/schemas/applicationSchema'
 
 import { Modal } from '@/components/ui/modal'
 import { Input } from '@/components/ui/input'
@@ -35,7 +35,7 @@ export default function AddApplicationModal({
     } = useForm<ApplicationFormData>({
         resolver: zodResolver(applicationSchema),
         defaultValues: {
-            isDefault: false,
+            // isDefault: false,
             ...defaultValues,
         },
     })
@@ -43,7 +43,7 @@ export default function AddApplicationModal({
     useEffect(() => {       
         if (open) {
             reset({
-                isDefault: false,
+                // isDefault: false,
                 ...defaultValues,
             });
         }
@@ -71,7 +71,7 @@ export default function AddApplicationModal({
                     {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
                 </div>
 
-                <div className="flex items-center justify-between space-y-1">
+                {/* <div className="flex items-center justify-between space-y-1">
                     <Label htmlFor="isDefault">Padrão</Label>
                     <Controller
                         control={control}
@@ -88,8 +88,7 @@ export default function AddApplicationModal({
                 {errors.isDefault && (
                     <p className="text-sm text-red-600">{errors.isDefault.message}</p>
                 )}
-
-                {errors.isDefault && <p className="text-sm text-red-600">{errors.isDefault.message}</p>}
+                {errors.isDefault && <p className="text-sm text-red-600">{errors.isDefault.message}</p>} */}
 
                 <Button type="submit" disabled={isSubmitting} className="w-full">
                     {isSubmitting ? 'Salvando...' : 'Salvar'}

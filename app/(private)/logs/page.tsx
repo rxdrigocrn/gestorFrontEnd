@@ -127,7 +127,7 @@ export default function LogsPage() {
                             }}
                             className="max-w-md"
                         />
-                        <Select
+                        {/* <Select
                             value={actionTypeFilter}
                             onValueChange={(value) => {
                                 setActionTypeFilter(value)
@@ -145,14 +145,14 @@ export default function LogsPage() {
                                 <SelectItem value="login">Logins</SelectItem>
                                 <SelectItem value="system">Sistema</SelectItem>
                             </SelectContent>
-                        </Select>
+                        </Select> */}
                     </div>
 
                     <div className="rounded-md border">
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-[120px]">Ação</TableHead>
+                                    {/* <TableHead className="w-[120px]">Ação</TableHead> */}
                                     <TableHead>Descrição</TableHead>
                                     <TableHead>Usuário</TableHead>
                                     <TableHead className="text-right w-[180px]">Data/Hora</TableHead>
@@ -162,7 +162,7 @@ export default function LogsPage() {
                                 {!loading && logs.length > 0 ? (
                                     logs.map((log) => (
                                         <TableRow key={log.id}>
-                                            <TableCell>{getActionTypeBadge(log?.actionType)}</TableCell>
+                                            {/* <TableCell>{getActionTypeBadge(log?.actionType)}</TableCell> */}
                                             <TableCell className="max-w-[300px]">
                                                 <div className="line-clamp-2">
                                                     {log.description}

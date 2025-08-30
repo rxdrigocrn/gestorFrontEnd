@@ -18,7 +18,7 @@ import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddDeviceModal } from '@/components/dispositivos/add-dispositivos-modal'
 import { DeviceCreate, DeviceResponse, DeviceUpdate } from '@/types/device'
-import { DeviceFormData } from '@/lib/schemas/deviceSchema'
+import { DeviceFormData } from '@/schemas/deviceSchema'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
 import { useSimpleToast } from '@/hooks/use-toast'
 

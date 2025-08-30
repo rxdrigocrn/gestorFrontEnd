@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { billingRuleSchema, BillingRuleFormData, BillingRuleType, AutomaticRuleType, BillingRuleClientStatus } from '@/lib/schemas/billingRulesSchema'
+import { billingRuleSchema, BillingRuleFormData, BillingRuleType, AutomaticRuleType, BillingRuleClientStatus } from '@/schemas/billingRulesSchema'
 
 // UI Components
 import { Modal } from '@/components/ui/modal'
@@ -20,6 +20,7 @@ import { useApplicationStore } from '@/store/applicationStore'
 import { useServerStore } from '@/store/serverStore'
 import { usePlanStore } from '@/store/planStore'
 import { useLeadSourceStore } from '@/store/leadStore'
+import { usePaymentMethodStore } from '@/store/paymentMethodStore'
 
 interface AddBillingRuleModalProps {
   open: boolean
@@ -35,16 +36,15 @@ export function AddBillingRuleModal({
   defaultValues,
 }: AddBillingRuleModalProps) {
 
-  // State para o range de dias
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
 
-  // Stores
   const { fetchItems: fetchMessageTemplates, items: messageTemplates } = useMessageStore();
   const { fetchItems: fetchDevices, items: devices } = useDeviceStore();
   const { fetchItems: fetchApplications, items: applications } = useApplicationStore();
   const { fetchItems: fetchServers, items: servers } = useServerStore();
   const { fetchItems: fetchPlans, items: plans } = usePlanStore();
   const { fetchItems: fetchLeadSources, items: leadSources } = useLeadSourceStore();
+  const { fetchItems: fetchPaymentMethods, items: paymentMethods } = usePaymentMethodStore();
 
   useEffect(() => {
     if (open) {
@@ -54,6 +54,7 @@ export function AddBillingRuleModal({
       fetchServers();
       fetchPlans();
       fetchLeadSources();
+      fetchPaymentMethods();
     }
   }, [open]);
 
@@ -79,11 +80,11 @@ export function AddBillingRuleModal({
   const automaticType = useWatch({ control, name: 'automaticType' });
 
   useEffect(() => {
-  if (dateRange?.from && dateRange?.to) {
-    setValue('startDay', dateRange.from.getDate());
-    setValue('endDay', dateRange.to.getDate());
-  }
-}, [dateRange, setValue]);
+    if (dateRange?.from && dateRange?.to) {
+      setValue('startDay', dateRange.from.getDate());
+      setValue('endDay', dateRange.to.getDate());
+    }
+  }, [dateRange, setValue]);
 
   useEffect(() => {
     if (open) {
@@ -116,7 +117,7 @@ export function AddBillingRuleModal({
 
     console.log(finalData)
     console.log(dateRange)
-    
+
 
     if (automaticType === AutomaticRuleType.MONTHLY_DAY_RANGE && dateRange?.from && dateRange?.to) {
       finalData = {
@@ -133,35 +134,70 @@ export function AddBillingRuleModal({
     console.error('Form errors:', errors);
   };
 
-  const renderMultiSelectFilter = (
-    name: keyof BillingRuleFormData,
-    label: string,
-    placeholder: string,
-    items: { id: string, name?: string, description?: string }[]
-  ) => (
+const renderMultiSelectFilter = (
+  name: keyof BillingRuleFormData,
+  label: string,
+  placeholder: string,
+  items: { id: string; name?: string; description?: string; type?: string }[]
+) => {
+  const selectedIds = useWatch({ control, name }) as string[] | undefined;
+  const selectedItems = items.filter((item) => selectedIds?.includes(item.id));
+
+  return (
     <div className="space-y-1">
       <Label htmlFor={name}>{label}</Label>
+
+      {/* Select para adicionar itens */}
       <Controller
         control={control}
         name={name as any}
         render={({ field }) => (
-          <Select onValueChange={(value) => field.onChange([value])}>
+          <Select
+            onValueChange={(value) => {
+              if (!field.value?.includes(value)) {
+                field.onChange([...(field.value ?? []), value]);
+              }
+            }}
+            value={undefined} // sempre vazio para poder adicionar múltiplos
+          >
             <SelectTrigger>
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
               {items.map((item) => (
                 <SelectItem key={item.id} value={item.id}>
-                  {item.name || item.description}
+                  {item.name || item.description || item.type}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         )}
       />
-      {errors[name] && <p className="text-sm text-red-600">{errors[name]?.message}</p>}
+
+      {/* Badges dos itens selecionados */}
+      <div className="flex flex-wrap gap-2 mt-2">
+        {selectedItems.map((item) => (
+          <span
+            key={item.id}
+            className="flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm"
+          >
+            {item.name || item.description || item.type}
+            <button
+              type="button"
+              onClick={() => {
+                const newValue = selectedIds?.filter((id) => id !== item.id);
+                setValue(name, newValue);
+              }}
+              className="ml-1 text-green-600 hover:text-green-900 font-bold"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
     </div>
   );
+};
 
   return (
     <Modal open={open} title="Nova regra de cobrança" onOpenChange={onOpenChange} maxWidth="3xl">
@@ -192,11 +228,21 @@ export function AddBillingRuleModal({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {renderMultiSelectFilter('planIds', 'Planos', 'Filtrar por plano', plans)}
+          {renderMultiSelectFilter(
+            'planIds',
+            'Planos',
+            'Filtrar por plano',
+            plans.map((p) => ({
+              id: p.id,
+              name: p.name,
+              description: p.description ?? undefined
+            }))
+          )}
           {renderMultiSelectFilter('serverIds', 'Servidores', 'Filtrar por servidor', servers)}
           {renderMultiSelectFilter('applicationIds', 'Aplicações', 'Filtrar por aplicação', applications)}
           {renderMultiSelectFilter('deviceIds', 'Dispositivos', 'Filtrar por dispositivo', devices)}
           {renderMultiSelectFilter('leadSourceIds', 'Origens de Lead', 'Filtrar por origem', leadSources)}
+          {renderMultiSelectFilter('paymentMethodIds', 'Métodos de Pagamento', 'Filtrar por método', paymentMethods)}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -260,26 +306,24 @@ export function AddBillingRuleModal({
             {automaticType === AutomaticRuleType.MONTHLY_DAY_RANGE && (
               <div className="space-y-2">
                 <Label>Selecione o intervalo de dias</Label>
-                <Controller
-                  control={control}
-                  name="dateRange"
-                  render={({ field }) => (
-                    <DayPicker
-                      mode="range"
-                      selected={dateRange}
-
-                      onSelect={(range) => {
-                        setDateRange(range)
-                        field.onChange(range)
-                      }}
-
-                      fromMonth={new Date(new Date().getFullYear(), 0)}
-                      toMonth={new Date(new Date().getFullYear(), 11)}
-                    />
-                  )}
+                <DayPicker
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={(range) => {
+                    setDateRange(range)
+                    if (range?.from) {
+                      setValue("startDay", range.from.getDate())
+                    }
+                    if (range?.to) {
+                      setValue("endDay", range.to.getDate())
+                    }
+                  }}
+                  fromMonth={new Date(new Date().getFullYear(), 0)}
+                  toMonth={new Date(new Date().getFullYear(), 11)}
                 />
               </div>
             )}
+
 
           </div>
         )}

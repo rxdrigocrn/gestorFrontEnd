@@ -13,15 +13,16 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Eye, Edit, Trash2, MessageCircle, PlusCircle } from 'lucide-react'
+import { MoreHorizontal, Eye, Edit, Trash2, MessageCircle, PlusCircle, Play } from 'lucide-react'
 import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddBillingRuleModal } from '@/components/billing/add-billing-modal'
 import { BillingRuleCreate, BillingRuleResponse, BillingRuleUpdate } from '@/types/billingRules'
-import { BillingRuleFormData } from '@/lib/schemas/billingRulesSchema'
+import { BillingRuleFormData } from '@/schemas/billingRulesSchema'
 import { ConfirmationDialog } from '@/components/ui/confirmModal'
 import { useSimpleToast } from '@/hooks/use-toast'
 import { mapBillingResToFormData } from '@/types/billingRules'
+import { createItem } from '@/services/api-services'
 
 export default function BillingRulesTable() {
     const router = useRouter()
@@ -31,7 +32,7 @@ export default function BillingRulesTable() {
         fetchItems: fetchBillingRules,
         isLoading,
         error,
-        createItem,
+        createItem: createBillingRule,
         updateItem,
         deleteItem,
     } = useBillingRuleStore()
@@ -64,7 +65,7 @@ export default function BillingRulesTable() {
                     description: "As alterações foram salvas com sucesso",
                 })
             } else {
-                await createItem(data as BillingRuleCreate)
+                await createBillingRule(data as BillingRuleCreate)
                 showToast("success", "Regra de cobrança criada", {
                     description: "A nova regra de cobrança foi registrado no sistema",
                 })
@@ -83,6 +84,27 @@ export default function BillingRulesTable() {
     const handleEdit = (billingRule: BillingRuleResponse) => {
         setEditingItem(billingRule)
         setShowAddModal(true)
+    }
+
+    const handleRun = async (billingRule: BillingRuleResponse) => {
+        try {
+            if (billingRule && billingRule.id) {
+                await createItem(`/billing-rules/${billingRule.id}/run`, {})
+
+                showToast("success", "Regra de cobrança rodada", {
+                    description: "A regra de cobrança foi rodada com sucesso",
+                })
+                setEditingItem(null)
+                fetchBillingRules()
+            } else {
+                console.error('Nenhuma regra de cobrança selecionada para rodar.')
+            }
+        } catch (error) {
+            showToast("error", "Erro ao rodar regra de cobrança", {
+                description: "Ocorreu um erro ao rodar a regra de cobrança",
+            })
+            console.error('Erro ao rodar regra de cobrança:', error)
+        }
     }
 
     const handleDelete = async () => {
@@ -122,7 +144,6 @@ export default function BillingRulesTable() {
 
     return (
         <div className="space-y-4">
-            {/* Cabeçalho */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                 <h1 className="text-3xl font-bold tracking-tight">Regras de Cobrança</h1>
                 <Button onClick={() => setShowAddModal(true)}>
@@ -131,7 +152,6 @@ export default function BillingRulesTable() {
                 </Button>
             </div>
 
-            {/* Filtros */}
             <GenericFilters
                 searchPlaceholder="Buscar regras de cobrança..."
                 onSearchChange={setSearchTerm}
@@ -160,11 +180,21 @@ export default function BillingRulesTable() {
                         ),
                     },
                     {
-                        header: 'Dias',
+                        header: 'Tipo',
                         accessor: (billingRule) => (
                             <div className="flex items-center space-x-3">
                                 <div>
-                                    <p className="font-medium">{billingRule.maxIntervalDays}</p>
+                                    <p className="font-medium">{billingRule.type}</p>
+                                </div>
+                            </div>
+                        ),
+                    },
+                    {
+                        header: 'Status do Cliente',
+                        accessor: (billingRule) => (
+                            <div className="flex items-center space-x-3">
+                                <div>
+                                    <p className="font-medium">{billingRule.clientStatus}</p>
                                 </div>
                             </div>
                         ),
@@ -182,6 +212,13 @@ export default function BillingRulesTable() {
                             <DropdownMenuLabel>Ações</DropdownMenuLabel>
                             <DropdownMenuSeparator />
 
+                            <DropdownMenuItem onClick={(e) => {
+                                e.preventDefault()
+                                handleRun(billingRule)
+                            }}>
+                                <Play className="mr-2 h-4 w-4" />
+                                Rodar Cobrança
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={(e) => {
                                 e.preventDefault()
                                 handleEdit(billingRule)

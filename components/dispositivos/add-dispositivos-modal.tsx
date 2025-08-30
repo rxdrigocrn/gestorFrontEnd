@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { deviceSchema, DeviceFormData } from '@/lib/schemas/deviceSchema'
+import { deviceSchema, DeviceFormData } from '@/schemas/deviceSchema'
 
 import { Modal } from '@/components/ui/modal'
 import { Input } from '@/components/ui/input'
