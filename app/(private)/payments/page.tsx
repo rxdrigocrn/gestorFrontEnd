@@ -22,30 +22,24 @@ import { usePaymentMethodStore } from '@/store/paymentMethodStore'
 import { cn } from '@/lib/utils'
 import { useClientStore } from '@/store/clientStore'
 import { PaymentMethodResponse } from '@/types/paymentMethod'
-import { SearchTable } from '@/components/table/SearchTable'
+import { SearchClientTable } from '@/components/table/SearchTableClient'
+import { ClientResponse } from '@/types/client'
 
 export default function PaymentsPage() {
   const [status, setStatus] = useState('all')
-  const [method, setMethod] = useState('all')
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
 
   const { items: paymentMethods, fetchItems: fetchPaymentMethods } = usePaymentMethodStore()
   const { items: payments, total, isLoading, fetchItems } = usePaymentStore()
-  const {
-    fetchItems: fetchClients,
-    items: clientList,
-    total: clientTotal,
-  } = useClientStore()
   const [paymentMethodId, setPaymentMethodId] = useState('all')
 
   const [clientModalOpen, setClientModalOpen] = useState(false)
-  const [selectedClient, setSelectedClient] = useState<{ id: string, name: string } | null>(null)
+  const [selectedClient, setSelectedClient] = useState<{ id: string; name: string } | null>(null)
   const [clientId, setClientId] = useState<string | number>('all')
 
-
-  const hasFilters = clientId !== 'all' || status !== 'all' || method !== 'all';
+  const hasFilters = clientId !== 'all' || status !== 'all'
 
   useEffect(() => {
     fetchPaymentMethods()
@@ -66,11 +60,10 @@ export default function PaymentsPage() {
     fetchItems(query)
   }, [clientId, status, paymentMethodId, dateRange, currentPage, itemsPerPage])
 
-
   const resetFilters = () => {
     setClientId('all')
     setStatus('all')
-    setMethod('all')
+    setPaymentMethodId('all')
     setDateRange(undefined)
     setCurrentPage(1)
   }
@@ -94,76 +87,104 @@ export default function PaymentsPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6 flex-wrap">
-            <Button
-              variant="outline"
-              className="w-[200px] justify-start"
-              onClick={() => setClientModalOpen(true)}
-            >
-              {selectedClient ? selectedClient.name : 'Selecionar cliente'}
-            </Button>
 
+            {/* Cliente */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium mb-1">Cliente</label>
+              <Button
+                variant="outline"
+                className="w-[200px] justify-start"
+                onClick={() => setClientModalOpen(true)}
+              >
+                {selectedClient ? selectedClient.name : 'Selecionar cliente'}
+              </Button>
+            </div>
 
-            <Select value={paymentMethodId} onValueChange={(value) => {
-              setPaymentMethodId(value)
-              setCurrentPage(1)
-            }}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Método" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                {paymentMethods.map((method: PaymentMethodResponse) => (
-                  <SelectItem key={method.id} value={method.id}>{method.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Método de pagamento */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium mb-1">Método de pagamento</label>
+              <Select
+                value={paymentMethodId}
+                onValueChange={(value) => {
+                  setPaymentMethodId(value)
+                  setCurrentPage(1)
+                }}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Método" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {paymentMethods.map((method: PaymentMethodResponse) => (
+                    <SelectItem key={method.id} value={method.id}>
+                      {method.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Select value={status} onValueChange={(value) => {
-              setStatus(value)
-              setCurrentPage(1)
-            }}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="paid">Pago</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="failed">Falhou</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Status */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium mb-1">Status</label>
+              <Select
+                value={status}
+                onValueChange={(value) => {
+                  setStatus(value)
+                  setCurrentPage(1)
+                }}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="paid">Pago</SelectItem>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="failed">Falhou</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
+            {/* Período */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium mb-1">Período</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-[260px] justify-start text-left font-normal",
+                      !dateRange && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateRange?.from
+                      ? dateRange.to
+                        ? `${format(dateRange.from, 'dd/MM/yyyy')} - ${format(dateRange.to, 'dd/MM/yyyy')}`
+                        : format(dateRange.from, 'dd/MM/yyyy')
+                      : <span>Selecionar período</span>
+                    }
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={(range) => {
+                      setDateRange(range)
+                      setCurrentPage(1)
+                    }}
+                    numberOfMonths={2}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("w-[260px] justify-start text-left font-normal", !dateRange && "text-muted-foreground")}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange?.from ? (
-                    dateRange.to
-                      ? `${format(dateRange.from, 'dd/MM/yyyy')} - ${format(dateRange.to, 'dd/MM/yyyy')}`
-                      : format(dateRange.from, 'dd/MM/yyyy')
-                  ) : (
-                    <span>Selecionar período</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={dateRange?.from}
-                  selected={dateRange}
-                  onSelect={(range) => {
-                    setDateRange(range)
-                    setCurrentPage(1)
-                  }}
-                  numberOfMonths={2}
-                />
-              </PopoverContent>
-            </Popover>
           </div>
+
 
           <div className="rounded-md border">
             <Table>
@@ -220,40 +241,16 @@ export default function PaymentsPage() {
         </CardContent>
       </Card>
 
-
-
-      <SearchTable<{ id: string; name: string; email: string }>
+      {/* Usando o SearchClientTable */}
+      <SearchClientTable
         open={clientModalOpen}
         onOpenChange={setClientModalOpen}
-        title="Selecionar Cliente"
-        columns={[
-          { key: 'name', label: 'Nome' },
-          { key: 'email', label: 'Email' },
-        ]}
-        fetchData={async ({ search, searchKey, page, limit }) => {
-          await fetchClients({
-            page,
-            limit,
-            [searchKey]: search?.trim() || undefined,
-          })
-
-          return {
-            data: clientList.map(client => ({
-              id: client.id,
-              name: client.name,
-              email: client.email || '',  
-            })),
-            total: clientTotal,
-          }
-        }}
         onSelect={(client) => {
-          setSelectedClient({ id: client.id, name: client.name })
+          setSelectedClient(client as ClientResponse)
           setClientId(client.id)
           setCurrentPage(1)
         }}
       />
-
-
     </div>
   )
 }

@@ -21,6 +21,7 @@ import { useServerStore } from '@/store/serverStore'
 import { usePlanStore } from '@/store/planStore'
 import { useLeadSourceStore } from '@/store/leadStore'
 import { usePaymentMethodStore } from '@/store/paymentMethodStore'
+import { Switch } from '../ui/switch'
 
 interface AddBillingRuleModalProps {
   open: boolean
@@ -134,70 +135,70 @@ export function AddBillingRuleModal({
     console.error('Form errors:', errors);
   };
 
-const renderMultiSelectFilter = (
-  name: keyof BillingRuleFormData,
-  label: string,
-  placeholder: string,
-  items: { id: string; name?: string; description?: string; type?: string }[]
-) => {
-  const selectedIds = useWatch({ control, name }) as string[] | undefined;
-  const selectedItems = items.filter((item) => selectedIds?.includes(item.id));
+  const renderMultiSelectFilter = (
+    name: keyof BillingRuleFormData,
+    label: string,
+    placeholder: string,
+    items: { id: string; name?: string; description?: string; type?: string }[]
+  ) => {
+    const selectedIds = useWatch({ control, name }) as string[] | undefined;
+    const selectedItems = items.filter((item) => selectedIds?.includes(item.id));
 
-  return (
-    <div className="space-y-1">
-      <Label htmlFor={name}>{label}</Label>
+    return (
+      <div className="space-y-1">
+        <Label htmlFor={name}>{label}</Label>
 
-      {/* Select para adicionar itens */}
-      <Controller
-        control={control}
-        name={name as any}
-        render={({ field }) => (
-          <Select
-            onValueChange={(value) => {
-              if (!field.value?.includes(value)) {
-                field.onChange([...(field.value ?? []), value]);
-              }
-            }}
-            value={undefined} // sempre vazio para poder adicionar múltiplos
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-            <SelectContent>
-              {items.map((item) => (
-                <SelectItem key={item.id} value={item.id}>
-                  {item.name || item.description || item.type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      />
-
-      {/* Badges dos itens selecionados */}
-      <div className="flex flex-wrap gap-2 mt-2">
-        {selectedItems.map((item) => (
-          <span
-            key={item.id}
-            className="flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm"
-          >
-            {item.name || item.description || item.type}
-            <button
-              type="button"
-              onClick={() => {
-                const newValue = selectedIds?.filter((id) => id !== item.id);
-                setValue(name, newValue);
+        {/* Select para adicionar itens */}
+        <Controller
+          control={control}
+          name={name as any}
+          render={({ field }) => (
+            <Select
+              onValueChange={(value) => {
+                if (!field.value?.includes(value)) {
+                  field.onChange([...(field.value ?? []), value]);
+                }
               }}
-              className="ml-1 text-green-600 hover:text-green-900 font-bold"
+              value={undefined} // sempre vazio para poder adicionar múltiplos
             >
-              ×
-            </button>
-          </span>
-        ))}
+              <SelectTrigger>
+                <SelectValue placeholder={placeholder} />
+              </SelectTrigger>
+              <SelectContent>
+                {items.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.name || item.description || item.type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+
+        {/* Badges dos itens selecionados */}
+        <div className="flex flex-wrap gap-2 mt-2">
+          {selectedItems.map((item) => (
+            <span
+              key={item.id}
+              className="flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm"
+            >
+              {item.name || item.description || item.type}
+              <button
+                type="button"
+                onClick={() => {
+                  const newValue = selectedIds?.filter((id) => id !== item.id);
+                  setValue(name, newValue);
+                }}
+                className="ml-1 text-green-600 hover:text-green-900 font-bold"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
   return (
     <Modal open={open} title="Nova regra de cobrança" onOpenChange={onOpenChange} maxWidth="3xl">
@@ -245,40 +246,48 @@ const renderMultiSelectFilter = (
           {renderMultiSelectFilter('paymentMethodIds', 'Métodos de Pagamento', 'Filtrar por método', paymentMethods)}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label htmlFor="type">Tipo de Regra</Label>
-            <Controller control={control} name="type" render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={BillingRuleType.MANUAL}>Manual</SelectItem>
-                  <SelectItem value={BillingRuleType.AUTOMATIC}>Automática</SelectItem>
-                </SelectContent>
-              </Select>
-            )} />
-            {errors.type && <p className="text-sm text-red-600">{errors.type.message}</p>}
-          </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="messageTemplateId">Template de Mensagem</Label>
-            <Controller control={control} name="messageTemplateId" render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger><SelectValue placeholder="Selecione um template" /></SelectTrigger>
-                <SelectContent>
-                  {messageTemplates.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )} />
-            {errors.messageTemplateId && <p className="text-sm text-red-600">{errors.messageTemplateId.message}</p>}
-          </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="messageTemplateId">Template de Mensagem</Label>
+          <Controller control={control} name="messageTemplateId" render={({ field }) => (
+            <Select onValueChange={field.onChange} value={field.value}>
+              <SelectTrigger><SelectValue placeholder="Selecione um template" /></SelectTrigger>
+              <SelectContent>
+                {messageTemplates.map((template) => (
+                  <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )} />
+          {errors.messageTemplateId && <p className="text-sm text-red-600">{errors.messageTemplateId.message}</p>}
         </div>
+        <div className="flex flex-col items-center justify-center space-y-3 mx-auto">
+          <Label htmlFor="type">Tipo de Regra</Label>
+          <Controller
+            control={control}
+            name="type"
+            render={({ field }) => (
+              <div className="flex items-center gap-2">
+                <span className="text-sm">Manual</span>
+                <Switch
+                  id="type"
+                  checked={field.value === BillingRuleType.AUTOMATIC}
+                  onCheckedChange={(checked) =>
+                    field.onChange(checked ? BillingRuleType.AUTOMATIC : BillingRuleType.MANUAL)
+                  }
+                />
+                <span className="text-sm">Automática</span>
+              </div>
+            )}
+          />
+          {errors.type && <p className="text-sm text-red-600">{errors.type.message}</p>}
+        </div>
+
 
         {/* --- Regras Automáticas --- */}
         {ruleType === BillingRuleType.AUTOMATIC && (
-          <div className="p-4 border rounded-md bg-slate-50 space-y-4">
+          <div className="p-4 border rounded-md bg-cardM space-y-4">
             <h3 className="font-semibold text-md">Configuração da Automação</h3>
 
             <div className="space-y-1">
@@ -304,7 +313,7 @@ const renderMultiSelectFilter = (
             )}
 
             {automaticType === AutomaticRuleType.MONTHLY_DAY_RANGE && (
-              <div className="space-y-2">
+              <div className="space-y-2 flex-col flex justify-center items-center">
                 <Label>Selecione o intervalo de dias</Label>
                 <DayPicker
                   mode="range"
@@ -318,6 +327,13 @@ const renderMultiSelectFilter = (
                       setValue("endDay", range.to.getDate())
                     }
                   }}
+                  modifiersClassNames={{
+                    selected: 'bg-green-600 text-white',
+                    range_start: 'bg-green-700 text-white rounded-l-full',
+                    range_end: 'bg-green-700 text-white rounded-r-full',
+                    today: 'bg-blue-100 text-black',
+                  }}
+                  className="react-day-picker-custom"
                   fromMonth={new Date(new Date().getFullYear(), 0)}
                   toMonth={new Date(new Date().getFullYear(), 11)}
                 />

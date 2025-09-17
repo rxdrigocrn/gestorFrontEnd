@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 export const createMessageTemplateSchema = z.object({
     id: z.string().uuid().optional().nullable(),
-    name: z.string().min(1, "Name is required"),
-    content: z.string().min(1, "Content is required"),
+    name: z.string().min(1, "Nome é obrigatório"),
+    content: z.string().min(1, "Descrição é obrigatória"),
     imageUrl: z.string().url("URL inválida").optional().nullable().or(z.literal('')),
 });
 

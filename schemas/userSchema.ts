@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { Role } from '@/types/user'
 
 export const createUserSchema = z.object({
-    id: z.string().uuid().optional(), // para edição pode ter id
+    id: z.string().uuid().optional(),
     name: z.string().min(1, 'Nome é obrigatório'),
     email: z.string().email('E-mail inválido').min(1, 'E-mail é obrigatório'),
     password: z.string().min(8, 'A senha deve ter no mínimo 8 caracteres'),

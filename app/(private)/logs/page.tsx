@@ -32,6 +32,7 @@ import { X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useLogStore } from '@/store/logsStore'
 import { Pagination } from '@/components/table/Pagination'
+import { Label } from '@/components/ui/label'
 
 export default function LogsPage() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -68,29 +69,29 @@ export default function LogsPage() {
         setCurrentPage(1)
     }
 
-    const getActionTypeBadge = (actionType: string) => {
-        const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-            create: 'default',
-            update: 'secondary',
-            delete: 'destructive',
-            login: 'outline',
-            system: 'outline',
-        }
+    // const getActionTypeBadge = (actionType: string) => {
+    //     const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+    //         create: 'default',
+    //         update: 'secondary',
+    //         delete: 'destructive',
+    //         login: 'outline',
+    //         system: 'outline',
+    //     }
 
-        const labels: Record<string, string> = {
-            create: 'Criação',
-            update: 'Atualização',
-            delete: 'Exclusão',
-            login: 'Login',
-            system: 'Sistema',
-        }
+    //     const labels: Record<string, string> = {
+    //         create: 'Criação',
+    //         update: 'Atualização',
+    //         delete: 'Exclusão',
+    //         login: 'Login',
+    //         system: 'Sistema',
+    //     }
 
-        return (
-            <Badge variant={variants[actionType] || 'outline'}>
-                {labels[actionType] || actionType}
-            </Badge>
-        )
-    }
+    //     return (
+    //         <Badge variant={variants[actionType] || 'outline'}>
+    //             {labels[actionType] || actionType}
+    //         </Badge>
+    //     )
+    // }
 
     return (
         <div className="space-y-6">
@@ -117,7 +118,9 @@ export default function LogsPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex flex-col md:flex-row gap-4 mb-6">
+                    <div className="flex flex-col gap-4 mb-6">
+
+                        <Label>Busca por Descrição ou Usuário :</Label>
                         <Input
                             placeholder="Pesquisar logs..."
                             value={searchTerm}
@@ -181,7 +184,7 @@ export default function LogsPage() {
                                                     </Avatar>
                                                     <div>
                                                         <p className="font-medium">{log.user?.name}</p>
-                                                       
+
                                                     </div>
                                                 </div>
                                             </TableCell>
