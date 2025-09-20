@@ -7,12 +7,10 @@ import {
     updateItem,
     deleteItem,
 } from '@/services/api-services'
-import {
-    Payment,
-} from '@/types/payments'
+import { ClientPaymentResponse } from '@/types/client'
 import { api } from '@/services/api'
 
-const baseStore = createGenericStore<Payment, any>(
+const baseStore = createGenericStore<ClientPaymentResponse, any>(
     'payments',
     {
         fetchAll,

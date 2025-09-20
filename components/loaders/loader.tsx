@@ -21,7 +21,7 @@ const Loader = () => {
         }
 
         .loader .circle {
-          --color: #333;
+          --color: #95ff9eff;
           --dim: 1.2rem;
           width: var(--dim);
           height: var(--dim);

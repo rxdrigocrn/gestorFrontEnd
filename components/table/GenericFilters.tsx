@@ -17,6 +17,7 @@ interface GenericFiltersProps {
     onFilterChange?: (name: string, value: string) => void
     onReset?: () => void
     onFiltersOpen?: (open: boolean) => void
+    dynamicSearch?: boolean // nova prop para habilitar busca dinâmica
 }
 
 export function GenericFilters({
@@ -26,15 +27,26 @@ export function GenericFilters({
     onFilterChange,
     onReset,
     onFiltersOpen,
+    dynamicSearch = false,
 }: GenericFiltersProps) {
-    const [showFilters, setShowFilters] = useState(false);
-    const [localSearch, setLocalSearch] = useState('');
-    const [localFilters, setLocalFilters] = useState<{ [key: string]: string }>({});
-    const hasFilters = filters.length > 0;
+    const [showFilters, setShowFilters] = useState(false)
+    const [localSearch, setLocalSearch] = useState('')
+    const [localFilters, setLocalFilters] = useState<{ [key: string]: string }>({})
+    const hasFilters = filters.length > 0
 
     useEffect(() => {
         onFiltersOpen?.(showFilters)
     }, [showFilters, onFiltersOpen])
+
+    // dispara onSearchChange enquanto digita, se dynamicSearch estiver ativo
+    useEffect(() => {
+        if (dynamicSearch) {
+            const handler = setTimeout(() => {
+                onSearchChange?.(localSearch)
+            }, 300) // debounce 300ms
+            return () => clearTimeout(handler)
+        }
+    }, [localSearch, dynamicSearch, onSearchChange])
 
     return (
         <div className="space-y-4">
@@ -48,6 +60,7 @@ export function GenericFilters({
                         onChange={(e) => setLocalSearch(e.target.value)}
                     />
                 </div>
+
                 {hasFilters && (
                     <Button
                         variant="outline"
@@ -64,7 +77,7 @@ export function GenericFilters({
                     {filters.map((filter) => (
                         <Select
                             key={filter.name}
-                            value={localFilters[filter.name]}
+                            value={localFilters[filter.name] ?? ''}
                             onValueChange={(val) =>
                                 setLocalFilters((prev) => ({ ...prev, [filter.name]: val }))
                             }
@@ -73,6 +86,7 @@ export function GenericFilters({
                                 <SelectValue placeholder={filter.label} />
                             </SelectTrigger>
                             <SelectContent>
+                                <SelectItem value="all">{`Selecione ${filter.label}`}</SelectItem>
                                 {filter.options.map((opt) => (
                                     <SelectItem key={opt.value} value={opt.value}>
                                         {opt.label}
@@ -82,14 +96,14 @@ export function GenericFilters({
                         </Select>
                     ))}
 
+
                     <div className="flex gap-2">
                         <Button
                             className="flex-1"
                             onClick={() => {
-                                onSearchChange?.(localSearch);
                                 Object.entries(localFilters).forEach(([name, value]) => {
-                                    onFilterChange?.(name, value);
-                                });
+                                    onFilterChange?.(name, value)
+                                })
                             }}
                         >
                             Aplicar Filtros
@@ -97,17 +111,17 @@ export function GenericFilters({
                         <Button
                             variant="outline"
                             onClick={() => {
-                                setLocalSearch('');
-                                setLocalFilters({});
-                                onReset?.();
+                                setLocalSearch('')
+                                setLocalFilters({})
+                                onReset?.()
                             }}
                         >
                             Resetar
                         </Button>
+
                     </div>
                 </div>
             )}
         </div>
-    );
+    )
 }
-

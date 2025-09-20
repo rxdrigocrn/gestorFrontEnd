@@ -330,6 +330,7 @@ export default function ClientsTable() {
         onSearchChange={setSearchTerm}
         onFilterChange={(name, value) => setFilters((prev) => ({ ...prev, [name]: value }))}
         onFiltersOpen={handleFiltersOpen}
+        dynamicSearch={true}
         onReset={() => {
           setSearchTerm('');
           setFilters({});

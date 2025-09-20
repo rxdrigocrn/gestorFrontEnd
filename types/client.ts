@@ -104,6 +104,7 @@ export type ClientPayment = {
 export type ClientPaymentResponse = {
     id: string;
     amount: number;
+    client: ClientResponse;
     clientId: string;
     createdAt: string;
     discount: number;

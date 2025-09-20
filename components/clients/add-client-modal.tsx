@@ -49,6 +49,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
+      screens: 1,
       ...defaultValues
     }
   })

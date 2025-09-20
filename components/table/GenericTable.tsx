@@ -6,11 +6,11 @@ import {
     TableHeader,
     TableRow
 } from '@/components/ui/table'
-
-import Loader from '@/components/loaders/loader'
-import ErrorBadge from '@/components/ui/error-badge'
 import { Pagination } from './Pagination'
 import { Button } from '../ui/button'
+import { Skeleton } from '../ui/skeleton' // importe o Skeleton do shadcn/ui
+import Loader from '@/components/loaders/loader'
+import ErrorBadge from '@/components/ui/error-badge'
 
 export interface Column<T> {
     header: string
@@ -45,14 +45,6 @@ export function GenericTable<T>({
     isLoading,
     error,
 }: GenericTableProps<T>) {
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center min-h-[50vh]">
-                <Loader />
-            </div>
-        )
-    }
-
     if (error) {
         const message = typeof error === 'string' ? error : 'Erro ao carregar os dados.'
         return (
@@ -61,6 +53,8 @@ export function GenericTable<T>({
             </div>
         )
     }
+
+    const skeletonRows = pagination?.limit || 5
 
     return (
         <div className="rounded-md border">
@@ -76,26 +70,42 @@ export function GenericTable<T>({
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {data.map((row) => (
-                        <TableRow
-                            key={rowKey(row)}
-                            className="hover:bg-muted/50 cursor-pointer"
-                            onClick={() => onRowClick?.(row)}
-                        >
-                            {columns.map((col, i) => (
-                                <TableCell key={i}>
-                                    {typeof col.accessor === 'function'
-                                        ? col.accessor(row)
-                                        : String(row[col.accessor])}
-                                </TableCell>
-                            ))}
-                            {actions && (
-                                <TableCell className="text-right">{actions(row)}</TableCell>
-                            )}
-                        </TableRow>
-                    ))}
+                    {isLoading
+                        ? Array.from({ length: skeletonRows }).map((_, idx) => (
+                            <TableRow key={idx}>
+                                {columns.map((col, i) => (
+                                    <TableCell key={i}>
+                                        <Skeleton className="h-4 w-full rounded animate-pulse" />
+                                    </TableCell>
+                                ))}
+                                {actions && (
+                                    <TableCell className="text-right">
+                                        <Skeleton className="h-4 w-12 rounded animate-pulse" />
+                                    </TableCell>
+                                )}
+                            </TableRow>
+                        ))
+                        : data.map((row) => (
+                            <TableRow
+                                key={rowKey(row)}
+                                className={onRowClick ? 'hover:bg-muted/50 cursor-pointer' : ''}
+                                onClick={() => onRowClick?.(row)}
+                            >
+                                {columns.map((col, i) => (
+                                    <TableCell key={i}>
+                                        {typeof col.accessor === 'function'
+                                            ? col.accessor(row)
+                                            : String(row[col.accessor])}
+                                    </TableCell>
+                                ))}
+                                {actions && (
+                                    <TableCell className="text-right">{actions(row)}</TableCell>
+                                )}
+                            </TableRow>
+                        ))}
                 </TableBody>
             </Table>
+
             {pagination && (
                 <Pagination
                     page={pagination.page}

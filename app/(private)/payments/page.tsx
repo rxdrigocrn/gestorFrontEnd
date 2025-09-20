@@ -24,6 +24,7 @@ import { useClientStore } from '@/store/clientStore'
 import { PaymentMethodResponse } from '@/types/paymentMethod'
 import { SearchClientTable } from '@/components/table/SearchTableClient'
 import { ClientResponse } from '@/types/client'
+import { SkeletonTable } from '@/components/ui/table-skeleton'
 
 export default function PaymentsPage() {
   const [status, setStatus] = useState('all')
@@ -86,23 +87,22 @@ export default function PaymentsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 mb-6 flex-wrap">
-
+          <div className="flex flex-col md:flex-row gap-4 mb-6 flex-wrap justify-start">
             {/* Cliente */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium mb-1">Cliente</label>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium ">Cliente</label>
               <Button
                 variant="outline"
-                className="w-[200px] justify-start"
+                className="w-full md:w-[200px] justify-start"
                 onClick={() => setClientModalOpen(true)}
               >
-                {selectedClient ? selectedClient.name : 'Selecionar cliente'}
+                {selectedClient ? selectedClient.name : "Selecionar cliente"}
               </Button>
             </div>
 
             {/* Método de pagamento */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium mb-1">Método de pagamento</label>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium ">Método de pagamento</label>
               <Select
                 value={paymentMethodId}
                 onValueChange={(value) => {
@@ -110,7 +110,7 @@ export default function PaymentsPage() {
                   setCurrentPage(1)
                 }}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full md:w-[180px]">
                   <SelectValue placeholder="Método" />
                 </SelectTrigger>
                 <SelectContent>
@@ -125,8 +125,8 @@ export default function PaymentsPage() {
             </div>
 
             {/* Status */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium mb-1">Status</label>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium ">Status</label>
               <Select
                 value={status}
                 onValueChange={(value) => {
@@ -134,35 +134,35 @@ export default function PaymentsPage() {
                   setCurrentPage(1)
                 }}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full md:w-[180px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="paid">Pago</SelectItem>
-                  <SelectItem value="pending">Pendente</SelectItem>
-                  <SelectItem value="failed">Falhou</SelectItem>
+                  <SelectItem value="PAID">Pago</SelectItem>
+                  <SelectItem value="PENDING">Pendente</SelectItem>
+                  <SelectItem value="CANCELED">Falhou</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Período */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium mb-1">Período</label>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium ">Período</label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-[260px] justify-start text-left font-normal",
+                      "w-full md:w-[260px] justify-start text-left font-normal",
                       !dateRange && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {dateRange?.from
                       ? dateRange.to
-                        ? `${format(dateRange.from, 'dd/MM/yyyy')} - ${format(dateRange.to, 'dd/MM/yyyy')}`
-                        : format(dateRange.from, 'dd/MM/yyyy')
+                        ? `${format(dateRange.from, "dd/MM/yyyy")} - ${format(dateRange.to, "dd/MM/yyyy")}`
+                        : format(dateRange.from, "dd/MM/yyyy")
                       : <span>Selecionar período</span>
                     }
                   </Button>
@@ -182,8 +182,8 @@ export default function PaymentsPage() {
                 </PopoverContent>
               </Popover>
             </div>
-
           </div>
+
 
 
           <div className="rounded-md border">
@@ -198,7 +198,9 @@ export default function PaymentsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {!isLoading && payments.length > 0 ? (
+                {isLoading ? (
+                  <SkeletonTable rows={itemsPerPage} columns={5} rowHeight="h-12" />
+                ) : payments.length > 0 ? (
                   payments.map((payment) => (
                     <TableRow key={payment.id}>
                       <TableCell>{payment.client?.name}</TableCell>
@@ -206,28 +208,36 @@ export default function PaymentsPage() {
                       <TableCell>{payment.status}</TableCell>
                       <TableCell className="text-right">R$ {payment.amount.toFixed(2)}</TableCell>
                       <TableCell className="text-right">
-                        {payment.date ? format(new Date(payment.date), 'dd/MM/yyyy') : ''}
+                        {payment.paidAt ? format(new Date(payment.paidAt), 'dd/MM/yyyy') : ''}
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center">
-                      {isLoading ? 'Carregando pagamentos...' : hasFilters ? (
+                      {hasFilters ? (
                         <div className="flex flex-col items-center gap-2">
                           <span>Nenhum pagamento encontrado com os filtros atuais</span>
-                          <Button variant="ghost" size="sm" onClick={resetFilters} className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={resetFilters}
+                            className="flex items-center gap-2"
+                          >
                             <X className="h-4 w-4" />
                             Limpar filtros
                           </Button>
                         </div>
-                      ) : 'Nenhum pagamento encontrado'}
+                      ) : (
+                        'Nenhum pagamento encontrado'
+                      )}
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
           </div>
+
 
           {total > itemsPerPage && (
             <Pagination
