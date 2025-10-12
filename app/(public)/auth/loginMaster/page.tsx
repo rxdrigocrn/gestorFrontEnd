@@ -42,7 +42,7 @@ const LoginPage = () => {
         setSuccess(true)
         const token = response.data.accessToken
         sessionStorage.setItem('token', token)
-       // window.location.href = '/dashboard'
+        window.location.href = '/painel'
       } else {
         setServerErrors('Falha no login')
       }

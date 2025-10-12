@@ -14,7 +14,7 @@ export default function NotFound() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
-                className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center"
+                className="w-full max-w-lg bg-white rounded-2xl shadow-lg p-8 text-center"
             >
                 {/* Ícone animado */}
                 <motion.div

@@ -30,7 +30,7 @@ export function Navbar() {
                         <Link href="/auth/login">
                             <Button variant="link" size="lg" className="bg-white border-slate-200 text-slate-900 hover:bg-slate-100">Entrar</Button>
                         </Link>
-                        <Link href="/auth/register">
+                        <Link href="/auth/registro">
                             <Button className="bg-gradient-to-r text-white from-lime-300 to-green-600 hover:from-lime-400   hover:to-green-700">
                                 Começar Grátis
                             </Button>
