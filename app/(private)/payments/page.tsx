@@ -205,7 +205,7 @@ export default function PaymentsPage() {
                     <TableRow key={payment.id}>
                       <TableCell>{payment.client?.name}</TableCell>
                       <TableCell>{payment.paymentMethod?.name}</TableCell>
-                      <TableCell>{payment.status}</TableCell>
+                      <TableCell>{payment.paymentStatus}</TableCell>
                       <TableCell className="text-right">R$ {payment.amount.toFixed(2)}</TableCell>
                       <TableCell className="text-right">
                         {payment.paidAt ? format(new Date(payment.paidAt), 'dd/MM/yyyy') : ''}

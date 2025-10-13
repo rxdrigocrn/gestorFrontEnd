@@ -192,15 +192,6 @@ const LoginPage = () => {
               )}
             </div>
 
-            <div className="flex items-center justify-center">
-              <a
-                href="#"
-                className="text-sm font-medium text-primary hover:underline"
-              >
-                Esqueceu sua senha?
-              </a>
-            </div>
-
             <Button
               type="submit"
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
@@ -235,16 +226,6 @@ const LoginPage = () => {
               )}
             </Button>
           </form>
-
-          <div className="mt-6 text-center text-sm text-muted-foreground">
-            Não tem uma conta?{' '}
-            <a
-              href="/registro"
-              className="font-medium text-primary hover:underline"
-            >
-              Cadastre-se
-            </a>
-          </div>
         </div>
       </motion.div>
     </div>

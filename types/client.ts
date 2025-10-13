@@ -16,7 +16,7 @@ export type ClientBase = {
     applicationId?: string
     paymentMethodId?: string
     leadSourceId?: string
-    status?: 'active' | 'inactive' | 'pending'
+    status?: 'active' | 'inactive' | 'archived'
 }
 
 export type ClientCreate = ClientBase
@@ -34,7 +34,7 @@ export type ClientResponse = {
     phone: string
     phone2?: string
     email?: string
-    status: 'active' | 'inactive' | 'pending'
+    status: 'active' | 'inactive' | 'archived' 
     expiresAt?: string
     notes?: string
     appDate?: string
@@ -125,7 +125,7 @@ export type ClientPaymentResponse = {
     paymentMethodId: string;
     renewClient: boolean;
     sendReceipt: boolean;
-    status: PaymentStatus;
+    paymentStatus: PaymentStatus;
     surcharge: number;
 }
 

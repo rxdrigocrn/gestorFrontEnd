@@ -10,13 +10,32 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
 type LoginFormValues = z.infer<typeof loginSchema>
+
+const forgotSchema = z.object({
+  email: z.string().email('E-mail inválido'),
+})
 
 const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [serverErrors, setServerErrors] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  // estado do modal
+  const [open, setOpen] = useState(false)
+  const [forgotMessage, setForgotMessage] = useState<string | null>(null)
+  const [forgotError, setForgotError] = useState<string | null>(null)
+  const [isForgotLoading, setIsForgotLoading] = useState(false)
 
   const {
     register,
@@ -24,6 +43,15 @@ const LoginPage = () => {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+  })
+
+  const {
+    register: registerForgot,
+    handleSubmit: handleForgotSubmit,
+    formState: { errors: forgotErrors },
+    reset: resetForgot,
+  } = useForm<z.infer<typeof forgotSchema>>({
+    resolver: zodResolver(forgotSchema),
   })
 
   const onSubmit = async (data: LoginFormValues) => {
@@ -42,7 +70,7 @@ const LoginPage = () => {
         setSuccess(true)
         const token = response.data.accessToken
         sessionStorage.setItem('token', token)
-       // window.location.href = '/dashboard'
+        window.location.href = '/dashboard'
       } else {
         setServerErrors('Falha no login')
       }
@@ -57,6 +85,31 @@ const LoginPage = () => {
     }
   }
 
+  const onForgotSubmit = async (data: { email: string }) => {
+    setForgotError(null)
+    setForgotMessage(null)
+    setIsForgotLoading(true)
+
+    try {
+      const response = await axios.post(
+        `http://localhost:5000/auth/forgot-password`,
+        data
+      )
+
+      if (response.status === 200) {
+        setForgotMessage('E-mail de recuperação enviado com sucesso!')
+        resetForgot()
+      }
+    } catch (error: any) {
+      setForgotError(
+        error.response?.data?.message ||
+        'Não foi possível enviar o e-mail. Tente novamente.'
+      )
+    } finally {
+      setIsForgotLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-4">
       <motion.div
@@ -66,6 +119,7 @@ const LoginPage = () => {
         className="w-full max-w-md bg-card text-card-foreground rounded-xl shadow-lg overflow-hidden border border-border"
       >
         <div className="p-8">
+          {/* cabeçalho e mensagens */}
           <div className="text-center mb-8">
             <div className="mx-auto h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
               <svg
@@ -89,55 +143,20 @@ const LoginPage = () => {
             </p>
           </div>
 
+          {/* mensagens de erro/sucesso */}
           {serverErrors && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-3 mb-6 rounded-lg bg-destructive text-destructive-foreground text-sm flex items-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
+            <div className="p-3 mb-6 rounded-lg bg-destructive text-destructive-foreground text-sm">
               {serverErrors}
-            </motion.div>
+            </div>
           )}
-
           {success && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-3 mb-6 rounded-lg bg-accent/20 text-accent-foreground text-sm flex items-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
+            <div className="p-3 mb-6 rounded-lg bg-accent/20 text-accent-foreground text-sm">
               Login realizado com sucesso!
-            </motion.div>
+            </div>
           )}
 
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-5"
-            noValidate
-          >
+          {/* FORM DE LOGIN */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
             <div>
               <Label htmlFor="email">E-mail</Label>
               <Input
@@ -147,19 +166,7 @@ const LoginPage = () => {
                 {...register('email')}
               />
               {errors.email && (
-                <p className="mt-1.5 text-sm text-destructive flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-1"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                <p className="text-sm text-destructive mt-1">
                   {errors.email.message}
                 </p>
               )}
@@ -174,31 +181,65 @@ const LoginPage = () => {
                 {...register('password')}
               />
               {errors.password && (
-                <p className="mt-1.5 text-sm text-destructive flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-1"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                <p className="text-sm text-destructive mt-1">
                   {errors.password.message}
                 </p>
               )}
             </div>
 
             <div className="flex items-center justify-center">
-              <a
-                href="#"
-                className="text-sm font-medium text-primary hover:underline"
-              >
-                Esqueceu sua senha?
-              </a>
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-primary hover:underline"
+                  >
+                    Esqueceu sua senha?
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Recuperar senha</DialogTitle>
+                    <DialogDescription>
+                      Digite o e-mail da sua conta e enviaremos instruções de recuperação.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <form onSubmit={handleForgotSubmit(onForgotSubmit)} className="space-y-4 mt-4">
+                    <div>
+                      <Label htmlFor="forgot-email">E-mail</Label>
+                      <Input
+                        id="forgot-email"
+                        type="email"
+                        placeholder="seu@email.com"
+                        {...registerForgot('email')}
+                      />
+                      {forgotErrors.email && (
+                        <p className="text-sm text-destructive mt-1">
+                          {forgotErrors.email.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {forgotMessage && (
+                      <p className="text-sm text-green-600">{forgotMessage}</p>
+                    )}
+                    {forgotError && (
+                      <p className="text-sm text-destructive">{forgotError}</p>
+                    )}
+
+                    <DialogFooter>
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={isForgotLoading}
+                      >
+                        {isForgotLoading ? 'Enviando...' : 'Enviar e-mail'}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
 
             <Button
@@ -206,40 +247,14 @@ const LoginPage = () => {
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={isSubmitting}
             >
-              {isSubmitting ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Entrando...
-                </>
-              ) : (
-                'Entrar'
-              )}
+              {isSubmitting ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Não tem uma conta?{' '}
             <a
-              href="/registro"
+              href="/auth/registro"
               className="font-medium text-primary hover:underline"
             >
               Cadastre-se

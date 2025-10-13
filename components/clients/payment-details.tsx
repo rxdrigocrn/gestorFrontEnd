@@ -24,8 +24,8 @@ export function PaymentDetailsModal({
         });
     };
 
-    const getStatusBadge = (status: PaymentStatus) => {
-        switch (status) {
+    const getStatusBadge = (paymentStatus: PaymentStatus) => {
+        switch (paymentStatus) {
             case PaymentStatus.PAID:
                 return <Badge variant="default">Pago</Badge>;
             case PaymentStatus.PENDING:
@@ -35,7 +35,7 @@ export function PaymentDetailsModal({
             case PaymentStatus.CANCELED:
                 return <Badge variant="destructive">Cancelado</Badge>;
             default:
-                return <Badge>{status}</Badge>;
+                return <Badge>{paymentStatus}</Badge>;
         }
     };
 
@@ -55,7 +55,7 @@ export function PaymentDetailsModal({
                 <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border">
                     <div className="flex items-center space-x-3">
                         <h3 className="text-sm font-medium text-gray-500">Status</h3>
-                        {getStatusBadge(payment.status)}
+                        {getStatusBadge(payment.paymentStatus)}
                     </div>
                     <div className="text-right">
                         <p className="text-sm font-medium text-gray-500">Valor Total</p>
