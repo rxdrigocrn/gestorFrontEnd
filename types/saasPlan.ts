@@ -8,6 +8,8 @@ export interface SaaSPlanResponse {
   stripePriceId?: string | null;
   abacatePayPlanId?: string | null;
   createdAt: string; // ou Date, dependendo de como a API serializa
+  features?: string[];
+  popular?: boolean;
 }
 
 // Interface para criar um novo plano (o que vai no corpo da requisição POST)

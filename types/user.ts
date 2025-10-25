@@ -12,6 +12,8 @@ export type UserBase = {
     password: string
     role: typeof Role[keyof typeof Role]
     organizationId?: string
+    phone?: string
+    cpf?: string
 }
 
 export type UserCreate = UserBase

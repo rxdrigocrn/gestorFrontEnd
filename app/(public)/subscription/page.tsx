@@ -1,254 +1,215 @@
 'use client'
+
 import React, { useEffect, useState } from 'react'
 import { useSaasPlanStore } from '@/store/saasPlanStore'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { SkeletonTable } from '@/components/ui/table-skeleton'
-import { SaaSPlanResponse } from '@/types/saasPlan'
-import { CheckIcon, StarIcon, ZapIcon } from 'lucide-react'
+import { PlanCard } from '@/components/subscription/SaasPlanCard'
+import { ZapIcon, CreditCardIcon, QrCodeIcon } from 'lucide-react'
+import { PaymentMethod } from '@/types/billings'
+import { useSimpleToast } from '@/hooks/use-toast'
+import { Badge } from '@/components/ui/badge'
 
 const SubscriptionPage = () => {
-  const { items, isLoading, fetchItems } = useSaasPlanStore()
+  const { items, isLoading, fetchItems, handleCheckout } = useSaasPlanStore()
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
-  const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CARD')
+  const [isProcessing, setIsProcessing] = useState(false)
+  const { showToast } = useSimpleToast()
 
   useEffect(() => {
     fetchItems()
-  }, [])
+  }, [fetchItems])
 
-  const mockPlans: SaaSPlanResponse[] = [
+  const plans = items?.length > 0 ? items : [
     {
       id: '1',
       name: 'Básico',
       price: 29,
-      interval: 'month',
+      popular: false,
       features: [
         'Até 5 projetos',
         '3GB de armazenamento',
         'Suporte por email',
-        'Relatórios básicos',
-        'Até 3 usuários'
-      ]
+        'Acesso básico aos recursos'
+      ],
+      createdAt: new Date().toISOString(),
     },
     {
       id: '2',
       name: 'Profissional',
       price: 79,
-      interval: 'month',
       popular: true,
       features: [
         'Projetos ilimitados',
         '50GB de armazenamento',
-        'Suporte prioritário',
-        'Relatórios avançados',
-        'Até 15 usuários',
-        'API access',
-        'White-label'
-      ]
+        'Suporte prioritário 24/7',
+        'Recursos avançados',
+        'Relatórios detalhados'
+      ],
+      createdAt: new Date().toISOString(),
     },
     {
       id: '3',
       name: 'Empresarial',
-      price: 199,
-      interval: 'month',
+      price: 159,
+      popular: false,
       features: [
         'Projetos ilimitados',
         '500GB de armazenamento',
-        'Suporte 24/7',
-        'Relatórios customizados',
-        'Usuários ilimitados',
-        'API access',
-        'White-label',
-        'SSO',
-        'Onboarding dedicado'
-      ]
-    }
+        'Suporte dedicado',
+        'Todos os recursos',
+        'API acesso',
+        'SSO integrado'
+      ],
+      createdAt: new Date().toISOString(),
+    },
   ]
 
-  const plans = items.length > 0 ? items : mockPlans
+  const handleSelectPlan = (planId: string) => {
+    setSelectedPlan(planId)
+  }
 
-  const getYearlyPrice = (monthlyPrice: number) => Math.floor(monthlyPrice * 12 * 0.8)
+  const handleGoToCheckout = async () => {
+    if (!selectedPlan) {
+      showToast('error', 'Selecione um plano', {
+        description: 'Escolha um plano antes de continuar',
+      })
+      return
+    }
+ 
 
-  const handleSelectPlan = (planId: string) => setSelectedPlan(planId)
-
-  const handleCheckout = () => {
-    if (selectedPlan) {
-      console.log('Indo para checkout com plano:', selectedPlan)
+    setIsProcessing(true)
+    try {
+      await handleCheckout(selectedPlan, paymentMethod)
+      showToast('success', 'Redirecionando para pagamento', {
+        description: 'Você será redirecionado para finalizar sua compra',
+      })
+    } catch (error) {
+      console.error('Erro ao ir para o checkout:', error)
+      showToast('error', 'Erro no checkout', {
+        description: 'Tente novamente ou entre em contato com o suporte',
+      })
+    } finally {
+      setIsProcessing(false)
     }
   }
 
   if (isLoading) return <SkeletonTable rows={0} columns={0} />
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted py-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#fef9e6] to-emerald-50 py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-extrabold text-foreground sm:text-5xl lg:text-6xl mb-4">
-            Escolha seu{" "}
-            <span className="bg-gradient-to-t from-emerald-600 to-lime-300 bg-clip-text  text-transparent">
-              Plano
+          <Badge className="mb-4 bg-lime-100 text-emerald-800 hover:bg-lime-200 border-0">
+            Escolha o melhor para você
+          </Badge>
+          <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl lg:text-6xl mb-4">
+            Planos{' '}
+            <span className="bg-gradient-to-r from-emerald-600 to-lime-400 bg-clip-text text-transparent">
+              Mensais
             </span>
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Comece agora mesmo e evolua conforme suas necessidades. Todos os planos incluem nossos recursos essenciais.
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Comece gratuitamente e faça upgrade conforme sua empresa cresce.
+            Todos os planos incluem nossos recursos essenciais.
           </p>
         </div>
 
-        {/* Billing Toggle */}
-        <div className="flex justify-center mb-12">
-          <div className="bg-card border rounded-xl p-1 shadow-sm flex items-center space-x-2">
-            {(['month', 'year'] as const).map((interval) => {
-              const isSelected = billingInterval === interval;
-              const isYear = interval === 'year';
-
-              return (
-                <button
-                  key={interval}
-                  onClick={() => setBillingInterval(interval)}
-                  className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2
-          ${isSelected
-                      ? 'bg-primary text-primary-foreground shadow-md'
-                      : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                >
-                  {isYear ? (
-                    <>
-                      <span>Anual</span>
-                      <Badge
-                        variant="secondary"
-                        className={`text-xs transition-colors duration-200
-                ${isSelected
-                            ? 'bg-primary-foreground/20 text-white'
-                            : 'bg-accent/20 text-accent'
-                          }`}
-                      >
-                        -20%
-                      </Badge>
-                    </>
-                  ) : (
-                    'Mensal'
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-        </div>
-
-        {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {plans.map((plan, index) => (
+        {/* Planos */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
+          {plans.map((plan) => (
             <PlanCard
               key={plan.id}
-              plan={plan}
-              isSelected={selectedPlan === plan.id}
-              onSelect={handleSelectPlan}
-              billingInterval={billingInterval}
-              getYearlyPrice={getYearlyPrice}
+              id={plan.id}
+              name={plan.name}
+              price={plan.price}
+              features={plan.features}
+              popular={plan.popular}
+              billingInterval="month"
+              onSelect={() => handleSelectPlan(plan.id)}
+              selected={selectedPlan === plan.id}
             />
           ))}
         </div>
 
-        {/* Checkout Button */}
-        <div className="text-center mt-14">
+        {/* Métodos de Pagamento */}
+        {selectedPlan && (
+          <div className="max-w-md mx-auto mb-12">
+            <h3 className="text-lg font-semibold text-center text-gray-900 mb-6">
+              Escolha como pagar
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                variant={paymentMethod === 'CARD' ? 'default' : 'outline'}
+                onClick={() => setPaymentMethod('CARD')}
+                className={`h-16 flex-col gap-2 ${paymentMethod === 'CARD'
+                  ? 'bg-lime-500 text-white'
+                  : 'border-lime-500 text-emerald-700 hover:bg-emerald-50'
+                  }`}
+              >
+                <CreditCardIcon className="w-5 h-5" />
+                <span>Cartão</span>
+              </Button>
+              <Button
+                variant={paymentMethod === 'PIX' ? 'default' : 'outline'}
+                onClick={() => setPaymentMethod('PIX')}
+                className={`h-16 flex-col gap-2 ${paymentMethod === 'PIX'
+                  ? 'bg-lime-500 text-white'
+                  : 'border-lime-500 text-emerald-700 hover:bg-emerald-50'
+                  }`}
+              >
+                <QrCodeIcon className="w-5 h-5" />
+                <span>PIX</span>
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Checkout */}
+        <div className="text-center">
           <Button
             size="lg"
-            onClick={handleCheckout}
-            disabled={!selectedPlan}
-            className="px-12 py-6 text-lg font-semibold bg-primary hover:bg-accent text-primary-foreground shadow-md transition-all"
+            onClick={handleGoToCheckout}
+            disabled={!selectedPlan || isProcessing}
+            className={`
+              px-16 py-6 text-lg font-semibold shadow-lg transition-all duration-200
+              transform hover:scale-105 disabled:transform-none disabled:hover:scale-100
+              ${selectedPlan
+                ? 'bg-gradient-to-r from-emerald-600 to-lime-400 hover:from-emerald-700 hover:to-lime-500 text-white'
+                : 'bg-gray-400'
+              }
+            `}
           >
-            <ZapIcon className="w-5 h-5 mr-2" />
-            Continuar para Checkout
+            {isProcessing ? (
+              <span className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Processando...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <ZapIcon className="w-5 h-5" />
+                {selectedPlan ? 'Continuar para Pagamento' : 'Selecione um Plano'}
+              </span>
+            )}
           </Button>
+
           {!selectedPlan && (
-            <p className="text-muted-foreground mt-4">Selecione um plano para continuar</p>
+            <p className="text-gray-500 mt-4 text-sm">
+              ⬆️ Selecione um plano acima para continuar
+            </p>
           )}
+        </div>
+
+        {/* Garantia */}
+        <div className="text-center mt-12">
+          <p className="text-gray-500 text-sm">
+            ✅ Garantia de 30 dias ou seu dinheiro de volta
+          </p>
         </div>
       </div>
     </div>
-  )
-}
-
-const PlanCard = ({
-  plan,
-  isSelected,
-  onSelect,
-  billingInterval,
-  getYearlyPrice
-}: {
-  plan: SaaSPlanResponse
-  isSelected: boolean
-  onSelect: (id: string) => void
-  billingInterval: 'month' | 'year'
-  getYearlyPrice: (price: number) => number
-}) => {
-  const price = billingInterval === 'month' ? plan.price : getYearlyPrice(plan.price)
-  const originalPrice = billingInterval === 'year' ? plan.price * 12 : null
-
-  return (
-    <Card
-      // 👇 ALTERAÇÃO AQUI: Adicionado flex, flex-col e h-full
-      className={`relative flex flex-col h-full transition-all duration-300 hover:scale-[1.03] ${isSelected
-        ? 'ring-2 ring-primary shadow-lg border-primary'
-        : 'hover:shadow-md border-border'
-        } ${plan.popular ? 'border-accent/60' : ''}`}
-    >
-      {plan.popular && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <Badge className="bg-accent text-accent-foreground px-4 py-1 font-semibold flex items-center gap-1">
-            <StarIcon className="w-3 h-3 fill-current" />
-            Mais Popular
-          </Badge>
-        </div>
-      )}
-
-      <CardHeader className="text-center pb-4">
-        <CardTitle className="text-2xl font-bold text-foreground">{plan.name}</CardTitle>
-        <CardDescription className="text-muted-foreground mt-2">
-          {plan.description || `Plano ideal para ${plan.name.toLowerCase()}`}
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent className="space-y-6">
-        <div className="text-center">
-          <div className="flex items-baseline justify-center gap-2">
-            <span className="text-4xl font-bold text-foreground">R$ {price}</span>
-            <span className="text-muted-foreground">
-              /{billingInterval === 'month' ? 'mês' : 'ano'}
-            </span>
-          </div>
-          {originalPrice && (
-            <p className="text-sm text-muted-foreground line-through mt-1">R$ {originalPrice}</p>
-          )}
-        </div>
-
-        <ul className="space-y-3">
-          {plan.features.map((feature, idx) => (
-            <li key={idx} className="flex items-center gap-3">
-              <div className="w-5 h-5 bg-accent/20 rounded-full flex items-center justify-center">
-                <CheckIcon className="w-3 h-3 text-accent" />
-              </div>
-              <span className="text-foreground">{feature}</span>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-
-      <CardFooter className="mt-auto pt-6">
-        <Button
-          onClick={() => onSelect(plan.id)}
-          variant={isSelected ? 'default' : 'outline'}
-          className={`w-full py-5 text-lg font-semibold transition-all ${isSelected
-            ? 'bg-primary  hover:bg-accent'
-            : 'border-accent hover:text-primary   hover:bg-accent/10'
-            }`}
-        >
-          {isSelected ? 'Selecionado' : 'Selecionar Plano'}
-        </Button>
-      </CardFooter>
-    </Card>
   )
 }
 

@@ -34,9 +34,10 @@ const RegisterPage = () => {
         data,
         { withCredentials: true }
       )
-
+      const token = response.data.accessToken
       if (response.status === 201) {
         setSuccess(true)
+        sessionStorage.setItem('token', token)
         setTimeout(() => (window.location.href = '/subscription'), 1500)
       } else {
         setServerErrors('Falha no registro.')
@@ -133,6 +134,34 @@ const RegisterPage = () => {
               )}
             </div>
 
+            <div>
+              <Label htmlFor="phone">Celular</Label>
+              <Input
+                id="phone"
+                type="text"
+                placeholder="(00) 00000-0000"
+                {...register('phone')}
+              />
+              {errors.phone && (
+                <p className="mt-1.5 text-sm text-destructive">
+                  {errors.phone.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="cpf">CPF ou CNPJ</Label>
+              <Input
+                id="cpf"
+                type="text"
+                placeholder="000.000.000-00"
+                {...register('cpf')}
+              />
+              {errors.cpf && (
+                <p className="mt-1.5 text-sm text-destructive">
+                  {errors.cpf.message}
+                </p>
+              )}
+            </div>
             <div>
               <Label htmlFor="userEmail">E-mail</Label>
               <Input

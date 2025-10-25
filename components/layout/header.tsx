@@ -57,11 +57,11 @@ export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
 
         {/* Ações do lado direito */}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="relative">
+          {/* <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
             <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
             <span className="sr-only">Notificações</span>
-          </Button>
+          </Button> */}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

@@ -12,6 +12,9 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PlanResponse } from '@/types/plan'
 
+// 👇 novo import
+import { NumericFormat, NumberFormatValues } from 'react-number-format'
+
 interface AddPlanModalProps {
     open: boolean
     onOpenChange: (open: boolean) => void
@@ -33,14 +36,13 @@ export function AddPlanModal({ open, onOpenChange, onConfirm, defaultValues }: A
 
     useEffect(() => {
         if (open) {
-            reset(defaultValues || {});
+            reset(defaultValues || {})
         }
-    }, [open, defaultValues, reset]);
-
+    }, [open, defaultValues, reset])
 
     const onInvalid = (errors: any) => {
-        console.error('Erros de validação do formulário:', errors);
-    };
+        console.error('Erros de validação do formulário:', errors)
+    }
 
     const periodType = watch('periodType')
 
@@ -53,11 +55,7 @@ export function AddPlanModal({ open, onOpenChange, onConfirm, defaultValues }: A
             <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4 p-4">
                 <div className="space-y-1">
                     <Label htmlFor="name">Nome</Label>
-                    <Input
-                        id="name"
-                        {...register('name')}
-                        placeholder="Nome do plano"
-                    />
+                    <Input id="name" {...register('name')} placeholder="Nome do plano" />
                     {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
                 </div>
 
@@ -84,21 +82,34 @@ export function AddPlanModal({ open, onOpenChange, onConfirm, defaultValues }: A
                     <Input
                         id="periodValue"
                         type="number"
+                        step="0.01"
                         {...register('periodValue', { valueAsNumber: true })}
-                        placeholder="Valor"
+                        placeholder="Valor (ex: 29.99)"
                     />
                     {errors.periodValue && <p className="text-sm text-red-600">{errors.periodValue.message}</p>}
                 </div>
 
                 <div className="space-y-1">
                     <Label htmlFor="creditsToRenew">Créditos para Renovação</Label>
-                    <Input
+                    <NumericFormat
                         id="creditsToRenew"
-                        type="number"
-                        {...register('creditsToRenew', { valueAsNumber: true })}
-                        placeholder="Créditos"
+                        thousandSeparator="."
+                        decimalSeparator=","
+                        prefix="R$ "
+                        allowNegative={false}
+                        decimalScale={2}
+                        fixedDecimalScale
+                        placeholder="R$ 39,99"
+                        customInput={Input}
+                        onValueChange={(values: NumberFormatValues) =>
+                            setValue('creditsToRenew', values.floatValue ?? 0)
+                        }
+                        value={watch('creditsToRenew') || ''}
                     />
-                    {errors.creditsToRenew && <p className="text-sm text-red-600">{errors.creditsToRenew.message}</p>}
+
+                    {errors.creditsToRenew && (
+                        <p className="text-sm text-red-600">{errors.creditsToRenew.message}</p>
+                    )}
                 </div>
 
                 <div className="space-y-1">
@@ -109,7 +120,9 @@ export function AddPlanModal({ open, onOpenChange, onConfirm, defaultValues }: A
                         placeholder="Descrição do plano"
                         rows={3}
                     />
-                    {errors.description && <p className="text-sm text-red-600">{errors.description.message}</p>}
+                    {errors.description && (
+                        <p className="text-sm text-red-600">{errors.description.message}</p>
+                    )}
                 </div>
 
                 <Button type="submit" disabled={isSubmitting} className="w-full">

@@ -46,6 +46,8 @@ export function AddUserModal({
             email: '',
             password: '',
             role: Role.EMPLOYEE,
+            cpf: '',
+            phone: '',
             ...defaultValues,
         },
     })
@@ -57,6 +59,8 @@ export function AddUserModal({
                 email: '',
                 password: '',
                 role: Role.EMPLOYEE,
+                cpf: '',
+                phone: '',
                 ...defaultValues,
             })
         }
@@ -105,6 +109,36 @@ export function AddUserModal({
                     </div>
                     {errors.password && (
                         <p className="text-sm text-red-600">{errors.password.message}</p>
+                    )}
+                </div>
+
+
+                <div>
+                    <Label htmlFor="phone">Celular</Label>
+                    <Input
+                        id="phone"
+                        type="text"
+                        placeholder="(00) 00000-0000"
+                        {...register('phone')}
+                    />
+                    {errors.phone && (
+                        <p className="mt-1.5 text-sm text-destructive">
+                            {errors.phone.message}
+                        </p>
+                    )}
+                </div>
+                <div>
+                    <Label htmlFor="cpf">cpf ou CNPJ</Label>
+                    <Input
+                        id="cpf"
+                        type="text"
+                        placeholder="000.000.000-00"
+                        {...register('cpf')}
+                    />
+                    {errors.cpf && (
+                        <p className="mt-1.5 text-sm text-destructive">
+                            {errors.cpf.message}
+                        </p>
                     )}
                 </div>
 

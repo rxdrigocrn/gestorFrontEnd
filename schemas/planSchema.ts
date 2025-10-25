@@ -5,7 +5,7 @@ export const planSchema = z.object({
     name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
     periodType: z.enum(["DAYS", "MONTHS", "YEARS"]),
     periodValue: z.number().positive("Valor deve ser positivo").int(),
-    creditsToRenew: z.number().positive("Valor deve ser positivo").int().nullable(),
+    creditsToRenew: z.number().positive("Valor deve ser positivo").nullable(),
     description: z.string().optional().nullable(),
     organizationId: z.string().uuid().optional().nullable(),
     // createdAt: z.string().optional(),

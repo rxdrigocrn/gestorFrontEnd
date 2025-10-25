@@ -145,7 +145,7 @@ export default function PlansTable() {
                 rowKey={(row) => row.id}
                 isLoading={isLoading}
                 error={error ?? undefined}
-                onRowClick={(row) => router.push(`/plans/${row.id}`)}
+                // onRowClick={(row) => router.push(`/plans/${row.id}`)}
                 columns={[
                     {
                         header: 'Plano',
