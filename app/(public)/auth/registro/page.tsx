@@ -30,7 +30,7 @@ const RegisterPage = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/auth/register`,
+        `http://localhost:5000/auth/registro`,
         data,
         { withCredentials: true }
       )
