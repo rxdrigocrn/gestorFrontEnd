@@ -6,7 +6,7 @@ import * as z from 'zod';
 import { useEffect } from 'react';
 
 import { useSaasPlanStore } from '@/store/saasPlanStore';
-import { SaaSPlanResponse, SaaSPlanCreate, SaaSPlanUpdate } from '@/types/saasPlan'; 
+import { SaaSPlanResponse, SaaSPlanCreate, SaaSPlanUpdate } from '@/types/saasPlan';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -22,12 +22,12 @@ const planSchema = z.object({
   abacatePayPlanId: z.string().nullable().optional().transform(val => val === '' ? undefined : val),
 });
 
-type PlanFormValues = z.infer <typeof planSchema>;
+type PlanFormValues = z.infer<typeof planSchema>;
 
 interface PlanFormDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  plan: SaaSPlanResponse | null; 
+  plan: SaaSPlanResponse | null;
 }
 
 export const PlanFormDialog = ({ isOpen, onClose, plan }: PlanFormDialogProps) => {
@@ -56,12 +56,22 @@ export const PlanFormDialog = ({ isOpen, onClose, plan }: PlanFormDialogProps) =
     }
   }, [plan, form, isOpen]);
 
-  const onSubmit = async (data: SaaSPlanCreate) => {
+  const onSubmit = async (data: PlanFormValues) => {
+    // map form values (which may contain nulls) to the API shape (no nulls)
+    const payload: SaaSPlanCreate = {
+      name: data.name,
+      price: data.price,
+      maxClients: data.maxClients,
+      maxUsers: data.maxUsers,
+      stripePriceId: data.stripePriceId ?? undefined,
+      abacatePayPlanId: data.abacatePayPlanId ?? undefined,
+    };
+
     try {
       if (isEditing && plan) {
-        await updateItem(plan.id, data as SaaSPlanUpdate); 
+        await updateItem(plan.id, payload as SaaSPlanUpdate);
       } else {
-        await createItem(data);
+        await createItem(payload);
       }
       onClose();
     } catch (error) {
@@ -83,17 +93,17 @@ export const PlanFormDialog = ({ isOpen, onClose, plan }: PlanFormDialogProps) =
             <FormField name="price" control={form.control} render={({ field }) => (
               <FormItem><FormLabel>Preço (R$)</FormLabel><FormControl><Input type="number" step="0.01" {...field} placeholder="49.90" /></FormControl><FormMessage /></FormItem>
             )} />
-             <FormField name="maxUsers" control={form.control} render={({ field }) => (
+            <FormField name="maxUsers" control={form.control} render={({ field }) => (
               <FormItem><FormLabel>Máximo de Usuários</FormLabel><FormControl><Input type="number" {...field} placeholder="5" /></FormControl><FormMessage /></FormItem>
             )} />
-             <FormField name="maxClients" control={form.control} render={({ field }) => (
+            <FormField name="maxClients" control={form.control} render={({ field }) => (
               <FormItem><FormLabel>Máximo de Clientes</FormLabel><FormControl><Input type="number" {...field} placeholder="100" /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField name="stripePriceId" control={form.control} render={({ field }) => (
-              <FormItem><FormLabel>Stripe Price ID (Opcional)</FormLabel><FormControl><Input {...field} placeholder="price_123..."/></FormControl><FormMessage /></FormItem>
+              <FormItem><FormLabel>Stripe Price ID (Opcional)</FormLabel><FormControl><Input {...field} value={field.value ?? ''} placeholder="price_123..." /></FormControl><FormMessage /></FormItem>
             )} />
-             <FormField name="abacatePayPlanId" control={form.control} render={({ field }) => (
-              <FormItem><FormLabel>AbacatePay Plan ID (Opcional)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+            <FormField name="abacatePayPlanId" control={form.control} render={({ field }) => (
+              <FormItem><FormLabel>AbacatePay Plan ID (Opcional)</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
             )} />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>Cancelar</Button>

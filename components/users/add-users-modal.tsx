@@ -46,7 +46,7 @@ export function AddUserModal({
             email: '',
             password: '',
             role: Role.EMPLOYEE,
-            cpf: '',
+            cpfCnpj: '',
             phone: '',
             ...defaultValues,
         },
@@ -59,7 +59,7 @@ export function AddUserModal({
                 email: '',
                 password: '',
                 role: Role.EMPLOYEE,
-                cpf: '',
+                cpfCnpj: '',
                 phone: '',
                 ...defaultValues,
             })
@@ -128,16 +128,16 @@ export function AddUserModal({
                     )}
                 </div>
                 <div>
-                    <Label htmlFor="cpf">cpf ou CNPJ</Label>
+                    <Label htmlFor="cpfCnpj">cpfCnpj ou CNPJ</Label>
                     <Input
-                        id="cpf"
+                        id="cpfCnpj"
                         type="text"
                         placeholder="000.000.000-00"
-                        {...register('cpf')}
+                        {...register('cpfCnpj')}
                     />
-                    {errors.cpf && (
+                    {errors.cpfCnpj && (
                         <p className="mt-1.5 text-sm text-destructive">
-                            {errors.cpf.message}
+                            {errors.cpfCnpj.message}
                         </p>
                     )}
                 </div>

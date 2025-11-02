@@ -1,13 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import Loader from '@/components/loaders/loader'
 
 export default function BillingSuccessPage() {
-    const searchParams = useSearchParams()
-    const sessionId = searchParams.get('session_id')
     const router = useRouter()
     const [loading, setLoading] = useState(true)
 

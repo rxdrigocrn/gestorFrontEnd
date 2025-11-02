@@ -1,11 +1,11 @@
-'use client'
+ 'use client'
 
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import axios from 'axios'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,8 +27,7 @@ type ResetPasswordForm = z.infer<typeof resetPasswordSchema>
 
 export default function ResetPasswordPage() {
     const router = useRouter()
-    const searchParams = useSearchParams()
-    const token = searchParams.get('token')
+    const [token, setToken] = useState<string | null>(null)
 
     const [message, setMessage] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
@@ -75,6 +74,16 @@ export default function ResetPasswordPage() {
             setLoading(false)
         }
     }
+
+    // read token from URL on client-side to avoid useSearchParams SSR bailout
+    useEffect(() => {
+        try {
+            const params = new URLSearchParams(window.location.search)
+            setToken(params.get('token'))
+        } catch (err) {
+            // noop
+        }
+    }, [])
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-4">

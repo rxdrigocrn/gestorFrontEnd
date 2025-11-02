@@ -22,7 +22,7 @@ import {
 
 import { MoreHorizontal, Eye, Edit, Trash2, PlusCircle } from 'lucide-react'
 import { CreateUserFormData } from '@/schemas/userSchema'
-import { UserUpdate } from '@/types/user'
+import { UserResponse, UserUpdate } from '@/types/user'
 import { Role } from '@/types/user'
 
 export default function UsersPage() {
@@ -41,7 +41,8 @@ export default function UsersPage() {
 
     const [searchTerm, setSearchTerm] = useState('')
     const [showAddModal, setShowAddModal] = useState(false)
-    const [editingUser, setEditingUser] = useState<CreateUserFormData | null>(null)
+    // allow partial form data so we can set a UserResponse (which may lack some form-only fields)
+    const [editingUser, setEditingUser] = useState<Partial<CreateUserFormData> | null>(null)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
 
     useEffect(() => {
@@ -76,7 +77,8 @@ export default function UsersPage() {
         }
     }
 
-    const handleEdit = (user: CreateUserFormData) => {
+    // accept UserResponse from the table/actions
+    const handleEdit = (user: UserResponse) => {
         setEditingUser(user)
         setShowAddModal(true)
     }
@@ -99,7 +101,8 @@ export default function UsersPage() {
         }
     }
 
-    const handleOpenDialog = (user: CreateUserFormData) => {
+    // accept UserResponse and store as partial form data
+    const handleOpenDialog = (user: UserResponse) => {
         setIsDialogOpen(true)
         setEditingUser(user)
     }
@@ -128,7 +131,7 @@ export default function UsersPage() {
                 onReset={() => setSearchTerm('')}
             />
 
-            <GenericTable<CreateUserFormData>
+            <GenericTable<UserResponse>
                 data={filteredUsers}
                 isLoading={isLoading}
                 error={error ?? undefined}
@@ -180,7 +183,7 @@ export default function UsersPage() {
                 open={showAddModal}
                 onOpenChange={handleModalChange}
                 onConfirm={handleSubmit}
-                defaultValues={editingUser ?? undefined}
+                defaultValues={editingUser ? (editingUser as CreateUserFormData) : undefined}
             />
 
             <ConfirmationDialog

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '../ui/textarea'
+import { NumericFormat, NumberFormatValues } from 'react-number-format'
 
 interface AddLeadModalProps {
     open: boolean
@@ -22,13 +23,15 @@ export function AddLeadModal({ open, onOpenChange, onConfirm, defaultValues }: A
     const {
         register,
         handleSubmit,
+        watch,
+        setValue,
         formState: { errors, isSubmitting },
         reset,
     } = useForm<LeadFormData>({
         resolver: zodResolver(leadSchema),
     })
 
-   useEffect(() => {
+    useEffect(() => {
         if (open) {
             reset(defaultValues || {});
         }
@@ -71,16 +74,27 @@ export function AddLeadModal({ open, onOpenChange, onConfirm, defaultValues }: A
 
                 <div className="space-y-1">
                     <Label htmlFor="cost">Custo</Label>
-                    <Input
+                    <NumericFormat
                         id="cost"
-                        type="number"
-                        {...register('cost', { valueAsNumber: true })}
-                        placeholder="Custo do lead"
+                        thousandSeparator="."
+                        decimalSeparator=","
+                        prefix="R$ "
+                        allowNegative={false}
+                        decimalScale={2}
+                        fixedDecimalScale
+                        placeholder="R$ 39,99"
+                        customInput={Input}
+                        onValueChange={(values: NumberFormatValues) =>
+                            setValue('cost', values.floatValue ?? 0)
+                        }
+                        value={watch('cost') || ''}
                     />
+
                     {errors.cost && (
                         <p className="text-sm text-red-600">{errors.cost.message}</p>
                     )}
                 </div>
+
 
                 <Button type="submit" disabled={isSubmitting} className="w-full">
                     {isSubmitting ? 'Salvando...' : 'Salvar'}
