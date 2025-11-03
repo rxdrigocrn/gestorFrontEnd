@@ -32,7 +32,7 @@ export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
 
   const signOut = () => {
     sessionStorage.removeItem("token")
-    window.location.href = "/auth/login"
+    window.location.href = "/login"
   }
 
   return (

@@ -28,7 +28,7 @@ export default function BillingSuccessPage() {
         <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
             <h1 className="text-2xl font-bold">Compra finalizada com sucesso!</h1>
             <p>Obrigado pela sua compra. Você pode voltar ao login para acessar sua conta.</p>
-            <Button onClick={() => router.push('/auth/login')}>Voltar ao Login</Button>
+            <Button onClick={() => router.push('/login')}>Voltar ao Login</Button>
         </div>
     )
 }

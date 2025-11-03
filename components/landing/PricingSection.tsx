@@ -101,7 +101,7 @@ export function PricingSection() {
 
                 {/* Empurra o botão para o final */}
                 <div className="mt-auto pt-6">
-                  <Link href="/auth/registro" className="block">
+                  <Link href="/registro" className="block">
                     <Button
                       className={`w-full ${plan.popular
                         ? 'bg-gradient-to-r from-lime-300 to-green-600 hover:from-lime-400 hover:to-green-700 text-white'

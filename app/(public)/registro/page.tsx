@@ -5,10 +5,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import InputMask from 'react-input-mask'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { registerSchema, RegisterFormValues } from '@/schemas/registerSchema'
+
+// Função para limpar máscara (remove tudo que não for número)
+const unmask = (value: string) => value.replace(/\D/g, '')
 
 const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -18,20 +22,34 @@ const RegisterPage = () => {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
   })
+
+  const cpfValue = watch('cpf') || ''
+  const cpfDigits = cpfValue.replace(/\D/g, '')
+  const cpfMask =
+    cpfDigits.length > 11 ? '99.999.999/9999-99' : '999.999.999-99'
 
   const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true)
     setServerErrors(null)
     setSuccess(false)
 
+    // remove máscara antes de enviar
+    const sanitized = {
+      ...data,
+      cpf: unmask(data.cpf),
+      phone: unmask(data.phone),
+    }
+
     try {
       const response = await axios.post(
-        `http://localhost:5000/auth/registro`,
-        data,
+        `http://34.237.173.84/auth/register`,
+        sanitized,
         { withCredentials: true }
       )
       const token = response.data.accessToken
@@ -134,34 +152,60 @@ const RegisterPage = () => {
               )}
             </div>
 
+            {/* Telefone com máscara e limite */}
             <div>
               <Label htmlFor="phone">Celular</Label>
-              <Input
-                id="phone"
-                type="text"
-                placeholder="(00) 00000-0000"
-                {...register('phone')}
-              />
+              <InputMask
+                mask="(99) 99999-9999"
+                value={watch('phone') || ''}
+                onChange={(e) => {
+                  const raw = unmask(e.target.value).slice(0, 11)
+                  setValue('phone', raw)
+                }}
+              >
+                {(inputProps) => (
+                  <Input
+                    {...inputProps}
+                    id="phone"
+                    type="text"
+                    placeholder="(00) 00000-0000"
+                  />
+                )}
+              </InputMask>
               {errors.phone && (
                 <p className="mt-1.5 text-sm text-destructive">
                   {errors.phone.message}
                 </p>
               )}
             </div>
+
+            {/* CPF/CNPJ dinâmico e limitado */}
             <div>
               <Label htmlFor="cpf">CPF ou CNPJ</Label>
-              <Input
-                id="cpf"
-                type="text"
-                placeholder="000.000.000-00"
-                {...register('cpf')}
-              />
+              <InputMask
+                mask={cpfMask}
+                value={cpfValue}
+                onChange={(e) => {
+                  const raw = unmask(e.target.value).slice(0, 14)
+                  setValue('cpf', raw)
+                }}
+              >
+                {(inputProps) => (
+                  <Input
+                    {...inputProps}
+                    id="cpf"
+                    type="text"
+                    placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                  />
+                )}
+              </InputMask>
               {errors.cpf && (
                 <p className="mt-1.5 text-sm text-destructive">
                   {errors.cpf.message}
                 </p>
               )}
             </div>
+
             <div>
               <Label htmlFor="userEmail">E-mail</Label>
               <Input
@@ -195,7 +239,7 @@ const RegisterPage = () => {
             <Button
               type="submit"
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isLoading}
             >
               {isSubmitting ? 'Criando conta...' : 'Registrar'}
             </Button>

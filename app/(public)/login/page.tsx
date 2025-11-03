@@ -92,7 +92,7 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/auth/forgot-password`,
+        `http://34.237.173.84/auth/forgot-password`,
         data
       )
 
@@ -254,7 +254,7 @@ const LoginPage = () => {
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Não tem uma conta?{' '}
             <a
-              href="/auth/registro"
+              href="/registro"
               className="font-medium text-primary hover:underline"
             >
               Cadastre-se

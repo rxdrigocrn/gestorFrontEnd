@@ -33,7 +33,7 @@ export function HeroSection({ isVisible }: HeroSectionProps) {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-                        <Link href="/auth/registro">
+                        <Link href="/registro">
                             <Button size="lg" className="bg-gradient-to-r text-white from-lime-300 to-green-600 hover:from-lime-400 hover:to-green-700 text-lg px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                                 Começar Gratuitamente
                                 <ArrowRight className="ml-2 w-5 h-5" />

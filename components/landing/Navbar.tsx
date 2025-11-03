@@ -27,10 +27,10 @@ export function Navbar() {
                         <a href="#testimonials" className="text-slate-600   hover:text-lime-700 transition-colors">
                             Depoimentos
                         </a>
-                        <Link href="/auth/login">
+                        <Link href="/login">
                             <Button variant="link" size="lg" className="bg-white border-slate-200 text-slate-900 hover:bg-slate-100">Entrar</Button>
                         </Link>
-                        <Link href="/auth/registro">
+                        <Link href="/registro">
                             <Button className="bg-gradient-to-r text-white from-lime-300 to-green-600 hover:from-lime-400   hover:to-green-700">
                                 Começar Grátis
                             </Button>

@@ -16,7 +16,7 @@ export function CtaSection() {
                         Junte-se a milhares de provedores que já transformaram seus negócios com nossa plataforma.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link href="/auth/registro">
+                        <Link href="/registro">
                             <Button size="lg" className="bg-white text-lime-700 hover:bg-lime-50 text-lg px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
                                 Começar Teste Grátis
                                 <ArrowRight className="ml-2 w-5 h-5" />
