@@ -5,13 +5,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import InputMask from 'react-input-mask'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { registerSchema, RegisterFormValues } from '@/schemas/registerSchema'
 
-// Função para limpar máscara (remove tudo que não for número)
 const unmask = (value: string) => value.replace(/\D/g, '')
 
 const RegisterPage = () => {
@@ -29,17 +27,11 @@ const RegisterPage = () => {
     resolver: zodResolver(registerSchema),
   })
 
-  const cpfValue = watch('cpf') || ''
-  const cpfDigits = cpfValue.replace(/\D/g, '')
-  const cpfMask =
-    cpfDigits.length > 11 ? '99.999.999/9999-99' : '999.999.999-99'
-
   const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true)
     setServerErrors(null)
     setSuccess(false)
 
-    // remove máscara antes de enviar
     const sanitized = {
       ...data,
       cpf: unmask(data.cpf),
@@ -152,56 +144,40 @@ const RegisterPage = () => {
               )}
             </div>
 
-            {/* Telefone com máscara e limite */}
             <div>
-              <Label htmlFor="phone">Celular</Label>
-              <InputMask
-                mask="(99) 99999-9999"
-                value={watch('phone') || ''}
+              <Label htmlFor="cpf">CPF / CNPJ</Label>
+              <Input
+                id="cpf"
+                placeholder="Somente números"
+                {...register('cpf')}
                 onChange={(e) => {
-                  const raw = unmask(e.target.value).slice(0, 11)
-                  setValue('phone', raw)
+                  const value = e.target.value.replace(/\D/g, '')
+                  setValue('cpf', value.slice(0, 14))
                 }}
-              >
-                {(inputProps) => (
-                  <Input
-                    {...inputProps}
-                    id="phone"
-                    type="text"
-                    placeholder="(00) 00000-0000"
-                  />
-                )}
-              </InputMask>
-              {errors.phone && (
+                maxLength={14}
+              />
+              {errors.cpf && (
                 <p className="mt-1.5 text-sm text-destructive">
-                  {errors.phone.message}
+                  {errors.cpf.message}
                 </p>
               )}
             </div>
 
-            {/* CPF/CNPJ dinâmico e limitado */}
             <div>
-              <Label htmlFor="cpf">CPF ou CNPJ</Label>
-              <InputMask
-                mask={cpfMask}
-                value={cpfValue}
+              <Label htmlFor="phone">Telefone</Label>
+              <Input
+                id="phone"
+                placeholder="Somente números"
+                {...register('phone')}
                 onChange={(e) => {
-                  const raw = unmask(e.target.value).slice(0, 14)
-                  setValue('cpf', raw)
+                  const value = e.target.value.replace(/\D/g, '')
+                  setValue('phone', value.slice(0, 11))
                 }}
-              >
-                {(inputProps) => (
-                  <Input
-                    {...inputProps}
-                    id="cpf"
-                    type="text"
-                    placeholder="000.000.000-00 ou 00.000.000/0000-00"
-                  />
-                )}
-              </InputMask>
-              {errors.cpf && (
+                maxLength={11}
+              />
+              {errors.phone && (
                 <p className="mt-1.5 text-sm text-destructive">
-                  {errors.cpf.message}
+                  {errors.phone.message}
                 </p>
               )}
             </div>
