@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Eye, EyeOff } from 'lucide-react'
 import { registerSchema, RegisterFormValues } from '@/schemas/registerSchema'
 
 const unmask = (value: string) => value.replace(/\D/g, '')
@@ -16,11 +17,11 @@ const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [serverErrors, setServerErrors] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)  
 
   const {
     register,
     handleSubmit,
-    watch,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
@@ -197,14 +198,29 @@ const RegisterPage = () => {
               )}
             </div>
 
-            <div>
+            {/* 👇 Campo de senha com botão de visibilidade */}
+            <div className="space-y-2">
               <Label htmlFor="userPassword">Senha</Label>
-              <Input
-                id="userPassword"
-                type="password"
-                placeholder="••••••••"
-                {...register('userPassword')}
-              />
+              <div className="relative">
+                <Input
+                  id="userPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  {...register('userPassword')}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
               {errors.userPassword && (
                 <p className="mt-1.5 text-sm text-destructive">
                   {errors.userPassword.message}

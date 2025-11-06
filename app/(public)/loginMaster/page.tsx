@@ -10,6 +10,7 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Eye, EyeOff } from 'lucide-react' // adicione no topo
 
 type LoginFormValues = z.infer<typeof loginSchema>
 
@@ -17,6 +18,7 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [serverErrors, setServerErrors] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
@@ -164,15 +166,24 @@ const LoginPage = () => {
                 </p>
               )}
             </div>
-
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                {...register('password')}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  {...register('password')}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               {errors.password && (
                 <p className="mt-1.5 text-sm text-destructive flex items-center">
                   <svg
@@ -191,6 +202,7 @@ const LoginPage = () => {
                 </p>
               )}
             </div>
+
 
             <Button
               type="submit"

@@ -79,6 +79,7 @@ export function AddBillingRuleModal({
   // Watchers
   const ruleType = useWatch({ control, name: 'type' });
   const automaticType = useWatch({ control, name: 'automaticType' });
+  const clientStatus = useWatch({ control, name: 'clientStatus' });
 
   useEffect(() => {
     if (dateRange?.from && dateRange?.to) {
@@ -107,6 +108,15 @@ export function AddBillingRuleModal({
       }
     }
   }, [open, defaultValues, reset]);
+
+  // If client status is VENCE_HOJE, force automatic rule with DAYS_BEFORE_EXPIRATION and 0 days
+  useEffect(() => {
+    if (clientStatus === BillingRuleClientStatus.VENCE_HOJE) {
+      setValue('type', BillingRuleType.AUTOMATIC);
+      setValue('automaticType', AutomaticRuleType.DAYS_BEFORE_EXPIRATION);
+      setValue('days', 0);
+    }
+  }, [clientStatus, setValue]);
 
 
   useEffect(() => {
@@ -269,15 +279,25 @@ export function AddBillingRuleModal({
             name="type"
             render={({ field }) => (
               <div className="flex items-center gap-2">
-                <span className="text-sm">Manual</span>
-                <Switch
-                  id="type"
-                  checked={field.value === BillingRuleType.AUTOMATIC}
-                  onCheckedChange={(checked) =>
-                    field.onChange(checked ? BillingRuleType.AUTOMATIC : BillingRuleType.MANUAL)
-                  }
-                />
-                <span className="text-sm">Automática</span>
+                {clientStatus === BillingRuleClientStatus.VENCE_HOJE ? (
+                  // For "Vence Hoje" status we force automatic and hide the switch
+                  <>
+                    <span className="text-sm">Automática</span>
+                    <span className="text-xs text-muted-foreground">(Vence Hoje — automação obrigatória)</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm">Manual</span>
+                    <Switch
+                      id="type"
+                      checked={field.value === BillingRuleType.AUTOMATIC}
+                      onCheckedChange={(checked) =>
+                        field.onChange(checked ? BillingRuleType.AUTOMATIC : BillingRuleType.MANUAL)
+                      }
+                    />
+                    <span className="text-sm">Automática</span>
+                  </>
+                )}
               </div>
             )}
           />

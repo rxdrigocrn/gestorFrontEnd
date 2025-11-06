@@ -7,6 +7,7 @@ import * as z from 'zod'
 import { useState } from 'react'
 import axios from 'axios'
 import { motion } from 'framer-motion'
+import { Eye, EyeOff } from 'lucide-react' // adicione no topo
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -30,6 +31,9 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [serverErrors, setServerErrors] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  // dentro do componente:
+  const [showPassword, setShowPassword] = useState(false)
 
   // estado do modal
   const [open, setOpen] = useState(false)
@@ -172,14 +176,24 @@ const LoginPage = () => {
               )}
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                {...register('password')}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  {...register('password')}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               {errors.password && (
                 <p className="text-sm text-destructive mt-1">
                   {errors.password.message}
