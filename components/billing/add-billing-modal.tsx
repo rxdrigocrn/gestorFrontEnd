@@ -306,7 +306,7 @@ export function AddBillingRuleModal({
 
 
         {/* --- Regras Automáticas --- */}
-        {ruleType === BillingRuleType.AUTOMATIC && (
+        {ruleType === BillingRuleType.AUTOMATIC && clientStatus !== BillingRuleClientStatus.VENCE_HOJE && (
           <div className="p-4 border rounded-md bg-cardM space-y-4">
             <h3 className="font-semibold text-md">Configuração da Automação</h3>
 
@@ -363,6 +363,7 @@ export function AddBillingRuleModal({
 
           </div>
         )}
+
 
         <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? 'Salvando...' : 'Salvar Regra'}
