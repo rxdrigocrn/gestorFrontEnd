@@ -6,7 +6,7 @@ import { useSaasPlanStore } from '@/store/saasPlanStore'
 import { useSubscriptionModalStore } from '@/store/subscriptionModalStore'
 
 export const SubscriptionBlockedModal = () => {
-    const { open, closeModal } = useSubscriptionModalStore()
+    const { open, closeModal, message } = useSubscriptionModalStore()
     const { items, fetchItems, handleCheckout } = useSaasPlanStore()
     const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
     const [paymentMethod, setPaymentMethod] = useState<'CARD' | 'PIX'>('CARD')
@@ -16,13 +16,14 @@ export const SubscriptionBlockedModal = () => {
         if (open) fetchItems()
     }, [open, fetchItems])
 
-    if (!open) return null // 🔥 só renderiza quando o modal deve aparecer
+    if (!open) return null
 
     const handleGoToCheckout = async () => {
         if (!selectedPlan) return
         setIsProcessing(true)
         try {
             await handleCheckout(selectedPlan, paymentMethod)
+            closeModal()
         } catch (error) {
             console.error(error)
         } finally {
@@ -33,10 +34,10 @@ export const SubscriptionBlockedModal = () => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
             <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg text-center relative">
-           
-                <h2 className="text-2xl font-bold mb-4">Assinatura necessária</h2>
+                <h2 className="text-2xl font-bold mb-4">Acesso Bloqueado</h2>
+
                 <p className="mb-6 text-gray-700">
-                    Sua assinatura não está ativa. Escolha um plano para continuar usando a aplicação.
+                    {message || 'Sua assinatura não está ativa. Escolha um plano para continuar usando a aplicação.'}
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">

@@ -409,7 +409,7 @@ export default function ClientsTable() {
           },
           {
             header: 'Expiração',
-            accessor: (client) => client.expiresAt ? format(new Date(client.expiresAt), 'dd/MM/yyyy HH:mm') : '-',
+            accessor: (client) => client.expiresAt ? format(new Date(client.expiresAt), 'dd/MM/yyyy') : '-',
           },
         ]}
         actions={(client) => (

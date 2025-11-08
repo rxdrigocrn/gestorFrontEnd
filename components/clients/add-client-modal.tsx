@@ -73,43 +73,19 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
 
   const onSubmit = (data: ClientFormData) => {
     if (data.expiresAt) {
-      // data.expiresAt comes from <input type="datetime-local" /> as 'YYYY-MM-DDTHH:mm'
-      // We want to preserve the wall-clock time the user entered, so send an ISO string
-      // that includes the local timezone offset (e.g. 2025-11-08T14:00:00-03:00).
-      const toIsoWithOffset = (val: string) => {
-        try {
-          // If value already contains a timezone or Z, try parsing and return as-is (normalized)
-          if (/[zZ]|[+-]\d{2}:?\d{2}$/.test(val)) {
-            const d = new Date(val)
-            if (isValid(d)) return d.toISOString()
-          }
-
-          const [datePart, timePart] = val.split('T')
-          if (!datePart || !timePart) return val
-          const [year, month, day] = datePart.split('-').map(Number)
-          const [hour, minute] = timePart.split(':').map(Number)
-          const d = new Date(year, month - 1, day, hour ?? 0, minute ?? 0, 0)
-          if (!isValid(d)) return val
-
-          const pad = (n: number) => String(n).padStart(2, '0')
-          const offsetMin = -d.getTimezoneOffset()
-          const sign = offsetMin >= 0 ? '+' : '-'
-          const absMin = Math.abs(offsetMin)
-          const offH = Math.floor(absMin / 60)
-          const offM = absMin % 60
-          const offset = `${sign}${pad(offH)}:${pad(offM)}`
-
-          return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-            d.getHours()
-          )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${offset}`
-        } catch (e) {
-          console.error('Failed to convert expiresAt to ISO with offset', e)
-          return val
+      // Input value is 'YYYY-MM-DDTHH:mm' from <input type="datetime-local" />
+      // Requirement: send only the date as 'dd/MM/yyyy' and when using datetime
+      // the hour should always be 00:00. Backend returns datetimes too, so
+      // we treat incoming values accordingly when opening the modal.
+      try {
+        const [datePart] = data.expiresAt.split('T')
+        const [yyyy, mm, dd] = datePart.split('-')
+        if (dd && mm && yyyy) {
+          data.expiresAt = `${dd}/${mm}/${yyyy}`
         }
+      } catch (e) {
+        console.error('Failed to format expiresAt to dd/MM/yyyy', e)
       }
-
-      const iso = toIsoWithOffset(data.expiresAt)
-      data.expiresAt = iso
     }
     onConfirm(data)
   }
@@ -121,17 +97,26 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
 
   useEffect(() => {
     if (open && defaultValues) {
+      const incomingToInput = (val?: string) => {
+        if (!val) return ""
+        try {
+          const d = new Date(val)
+          if (!isValid(d)) return ""
+          const pad = (n: number) => String(n).padStart(2, '0')
+          const yyyy = d.getFullYear()
+          const mm = pad(d.getMonth() + 1)
+          const dd = pad(d.getDate())
+          return `${yyyy}-${mm}-${dd}T00:00`
+        } catch (e) {
+          return ""
+        }
+      }
+
       reset({
         ...defaultValues,
         phone: defaultValues.phone ? formatPhoneToE164(defaultValues.phone) : "",
         phone2: defaultValues.phone2 ? formatPhoneToE164(defaultValues.phone2) : "",
-        expiresAt: defaultValues.expiresAt
-          ? new Date(
-            new Date(defaultValues.expiresAt).getTime() - new Date().getTimezoneOffset() * 60000
-          )
-            .toISOString()
-            .slice(0, 16)
-          : "",
+        expiresAt: incomingToInput(defaultValues.expiresAt),
         screens: defaultValues.screens ?? 0,
       })
     }

@@ -20,14 +20,22 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
+
 if (typeof window !== 'undefined') {
   api.interceptors.response.use(
     (res) => res,
     (err) => {
       if (err.response?.status === 403) {
-        import('@/store/subscriptionModalStore').then(({ useSubscriptionModalStore }) => {
-          useSubscriptionModalStore.getState().openModal()
-        })
+        const errorMessage =
+          err.response?.data?.message || // Ajuste isso se a mensagem vier em outro campo (ex: err.response?.data?.error)
+          'A sua subscrição não está ativa. Por favor, complete o pagamento.'
+
+        import('@/store/subscriptionModalStore').then(
+          ({ useSubscriptionModalStore }) => {
+            // Passa a mensagem de erro para a store
+            useSubscriptionModalStore.getState().openModal(errorMessage) // 👈 Modificado
+          }
+        )
       }
       return Promise.reject(err)
     }
