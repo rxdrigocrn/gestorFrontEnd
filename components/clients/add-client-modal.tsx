@@ -77,7 +77,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
       try {
         const [yyyy, mm, dd] = data.expiresAt.split('-')
         if (dd && mm && yyyy) {
-          data.expiresAt = `${dd}/${mm}/${yyyy}` // Formata para dd/MM/yyyy
+          data.expiresAt = `${dd}/${mm}/${yyyy}`
         }
       } catch (e) {
         console.error('Failed to format expiresAt to dd/MM/yyyy', e)
