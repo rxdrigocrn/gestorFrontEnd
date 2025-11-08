@@ -22,6 +22,7 @@ import { usePlanStore } from '@/store/planStore'
 import { useLeadSourceStore } from '@/store/leadStore'
 import { usePaymentMethodStore } from '@/store/paymentMethodStore'
 import { Switch } from '../ui/switch'
+import { X } from 'lucide-react'
 
 interface AddBillingRuleModalProps {
   open: boolean
@@ -201,7 +202,7 @@ export function AddBillingRuleModal({
                 }}
                 className="ml-1 text-green-600 hover:text-green-900 font-bold"
               >
-                ×
+                <X size={16} />
               </button>
             </span>
           ))}
@@ -219,6 +220,26 @@ export function AddBillingRuleModal({
           <Label htmlFor="name">Nome da Regra</Label>
           <Input id="name" {...register('name')} placeholder="Ex: Lembrete de vencimento" />
           {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="executionTime">Horário de Execução</Label>
+          <Controller
+            control={control}
+            name="executionTime"
+            render={({ field }) => (
+              <Input
+                id="executionTime"
+                type="time"
+                step="60" // garante precisão de minutos
+                value={field.value || ''}
+                onChange={(e) => field.onChange(e.target.value)}
+              />
+            )}
+          />
+          {errors.executionTime && (
+            <p className="text-sm text-red-600">{errors.executionTime.message}</p>
+          )}
         </div>
 
         {/* --- Filtros --- */}

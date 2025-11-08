@@ -23,6 +23,12 @@ export const billingRuleSchema = z.object({
   name: z.string().min(1, { message: "O nome é obrigatório." }),
   type: z.nativeEnum(BillingRuleType, { required_error: "O tipo da regra é obrigatório." }),
   messageTemplateId: z.string().uuid({ message: "Selecione um template de mensagem válido." }),
+  executionTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+      message: 'O horário de execução deve estar no formato HH:mm (ex: 09:00 ou 14:30)',
+    })
+    .optional(),
 
   // --- Filtros ---
   deviceIds: z.array(z.string().uuid()).optional(),
