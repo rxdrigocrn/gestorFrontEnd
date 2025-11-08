@@ -73,15 +73,11 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
 
   const onSubmit = (data: ClientFormData) => {
     if (data.expiresAt) {
-      // Input value is 'YYYY-MM-DDTHH:mm' from <input type="datetime-local" />
-      // Requirement: send only the date as 'dd/MM/yyyy' and when using datetime
-      // the hour should always be 00:00. Backend returns datetimes too, so
-      // we treat incoming values accordingly when opening the modal.
+
       try {
-        const [datePart] = data.expiresAt.split('T')
-        const [yyyy, mm, dd] = datePart.split('-')
+        const [yyyy, mm, dd] = data.expiresAt.split('-')
         if (dd && mm && yyyy) {
-          data.expiresAt = `${dd}/${mm}/${yyyy}`
+          data.expiresAt = `${dd}/${mm}/${yyyy}` // Formata para dd/MM/yyyy
         }
       } catch (e) {
         console.error('Failed to format expiresAt to dd/MM/yyyy', e)
@@ -95,6 +91,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
     console.error('Form validation errors:', errors)
   }
 
+  // ...
   useEffect(() => {
     if (open && defaultValues) {
       const incomingToInput = (val?: string) => {
@@ -102,11 +99,13 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
         try {
           const d = new Date(val)
           if (!isValid(d)) return ""
+
           const pad = (n: number) => String(n).padStart(2, '0')
           const yyyy = d.getFullYear()
           const mm = pad(d.getMonth() + 1)
           const dd = pad(d.getDate())
-          return `${yyyy}-${mm}-${dd}T00:00`
+
+          return `${yyyy}-${mm}-${dd}`
         } catch (e) {
           return ""
         }
@@ -116,7 +115,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
         ...defaultValues,
         phone: defaultValues.phone ? formatPhoneToE164(defaultValues.phone) : "",
         phone2: defaultValues.phone2 ? formatPhoneToE164(defaultValues.phone2) : "",
-        expiresAt: incomingToInput(defaultValues.expiresAt),
+        expiresAt: incomingToInput(defaultValues.expiresAt), // Agora reseta para "YYYY-MM-DD"
         screens: defaultValues.screens ?? 0,
       })
     }
@@ -248,9 +247,9 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
               />
 
               <div className="space-y-2">
-                <Label>Data e Hora de Expiração</Label>
+                <Label>Data de Expiração</Label>
                 <Input
-                  type="datetime-local"
+                  type="date"
                   {...register('expiresAt')}
                   className="w-full"
                 />
@@ -258,6 +257,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                   <p className="text-sm text-red-500">{errors.expiresAt.message}</p>
                 )}
               </div>
+
 
               <div className="space-y-2">
                 <Label htmlFor="location">Localização</Label>
