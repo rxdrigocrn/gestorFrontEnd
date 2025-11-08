@@ -26,13 +26,16 @@ export type BillingRuleResponse = {
     serverIds: string[]
     planIds: string[]
     leadSourceIds: string[]
-    paymentMethodIds: string[]  
+    paymentMethodIds: string[]
 
     // --- Automáticas ---
     automaticType?: AutomaticRuleType | null
     days?: number | null
     startDay?: number | null
     endDay?: number | null
+
+    // execution time HH:mm
+    executionTime?: string | null
 
 
 }
@@ -52,7 +55,7 @@ export function mapBillingResToFormData(response: BillingRuleResponse): BillingR
         serverIds: response.serverIds ?? [],
         planIds: response.planIds ?? [],
         leadSourceIds: response.leadSourceIds ?? [],
- 
+
         // status (fallback = TODOS)
         clientStatus: response.clientStatus ?? BillingRuleClientStatus.TODOS,
 
@@ -61,6 +64,7 @@ export function mapBillingResToFormData(response: BillingRuleResponse): BillingR
         days: response.days ?? undefined,
         startDay: response.startDay ?? undefined,
         endDay: response.endDay ?? undefined,
+        executionTime: response.executionTime ?? undefined,
 
 
     }
@@ -88,6 +92,7 @@ export function mapFormDataToBillingDto(
         days: form.days,
         startDay: form.startDay,
         endDay: form.endDay,
+        executionTime: form.executionTime,
 
 
     }

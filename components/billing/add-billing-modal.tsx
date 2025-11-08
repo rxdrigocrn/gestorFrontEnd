@@ -222,41 +222,42 @@ export function AddBillingRuleModal({
           {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
         </div>
 
-        <div className="space-y-1">
-          <Label htmlFor="executionTime">Horário de Execução</Label>
-          <Controller
-            control={control}
-            name="executionTime"
-            render={({ field }) => (
-              <Input
-                id="executionTime"
-                type="time"
-                step="60" // garante precisão de minutos
-                value={field.value || ''}
-                onChange={(e) => field.onChange(e.target.value)}
-              />
+        <div className="grid grid-cols-1 gap-4">
+          <div className="space-y-1">
+            <Label htmlFor="executionTime">Horário de Execução</Label>
+            <Controller
+              control={control}
+              name="executionTime"
+              render={({ field }) => (
+                <Input
+                  id="executionTime"
+                  type="time"
+                  step="60"
+                  value={field.value || ''}
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
+              )}
+            />
+            {errors.executionTime && (
+              <p className="text-sm text-red-600">{errors.executionTime.message}</p>
             )}
-          />
-          {errors.executionTime && (
-            <p className="text-sm text-red-600">{errors.executionTime.message}</p>
-          )}
-        </div>
+          </div>
 
-        {/* --- Filtros --- */}
-        <div className="space-y-1">
-          <Label htmlFor="clientStatus">Status do Cliente</Label>
-          <Controller control={control} name="clientStatus" render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value}>
-              <SelectTrigger><SelectValue placeholder="Selecione o status do cliente" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value={BillingRuleClientStatus.TODOS}>Todos</SelectItem>
-                <SelectItem value={BillingRuleClientStatus.ATIVO}>Ativo</SelectItem>
-                <SelectItem value={BillingRuleClientStatus.VENCE_HOJE}>Vence Hoje</SelectItem>
-                <SelectItem value={BillingRuleClientStatus.VENCIDO}>Vencido</SelectItem>
-              </SelectContent>
-            </Select>
-          )} />
-          {errors.clientStatus && <p className="text-sm text-red-600">{errors.clientStatus.message}</p>}
+          <div className="space-y-1">
+            <Label htmlFor="clientStatus">Status do Cliente</Label>
+            <Controller control={control} name="clientStatus" render={({ field }) => (
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger><SelectValue placeholder="Selecione o status do cliente" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={BillingRuleClientStatus.TODOS}>Todos</SelectItem>
+                  <SelectItem value={BillingRuleClientStatus.ATIVO}>Ativo</SelectItem>
+                  <SelectItem value={BillingRuleClientStatus.VENCE_HOJE}>Vence Hoje</SelectItem>
+                  <SelectItem value={BillingRuleClientStatus.VENCIDO}>Vencido</SelectItem>
+                </SelectContent>
+              </Select>
+            )} />
+            {errors.clientStatus && <p className="text-sm text-red-600">{errors.clientStatus.message}</p>}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

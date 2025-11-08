@@ -96,7 +96,11 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
         phone: defaultValues.phone ? formatPhoneToE164(defaultValues.phone) : "",
         phone2: defaultValues.phone2 ? formatPhoneToE164(defaultValues.phone2) : "",
         expiresAt: defaultValues.expiresAt
-          ? new Date(defaultValues.expiresAt).toISOString().slice(0, 16)
+          ? new Date(
+            new Date(defaultValues.expiresAt).getTime() - new Date().getTimezoneOffset() * 60000
+          )
+            .toISOString()
+            .slice(0, 16)
           : "",
         screens: defaultValues.screens ?? 0,
       })
