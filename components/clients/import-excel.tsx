@@ -14,63 +14,83 @@ interface ImportExcelModalProps {
 }
 
 export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelModalProps) {
-    const [file, setFile] = useState<File | null>(null)
-    const [isDragging, setIsDragging] = useState(false)
+    const [clientsFile, setClientsFile] = useState<File | null>(null)
+    const [paymentsFile, setPaymentsFile] = useState<File | null>(null)
+    const [isDraggingClients, setIsDraggingClients] = useState(false)
+    const [isDraggingPayments, setIsDraggingPayments] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const fileInputRef = useRef<HTMLInputElement>(null)
+    const clientsFileInputRef = useRef<HTMLInputElement>(null)
+    const paymentsFileInputRef = useRef<HTMLInputElement>(null)
 
 
-    const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    const commonPrevent = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault()
         e.stopPropagation()
-        setIsDragging(true)
+    }
+
+    const handleDragEnter = useCallback((which: 'clients' | 'payments') => (e: React.DragEvent<HTMLDivElement>) => {
+        commonPrevent(e)
+        if (which === 'clients') setIsDraggingClients(true)
+        else setIsDraggingPayments(true)
     }, [])
 
-    const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setIsDragging(false)
+    const handleDragLeave = useCallback((which: 'clients' | 'payments') => (e: React.DragEvent<HTMLDivElement>) => {
+        commonPrevent(e)
+        if (which === 'clients') setIsDraggingClients(false)
+        else setIsDraggingPayments(false)
     }, [])
 
     const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
+        commonPrevent(e)
     }, [])
 
-    const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setIsDragging(false)
+    const handleDrop = useCallback((which: 'clients' | 'payments') => (e: React.DragEvent<HTMLDivElement>) => {
+        commonPrevent(e)
+        if (which === 'clients') setIsDraggingClients(false)
+        else setIsDraggingPayments(false)
 
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             const droppedFile = e.dataTransfer.files[0]
             if (droppedFile.name.endsWith('.xlsx')) {
-                setFile(droppedFile)
+                if (which === 'clients') setClientsFile(droppedFile)
+                else setPaymentsFile(droppedFile)
             }
         }
     }, [])
 
-    const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleClientsFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const selectedFile = e.target.files[0]
             if (selectedFile.name.endsWith('.xlsx')) {
-                setFile(selectedFile)
+                setClientsFile(selectedFile)
             }
         }
     }, [])
 
-    const handleRemoveFile = useCallback(() => {
-        setFile(null)
-        if (fileInputRef.current) {
-            fileInputRef.current.value = ''
+    const handlePaymentsFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const selectedFile = e.target.files[0]
+            if (selectedFile.name.endsWith('.xlsx')) {
+                setPaymentsFile(selectedFile)
+            }
         }
+    }, [])
+
+    const handleRemoveClientsFile = useCallback(() => {
+        setClientsFile(null)
+        if (clientsFileInputRef.current) clientsFileInputRef.current.value = ''
+    }, [])
+
+    const handleRemovePaymentsFile = useCallback(() => {
+        setPaymentsFile(null)
+        if (paymentsFileInputRef.current) paymentsFileInputRef.current.value = ''
     }, [])
 
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (!file) {
-            console.error('Nenhum arquivo selecionado.')
+        if (!clientsFile || !paymentsFile) {
+            console.error('Ambos os arquivos (clientsFile e paymentsFile) são obrigatórios.')
             return
         }
 
@@ -78,7 +98,8 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
 
         try {
             const formData = new FormData()
-            formData.append('file', file)
+            formData.append('clientsFile', clientsFile as Blob)
+            formData.append('paymentsFile', paymentsFile as Blob)
 
             const res = await createItem('/clients/import/excel', formData)
 
@@ -86,10 +107,10 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
                 throw new Error(await res.text())
             }
 
-            setFile(null)
-            if (fileInputRef.current) {
-                fileInputRef.current.value = ''
-            }
+            setClientsFile(null)
+            setPaymentsFile(null)
+            if (clientsFileInputRef.current) clientsFileInputRef.current.value = ''
+            if (paymentsFileInputRef.current) paymentsFileInputRef.current.value = ''
 
             onOpenChange(false)
             onSuccess?.()
@@ -99,7 +120,7 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
         } finally {
             setIsLoading(false)
         }
-    }, [file, onOpenChange, onSuccess])
+    }, [clientsFile, paymentsFile, onOpenChange, onSuccess])
 
     return (
         <Modal
@@ -109,79 +130,112 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
             description="Envie um arquivo .xlsx para importar vários clientes de uma vez"
         >
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div
-                    className={cn(
-                        'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors',
-                        isDragging ? 'border-primary bg-primary/10' : 'border-muted-foreground/30 hover:border-muted-foreground/50',
-                        file ? 'border-green-500 bg-green-500/10' : ''
-                    )}
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={handleDragLeave}
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                        accept=".xlsx"
-                        className="hidden"
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Clients file dropzone */}
+                    <div
+                        className={cn(
+                            'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
+                            isDraggingClients ? 'border-primary bg-primary/10' : 'border-muted-foreground/30 hover:border-muted-foreground/50',
+                            clientsFile ? 'border-green-500 bg-green-500/10' : ''
+                        )}
+                        onDragEnter={handleDragEnter('clients')}
+                        onDragLeave={handleDragLeave('clients')}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop('clients')}
+                        onClick={() => clientsFileInputRef.current?.click()}
+                    >
+                        <input
+                            type="file"
+                            ref={clientsFileInputRef}
+                            onChange={handleClientsFileChange}
+                            accept=".xlsx"
+                            className="hidden"
+                        />
 
-                    <div className="flex flex-col items-center justify-center space-y-2">
-                        <UploadIcon className="w-10 h-10 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">
-                            {file ? (
-                                <span className="font-medium text-green-600">{file.name}</span>
-                            ) : (
-                                <>
-                                    <span className="font-medium text-primary">Clique para selecionar</span> ou arraste e solte
-                                </>
-                            )}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                            Apenas arquivos .xlsx são aceitos
-                        </p>
+                        <div className="flex flex-col items-center justify-center space-y-2">
+                            <UploadIcon className="w-10 h-10 text-muted-foreground" />
+                            <Label className="text-sm">Arquivo de Clientes (clientsFile)</Label>
+                            <p className="text-sm text-muted-foreground">
+                                {clientsFile ? (
+                                    <span className="font-medium text-green-600">{clientsFile.name}</span>
+                                ) : (
+                                    <>
+                                        <span className="font-medium text-primary">Clique para selecionar</span> ou arraste e solte
+                                    </>
+                                )}
+                            </p>
+                            <p className="text-xs text-muted-foreground">Apenas arquivos .xlsx são aceitos</p>
+                        </div>
+                    </div>
+
+                    {/* Payments file dropzone */}
+                    <div
+                        className={cn(
+                            'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
+                            isDraggingPayments ? 'border-primary bg-primary/10' : 'border-muted-foreground/30 hover:border-muted-foreground/50',
+                            paymentsFile ? 'border-green-500 bg-green-500/10' : ''
+                        )}
+                        onDragEnter={handleDragEnter('payments')}
+                        onDragLeave={handleDragLeave('payments')}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop('payments')}
+                        onClick={() => paymentsFileInputRef.current?.click()}
+                    >
+                        <input
+                            type="file"
+                            ref={paymentsFileInputRef}
+                            onChange={handlePaymentsFileChange}
+                            accept=".xlsx"
+                            className="hidden"
+                        />
+
+                        <div className="flex flex-col items-center justify-center space-y-2">
+                            <UploadIcon className="w-10 h-10 text-muted-foreground" />
+                            <Label className="text-sm">Arquivo de Pagamentos (paymentsFile)</Label>
+                            <p className="text-sm text-muted-foreground">
+                                {paymentsFile ? (
+                                    <span className="font-medium text-green-600">{paymentsFile.name}</span>
+                                ) : (
+                                    <>
+                                        <span className="font-medium text-primary">Clique para selecionar</span> ou arraste e solte
+                                    </>
+                                )}
+                            </p>
+                            <p className="text-xs text-muted-foreground">Apenas arquivos .xlsx são aceitos</p>
+                        </div>
                     </div>
                 </div>
 
-                {file && (
-                    <div className="flex items-center justify-between p-3 bg-muted rounded-md">
-                        <div className="flex items-center space-x-2">
-                            <FileIcon className="w-5 h-5" />
-                            <span className="text-sm font-medium">{file.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                                {(file.size / 1024 / 1024).toFixed(2)} MB
-                            </span>
-                        </div>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleRemoveFile}
-                            className="text-red-500 hover:text-red-600"
-                        >
-                            Remover
-                        </Button>
+                {/* Selected files summary */}
+                {(clientsFile || paymentsFile) && (
+                    <div className="space-y-2">
+                        {clientsFile && (
+                            <div className="flex items-center justify-between p-3 bg-muted rounded-md">
+                                <div className="flex items-center space-x-2">
+                                    <FileIcon className="w-5 h-5" />
+                                    <span className="text-sm font-medium">{clientsFile.name}</span>
+                                    <span className="text-xs text-muted-foreground">{(clientsFile.size / 1024 / 1024).toFixed(2)} MB</span>
+                                </div>
+                                <Button type="button" variant="ghost" size="sm" onClick={handleRemoveClientsFile} className="text-red-500 hover:text-red-600">Remover</Button>
+                            </div>
+                        )}
+
+                        {paymentsFile && (
+                            <div className="flex items-center justify-between p-3 bg-muted rounded-md">
+                                <div className="flex items-center space-x-2">
+                                    <FileIcon className="w-5 h-5" />
+                                    <span className="text-sm font-medium">{paymentsFile.name}</span>
+                                    <span className="text-xs text-muted-foreground">{(paymentsFile.size / 1024 / 1024).toFixed(2)} MB</span>
+                                </div>
+                                <Button type="button" variant="ghost" size="sm" onClick={handleRemovePaymentsFile} className="text-red-500 hover:text-red-600">Remover</Button>
+                            </div>
+                        )}
                     </div>
                 )}
 
                 <div className="flex justify-end space-x-2 pt-4">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => onOpenChange(false)}
-                        disabled={isLoading}
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        type="submit"
-                        disabled={!file || isLoading}
-                    >
-                        {isLoading ? 'Importando...' : 'Importar'}
-                    </Button>
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancelar</Button>
+                    <Button type="submit" disabled={!clientsFile || !paymentsFile || isLoading}>{isLoading ? 'Importando...' : 'Importar'}</Button>
                 </div>
             </form>
         </Modal>
