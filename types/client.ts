@@ -35,7 +35,7 @@ export type ClientResponse = {
     phone2?: string
     email?: string
     status: 'active' | 'inactive' | 'archived' 
-    expiresAt?: string
+    expiresAt?: string 
     notes?: string
     appDate?: string
     birthDate?: string

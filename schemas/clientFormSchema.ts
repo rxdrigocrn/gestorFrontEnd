@@ -38,9 +38,14 @@ export const clientFormSchema = z.object({
         }, {
             message: 'Número de telefone secundário inválido',
         }),
-        
-    expiresAt: z.string(),
-    notes: z.string().optional().nullable(),
+
+    expiresAt: z
+        .string()
+        .optional()
+        .refine(
+            (val) => !val || /^\d{4}-\d{2}-\d{2}$/.test(val),
+            "A data deve estar no formato YYYY-MM-DD"
+        ), notes: z.string().optional().nullable(),
     location: z.string().optional().nullable(),
     time: z.string().optional().nullable(),
 
