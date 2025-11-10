@@ -22,7 +22,6 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
     const clientsFileInputRef = useRef<HTMLInputElement>(null)
     const paymentsFileInputRef = useRef<HTMLInputElement>(null)
 
-
     const commonPrevent = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault()
         e.stopPropagation()
@@ -30,15 +29,17 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
 
     const handleDragEnter = useCallback((which: 'clients' | 'payments') => (e: React.DragEvent<HTMLDivElement>) => {
         commonPrevent(e)
+        if (isLoading) return
         if (which === 'clients') setIsDraggingClients(true)
         else setIsDraggingPayments(true)
-    }, [])
+    }, [isLoading])
 
     const handleDragLeave = useCallback((which: 'clients' | 'payments') => (e: React.DragEvent<HTMLDivElement>) => {
         commonPrevent(e)
+        if (isLoading) return
         if (which === 'clients') setIsDraggingClients(false)
         else setIsDraggingPayments(false)
-    }, [])
+    }, [isLoading])
 
     const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
         commonPrevent(e)
@@ -46,6 +47,7 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
 
     const handleDrop = useCallback((which: 'clients' | 'payments') => (e: React.DragEvent<HTMLDivElement>) => {
         commonPrevent(e)
+        if (isLoading) return
         if (which === 'clients') setIsDraggingClients(false)
         else setIsDraggingPayments(false)
 
@@ -56,38 +58,43 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
                 else setPaymentsFile(droppedFile)
             }
         }
-    }, [])
+    }, [isLoading])
 
     const handleClientsFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        if (isLoading) return
         if (e.target.files && e.target.files.length > 0) {
             const selectedFile = e.target.files[0]
             if (selectedFile.name.endsWith('.xlsx')) {
                 setClientsFile(selectedFile)
             }
         }
-    }, [])
+    }, [isLoading])
 
     const handlePaymentsFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        if (isLoading) return
         if (e.target.files && e.target.files.length > 0) {
             const selectedFile = e.target.files[0]
             if (selectedFile.name.endsWith('.xlsx')) {
                 setPaymentsFile(selectedFile)
             }
         }
-    }, [])
+    }, [isLoading])
 
     const handleRemoveClientsFile = useCallback(() => {
+        if (isLoading) return
         setClientsFile(null)
         if (clientsFileInputRef.current) clientsFileInputRef.current.value = ''
-    }, [])
+    }, [isLoading])
 
     const handleRemovePaymentsFile = useCallback(() => {
+        if (isLoading) return
         setPaymentsFile(null)
         if (paymentsFileInputRef.current) paymentsFileInputRef.current.value = ''
-    }, [])
+    }, [isLoading])
 
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault()
+        if (isLoading) return
 
         if (!clientsFile || !paymentsFile) {
             console.error('Ambos os arquivos (clientsFile e paymentsFile) são obrigatórios.')
@@ -95,7 +102,6 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
         }
 
         setIsLoading(true)
-
         try {
             const formData = new FormData()
             formData.append('clientsFile', clientsFile as Blob)
@@ -116,11 +122,10 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
             onSuccess?.()
         } catch (error) {
             console.error('Erro ao importar arquivo:', error)
-
         } finally {
             setIsLoading(false)
         }
-    }, [clientsFile, paymentsFile, onOpenChange, onSuccess])
+    }, [clientsFile, paymentsFile, isLoading, onOpenChange, onSuccess])
 
     return (
         <Modal
@@ -136,13 +141,14 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
                         className={cn(
                             'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
                             isDraggingClients ? 'border-primary bg-primary/10' : 'border-muted-foreground/30 hover:border-muted-foreground/50',
-                            clientsFile ? 'border-green-500 bg-green-500/10' : ''
+                            clientsFile ? 'border-green-500 bg-green-500/10' : '',
+                            isLoading && 'opacity-60 pointer-events-none'
                         )}
                         onDragEnter={handleDragEnter('clients')}
                         onDragLeave={handleDragLeave('clients')}
                         onDragOver={handleDragOver}
                         onDrop={handleDrop('clients')}
-                        onClick={() => clientsFileInputRef.current?.click()}
+                        onClick={() => !isLoading && clientsFileInputRef.current?.click()}
                     >
                         <input
                             type="file"
@@ -150,6 +156,7 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
                             onChange={handleClientsFileChange}
                             accept=".xlsx"
                             className="hidden"
+                            disabled={isLoading}
                         />
 
                         <div className="flex flex-col items-center justify-center space-y-2">
@@ -173,13 +180,14 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
                         className={cn(
                             'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
                             isDraggingPayments ? 'border-primary bg-primary/10' : 'border-muted-foreground/30 hover:border-muted-foreground/50',
-                            paymentsFile ? 'border-green-500 bg-green-500/10' : ''
+                            paymentsFile ? 'border-green-500 bg-green-500/10' : '',
+                            isLoading && 'opacity-60 pointer-events-none'
                         )}
                         onDragEnter={handleDragEnter('payments')}
                         onDragLeave={handleDragLeave('payments')}
                         onDragOver={handleDragOver}
                         onDrop={handleDrop('payments')}
-                        onClick={() => paymentsFileInputRef.current?.click()}
+                        onClick={() => !isLoading && paymentsFileInputRef.current?.click()}
                     >
                         <input
                             type="file"
@@ -187,6 +195,7 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
                             onChange={handlePaymentsFileChange}
                             accept=".xlsx"
                             className="hidden"
+                            disabled={isLoading}
                         />
 
                         <div className="flex flex-col items-center justify-center space-y-2">
@@ -216,7 +225,7 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
                                     <span className="text-sm font-medium">{clientsFile.name}</span>
                                     <span className="text-xs text-muted-foreground">{(clientsFile.size / 1024 / 1024).toFixed(2)} MB</span>
                                 </div>
-                                <Button type="button" variant="ghost" size="sm" onClick={handleRemoveClientsFile} className="text-red-500 hover:text-red-600">Remover</Button>
+                                <Button type="button" variant="ghost" size="sm" onClick={handleRemoveClientsFile} disabled={isLoading} className="text-red-500 hover:text-red-600">Remover</Button>
                             </div>
                         )}
 
@@ -227,7 +236,7 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
                                     <span className="text-sm font-medium">{paymentsFile.name}</span>
                                     <span className="text-xs text-muted-foreground">{(paymentsFile.size / 1024 / 1024).toFixed(2)} MB</span>
                                 </div>
-                                <Button type="button" variant="ghost" size="sm" onClick={handleRemovePaymentsFile} className="text-red-500 hover:text-red-600">Remover</Button>
+                                <Button type="button" variant="ghost" size="sm" onClick={handleRemovePaymentsFile} disabled={isLoading} className="text-red-500 hover:text-red-600">Remover</Button>
                             </div>
                         )}
                     </div>
@@ -235,7 +244,9 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
 
                 <div className="flex justify-end space-x-2 pt-4">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancelar</Button>
-                    <Button type="submit" disabled={!clientsFile || !paymentsFile || isLoading}>{isLoading ? 'Importando...' : 'Importar'}</Button>
+                    <Button type="submit" disabled={!clientsFile || !paymentsFile || isLoading}>
+                        {isLoading ? 'Importando...' : 'Importar'}
+                    </Button>
                 </div>
             </form>
         </Modal>
