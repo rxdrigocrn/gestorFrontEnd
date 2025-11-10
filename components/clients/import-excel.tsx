@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Modal } from '@/components/ui/modal'
 import { createItem } from '@/services/api-services'
 import { cn } from '@/lib/utils'
+import { useSimpleToast } from '@/hooks/use-toast'
 
 interface ImportExcelModalProps {
     open: boolean
@@ -14,6 +15,7 @@ interface ImportExcelModalProps {
 }
 
 export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelModalProps) {
+    const { showToast } = useSimpleToast()
     const [clientsFile, setClientsFile] = useState<File | null>(null)
     const [paymentsFile, setPaymentsFile] = useState<File | null>(null)
     const [isDraggingClients, setIsDraggingClients] = useState(false)
@@ -102,6 +104,14 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
         }
 
         setIsLoading(true)
+        // close modal immediately to avoid double submit and show an info toast
+        onOpenChange(false)
+        showToast('info', 'Importação iniciada', {
+            description: 'Aguarde um momento, estamos processando a planilha',
+            duration: 10000,
+            position: 'top-right',
+        })
+
         try {
             const formData = new FormData()
             formData.append('clientsFile', clientsFile as Blob)
@@ -110,18 +120,19 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
             const res = await createItem('/clients/import/excel', formData)
 
             if (!res.ok) {
-                throw new Error(await res.text())
+                const text = await res.text()
+                throw new Error(text)
             }
 
             setClientsFile(null)
             setPaymentsFile(null)
             if (clientsFileInputRef.current) clientsFileInputRef.current.value = ''
             if (paymentsFileInputRef.current) paymentsFileInputRef.current.value = ''
-
-            onOpenChange(false)
+            showToast('success', 'Importação enviada', { description: 'Arquivo enviado com sucesso. Processamento em andamento.' })
             onSuccess?.()
         } catch (error) {
             console.error('Erro ao importar arquivo:', error)
+            showToast('error', 'Erro na importação', { description: (error as any)?.message || 'Falha ao importar arquivos' })
         } finally {
             setIsLoading(false)
         }
