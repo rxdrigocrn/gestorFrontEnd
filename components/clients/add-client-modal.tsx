@@ -238,19 +238,16 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
               />
 
               <div className="space-y-2">
-                <Label>Data de Expiração</Label>
-                <Controller
-                  name="expiresAt"
-                  control={control}
-                  render={({ field }) => (
-                    <input
-                      type="date"
-                      {...field}
-                      className="border rounded px-3 py-2 w-full"
-                    />
-                  )}
-                />
 
+                <Label>Data de Expiração</Label>
+                <Input
+                  type="date"
+                  {...register('expiresAt')}
+                  className="w-full"
+                />
+                {errors.expiresAt && (
+                  <p className="text-sm text-red-500">{errors.expiresAt.message}</p>
+                )}
               </div>
 
 

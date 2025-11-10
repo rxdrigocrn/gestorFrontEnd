@@ -409,7 +409,10 @@ export default function ClientsTable() {
           },
           {
             header: 'Expiração',
-            accessor: (client) => client.expiresAt ? format(new Date(client.expiresAt), 'dd/MM/yyyy') : '-',
+            accessor: (client) => client.expiresAt ? (() => {
+              const d = new Date(client.expiresAt);
+              return format(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())), 'dd/MM/yyyy');
+            })() : '-',
           },
         ]}
         actions={(client) => (
