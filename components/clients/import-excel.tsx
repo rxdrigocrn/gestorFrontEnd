@@ -119,11 +119,6 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
 
             const res = await createItem('/clients/import/excel', formData)
 
-            if (!res.ok) {
-                const text = await res.text()
-                throw new Error(text)
-            }
-
             setClientsFile(null)
             setPaymentsFile(null)
             if (clientsFileInputRef.current) clientsFileInputRef.current.value = ''
@@ -132,7 +127,6 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
             onSuccess?.()
         } catch (error) {
             console.error('Erro ao importar arquivo:', error)
-            showToast('error', 'Erro na importação', { description: (error as any)?.message || 'Falha ao importar arquivos' })
         } finally {
             setIsLoading(false)
         }
