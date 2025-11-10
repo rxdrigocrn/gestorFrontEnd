@@ -73,15 +73,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
 
   const onSubmit = (data: ClientFormData) => {
     if (data.expiresAt) {
-
-      try {
-        const [yyyy, mm, dd] = data.expiresAt.split('-')
-        if (dd && mm && yyyy) {
-          data.expiresAt = `${dd}/${mm}/${yyyy}`
-        }
-      } catch (e) {
-        console.error('Failed to format expiresAt to dd/MM/yyyy', e)
-      }
+      data.expiresAt = new Date(data.expiresAt).toISOString()
     }
     onConfirm(data)
   }
@@ -91,7 +83,6 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
     console.error('Form validation errors:', errors)
   }
 
-  // ...
   useEffect(() => {
     if (open && defaultValues) {
       const incomingToInput = (val?: string) => {
@@ -115,7 +106,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
         ...defaultValues,
         phone: defaultValues.phone ? formatPhoneToE164(defaultValues.phone) : "",
         phone2: defaultValues.phone2 ? formatPhoneToE164(defaultValues.phone2) : "",
-        expiresAt: incomingToInput(defaultValues.expiresAt), // Agora reseta para "YYYY-MM-DD"
+        expiresAt: incomingToInput(defaultValues.expiresAt),
         screens: defaultValues.screens ?? 0,
       })
     }
