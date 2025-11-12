@@ -65,7 +65,7 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(
-        `http://34.237.173.84:5000/auth/login`,
+        `http://34.237.173.84/auth/login`,
         data,
         { withCredentials: true }
       )
@@ -96,7 +96,7 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(
-        `http://34.237.173.84:5000/auth/forgot-password`,
+        `http://34.237.173.84/auth/forgot-password`,
         data
       )
 

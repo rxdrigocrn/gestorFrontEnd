@@ -41,7 +41,7 @@ const RegisterPage = () => {
 
     try {
       const response = await axios.post(
-        `http://34.237.173.84:5000/auth/register`,
+        `http://34.237.173.84/auth/register`,
         sanitized,
         { withCredentials: true }
       )

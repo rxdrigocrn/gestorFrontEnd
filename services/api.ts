@@ -2,8 +2,8 @@ import axios from 'axios'
 import { useSubscriptionModalStore } from '@/store/subscriptionModalStore'
 
 export const api = axios.create({
-  // baseURL: process.env.NEXT_PUBLIC_API_URL || "http://http://34.237.173.84:5000",
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://34.237.173.84:5000",
+  // baseURL: process.env.NEXT_PUBLIC_API_URL || "http://http://34.237.173.84",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://34.237.173.84",
   withCredentials: true,
 })
 
