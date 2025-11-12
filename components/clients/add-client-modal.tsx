@@ -137,7 +137,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
       }
 
       reset({
-        ...defaultValues,        phone: defaultValues.phone ? formatPhoneToE164(defaultValues.phone) : '',
+        ...defaultValues, phone: defaultValues.phone ? formatPhoneToE164(defaultValues.phone) : '',
         phone2: defaultValues.phone2 ? formatPhoneToE164(defaultValues.phone2) : '',
         expiresAt: incomingToInput(defaultValues.expiresAt),
         screens: defaultValues.screens ?? 0,
@@ -336,6 +336,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
 
           <TabsContent value="payment" className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Inputs mantidos com a mesma estilização */}
               <div className="space-y-2">
                 <Label htmlFor="serverId">Servidor</Label>
                 <Controller
@@ -416,7 +417,6 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 {errors.screens && <p className="text-sm text-red-500">{errors.screens.message}</p>}
               </div>
 
-
               <div className="space-y-2">
                 <Label htmlFor="clientCost">Custo do Cliente</Label>
                 <NumericFormat
@@ -439,9 +439,9 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor=" paidValue">Valor pago pelo Cliente</Label>
+                <Label htmlFor="paidValue">Valor pago pelo Cliente</Label>
                 <NumericFormat
-                  id=" paidValue"
+                  id="paidValue"
                   thousandSeparator="."
                   decimalSeparator=","
                   prefix="R$ "
@@ -458,24 +458,45 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 {errors.paidValue && <p className="text-sm text-red-500">{errors.paidValue.message}</p>}
               </div>
 
-              <div className="border rounded-lg p-4 bg-muted/30 space-y-2 text-sm">
-                <p>
-                  <strong>Custo em relação Plano:</strong> {screens} telas × R$ {serverCost.toFixed(2)} ={' '}
-                  <span className="font-semibold text-blue-600">R$ {custoServidor.toFixed(2)}</span>
-                </p>
-                <p>
-                  <strong>Custo do Servidor (Plano):</strong> {planCredits} créditos × R$ {custoServidor.toFixed(2)} ={' '}
-                  <span className="font-semibold text-orange-600">R$ {custoPlano.toFixed(2)}</span>
-                </p>
-                <p>
-                  <strong>Lucro Líquido:</strong>{' '}
-                  <span
-                    className={`font-bold ${paidValue - custoPlano > 0 ? 'text-green-600' : paidValue - custoPlano < 0 ? 'text-red-600' : ''
-                      }`}
-                  >
-                    R$ {(paidValue - custoPlano).toFixed(2)}
-                  </span>
-                </p>
+              {/* Card informativo minimalista */}
+              <div className="col-span-1 sm:col-span-2">
+                <div className="bg-card border rounded-lg p-4 space-y-3">
+                  <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                    Resumo Financeiro
+                  </h3>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Custo em relação Plano</span>
+                      <div className="text-right">
+                        <span className="text-foreground font-medium">R$ {custoServidor.toFixed(2)}</span>
+                        <p className="text-xs text-muted-foreground">{screens} telas × R$ {serverCost.toFixed(2)}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Custo do Servidor</span>
+                      <div className="text-right">
+                        <span className="text-foreground font-medium">R$ {custoPlano.toFixed(2)}</span>
+                        <p className="text-xs text-muted-foreground">{planCredits} créditos × R$ {custoServidor.toFixed(2)}</p>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Lucro Líquido</span>
+                        <span className={`text-lg font-semibold ${paidValue - custoPlano > 0
+                            ? 'text-green-600 dark:text-green-400'
+                            : paidValue - custoPlano < 0
+                              ? 'text-red-600 dark:text-red-400'
+                              : 'text-foreground'
+                          }`}>
+                          R$ {(paidValue - custoPlano).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </TabsContent>
