@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { clientFormSchema, ClientFormData } from '@/schemas/clientFormSchema'
@@ -30,6 +30,7 @@ import { usePaymentMethodStore } from '@/store/paymentMethodStore'
 import { useLeadSourceStore } from '@/store/leadStore'
 import { useServerStore } from '@/store/serverStore'
 import { formatPhoneToE164 } from '@/utils/phone'
+import { NumberFormatValues, NumericFormat } from 'react-number-format'
 
 interface AddClientModalProps {
   open: boolean
@@ -45,7 +46,8 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
     handleSubmit,
     formState: { errors },
     watch,
-    reset
+    reset,
+    setValue,
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
@@ -91,13 +93,16 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
           const d = new Date(val)
           if (!isValid(d)) return ""
 
+          // ✅ Corrige o fuso (UTC -> Local)
+          d.setMinutes(d.getMinutes() + d.getTimezoneOffset())
+
           const pad = (n: number) => String(n).padStart(2, '0')
           const yyyy = d.getFullYear()
           const mm = pad(d.getMonth() + 1)
           const dd = pad(d.getDate())
 
           return `${yyyy}-${mm}-${dd}`
-        } catch (e) {
+        } catch {
           return ""
         }
       }
@@ -113,6 +118,52 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
   }, [open, defaultValues, reset])
 
 
+  useEffect(() => {
+    if (open && defaultValues) {
+      const incomingToInput = (val?: string) => {
+        if (!val) return ''
+        try {
+          const d = new Date(val)
+          if (!isValid(d)) return ''
+          const tomorrow = new Date(d.getTime() + 24 * 60 * 60 * 1000)
+          const pad = (n: number) => String(n).padStart(2, '0')
+          const yyyy = tomorrow.getFullYear()
+          const mm = pad(tomorrow.getMonth() + 1)
+          const dd = pad(tomorrow.getDate())
+          return `${yyyy}-${mm}-${dd}`
+        } catch (e) {
+          return ''
+        }
+      }
+
+      reset({
+        ...defaultValues,        phone: defaultValues.phone ? formatPhoneToE164(defaultValues.phone) : '',
+        phone2: defaultValues.phone2 ? formatPhoneToE164(defaultValues.phone2) : '',
+        expiresAt: incomingToInput(defaultValues.expiresAt),
+        screens: defaultValues.screens ?? 0,
+      })
+    }
+  }, [open, defaultValues, reset])
+
+  const selectedServerId = watch('serverId')
+  const paidValue = watch('paidValue') || 0
+  const selectedPlanId = watch('planId')
+  const screens = watch('screens') || 0
+  const clientCost = watch('clientCost')
+
+  const selectedServer = useMemo(() => servers.find((s) => s.id === selectedServerId), [servers, selectedServerId])
+  const selectedPlan = useMemo(() => plans.find((p) => p.id === selectedPlanId), [plans, selectedPlanId])
+
+  const serverCost = selectedServer?.cost ?? 0
+  const planCredits = selectedPlan?.creditsToRenew ?? 0
+
+  const custoServidor = screens * serverCost
+  const custoPlano = planCredits * custoServidor
+  const lucroLiquido = clientCost ? clientCost - custoServidor : 0
+
+  useEffect(() => {
+    setValue('clientCost', Number(custoServidor ?? 0))
+  }, [custoServidor, setValue])
 
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="Adicionar Novo Cliente" maxWidth="3xl">
@@ -354,8 +405,6 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 {errors.paymentMethodId && <p className="text-sm text-red-500">{errors.paymentMethodId.message}</p>}
               </div>
 
-
-
               <div className="space-y-2">
                 <Label htmlFor="screens">Número de Telas</Label>
                 <Input
@@ -369,17 +418,66 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
 
 
               <div className="space-y-2">
-                <Label htmlFor="pix">PIX</Label>
-                <Input
-                  id="pix"
-                  {...register('pix')}
+                <Label htmlFor="clientCost">Custo do Cliente</Label>
+                <NumericFormat
+                  id="clientCost"
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  prefix="R$ "
+                  allowNegative={false}
+                  decimalScale={2}
+                  fixedDecimalScale
+                  placeholder="R$ 39,99"
+                  customInput={Input}
+                  onValueChange={(values: NumberFormatValues) => {
+                    setValue('clientCost', values.floatValue ?? 0)
+                  }}
+                  value={watch('clientCost') || ''}
+                  disabled
                 />
-                {errors.pix && <p className="text-sm text-red-500">{errors.pix.message}</p>}
+                {errors.clientCost && <p className="text-sm text-red-500">{errors.clientCost.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor=" paidValue">Valor pago pelo Cliente</Label>
+                <NumericFormat
+                  id=" paidValue"
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  prefix="R$ "
+                  allowNegative={false}
+                  decimalScale={2}
+                  fixedDecimalScale
+                  placeholder="R$ 39,99"
+                  customInput={Input}
+                  onValueChange={(values: NumberFormatValues) =>
+                    setValue('paidValue', values.floatValue ?? 0)
+                  }
+                  value={watch('paidValue') || ''}
+                />
+                {errors.paidValue && <p className="text-sm text-red-500">{errors.paidValue.message}</p>}
+              </div>
+
+              <div className="border rounded-lg p-4 bg-muted/30 space-y-2 text-sm">
+                <p>
+                  <strong>Custo em relação Plano:</strong> {screens} telas × R$ {serverCost.toFixed(2)} ={' '}
+                  <span className="font-semibold text-blue-600">R$ {custoServidor.toFixed(2)}</span>
+                </p>
+                <p>
+                  <strong>Custo do Servidor (Plano):</strong> {planCredits} créditos × R$ {custoServidor.toFixed(2)} ={' '}
+                  <span className="font-semibold text-orange-600">R$ {custoPlano.toFixed(2)}</span>
+                </p>
+                <p>
+                  <strong>Lucro Líquido:</strong>{' '}
+                  <span
+                    className={`font-bold ${paidValue - custoPlano > 0 ? 'text-green-600' : paidValue - custoPlano < 0 ? 'text-red-600' : ''
+                      }`}
+                  >
+                    R$ {(paidValue - custoPlano).toFixed(2)}
+                  </span>
+                </p>
               </div>
             </div>
-
-
-
           </TabsContent>
 
           <TabsContent value="info" className="space-y-4">

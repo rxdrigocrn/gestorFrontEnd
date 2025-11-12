@@ -16,7 +16,7 @@ export type ClientBase = {
     applicationId?: string
     paymentMethodId?: string
     leadSourceId?: string
-    status?: 'active' | 'inactive' | 'archived'
+    status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
 }
 
 export type ClientCreate = ClientBase
@@ -34,7 +34,7 @@ export type ClientResponse = {
     phone: string
     phone2?: string
     email?: string
-    status: 'active' | 'inactive' | 'archived' 
+    status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
     expiresAt?: string 
     notes?: string
     appDate?: string
@@ -92,7 +92,9 @@ export type ClientPayment = {
     amount: number;
     paidAt: string;
     dueDate: string;
+    expiresAt?: string | null;
     paymentMethodId: string;
+    plan?: PlanResponse;
     discount: number;
     surcharge: number;
     notes: string;
@@ -109,6 +111,7 @@ export type ClientPaymentResponse = {
     createdAt: string;
     discount: number;
     dueDate: string | null;
+    expiresAt?: string | null;
     fee: number;
     netAmount: number;
     notes: string | null;

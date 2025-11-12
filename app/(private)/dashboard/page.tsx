@@ -183,12 +183,17 @@ function transformKpisToStats(kpis: any) {
         },
         {
             title: 'Clientes Ativos',
-            value: kpis.activeClients.toString(),
-            description: 'Inscritos ativos',
+            value: (kpis.activeClients + (kpis.inactiveClients ?? 0) + (kpis.archivedClients ?? 0)).toString(),
+            description: `Inscritos`,
+            extra: {
+                active: kpis.activeClients,
+                inactive: kpis.inactiveClients ?? 0,
+                total: kpis.activeClients + (kpis.inactiveClients ?? 0) + (kpis.archivedClients ?? 0),
+            },
             icon: <Users className="h-5 w-5" />,
             trend: {
-                value: `${kpis.growthRate.toFixed(1)}%`,
-                isPositive: kpis.growthRate >= 0,
+                value: `${kpis.growthRate?.toFixed(1) ?? '0'}%`,
+                isPositive: (kpis.growthRate ?? 0) >= 0,
             },
         },
         {

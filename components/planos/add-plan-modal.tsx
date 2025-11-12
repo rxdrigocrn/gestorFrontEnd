@@ -90,21 +90,13 @@ export function AddPlanModal({ open, onOpenChange, onConfirm, defaultValues }: A
                 </div>
 
                 <div className="space-y-1">
-                    <Label htmlFor="creditsToRenew">Créditos para Renovação</Label>
-                    <NumericFormat
+                    <Label htmlFor="creditsToRenew">Créditos para Renovação (Créditos Gastos no Periodo Plano)</Label>
+                    <Input
                         id="creditsToRenew"
-                        thousandSeparator="."
-                        decimalSeparator=","
-                        prefix="R$ "
-                        allowNegative={false}
-                        decimalScale={2}
-                        fixedDecimalScale
-                        placeholder="R$ 39,99"
-                        customInput={Input}
-                        onValueChange={(values: NumberFormatValues) =>
-                            setValue('creditsToRenew', values.floatValue ?? 0)
-                        }
-                        value={watch('creditsToRenew') || ''}
+                        type="number"
+                        step="1"
+                        {...register('creditsToRenew', { valueAsNumber: true })}
+                        placeholder="Número de créditos"
                     />
 
                     {errors.creditsToRenew && (

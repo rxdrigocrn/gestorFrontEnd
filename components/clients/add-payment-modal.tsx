@@ -10,7 +10,6 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -19,9 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ClientPayment } from "@/types/client";
-import { format, parseISO } from "date-fns";
+import { addMonths, addYears, addDays } from "date-fns";
 import { Switch } from "../ui/switch";
+import { ClientPayment } from "@/types/client";
 
 const paymentSchema = z.object({
   amount: z.coerce.number().positive("Informe um valor"),
@@ -40,7 +39,7 @@ type PaymentFormValues = z.infer<typeof paymentSchema>;
 interface AddPaymentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (data: ClientPayment) => Promise<void> | void;
+  onConfirm: (data: PaymentFormValues) => Promise<void> | void;
   defaultValues?: Partial<ClientPayment>;
 }
 
@@ -52,62 +51,85 @@ export function AddPaymentModal({
 }: AddPaymentModalProps) {
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
-    defaultValues: {
-      amount: defaultValues?.amount ?? 0,
-      paidAt: defaultValues?.paidAt
-        ? formatDateTimeForInput(new Date(defaultValues.paidAt))
-        : formatDateTimeForInput(new Date()),
-      dueDate: defaultValues?.dueDate
-        ? formatDateTimeForInput(new Date(defaultValues.dueDate))
-        : formatDateTimeForInput(new Date()),
-      paymentMethodId: defaultValues?.paymentMethodId ?? "",
-      discount: defaultValues?.discount ?? 0,
-      surcharge: defaultValues?.surcharge ?? 0,
-      notes: defaultValues?.notes ?? "",
-      sendReceipt: defaultValues?.sendReceipt ?? true,
-      renewClient: defaultValues?.renewClient ?? false,
-    },
+    defaultValues: getInitialValues(),
   });
-
-  function formatDateTimeForInput(date: Date): string {
-    return format(date, "yyyy-MM-dd'T'HH:mm");
-  }
-
-  function parseDateTimeFromInput(dateTimeString: string): Date {
-    return parseISO(dateTimeString);
-  }
 
   const { register, handleSubmit, watch, setValue, formState, reset } = form;
   const { errors } = formState;
 
   const { fetchItems: fetchPaymentMethods, items: paymentMethods } =
     usePaymentMethodStore();
-  const { fetchItems: fetchPlans } = usePlanStore();
+  const { fetchItems: fetchPlans, items: plans } = usePlanStore();
 
   useEffect(() => {
-    fetchPaymentMethods();
-    fetchPlans();
-  }, [fetchPaymentMethods, fetchPlans]);
+    // Only fetch if we don't already have the items to avoid duplicate network calls
+    if (!paymentMethods || paymentMethods.length === 0) {
+      fetchPaymentMethods();
+    }
+    if (!plans || plans.length === 0) {
+      fetchPlans();
+    }
+    // we intentionally include lengths to re-check if lists are cleared elsewhere
+  }, [fetchPaymentMethods, fetchPlans, paymentMethods?.length, plans?.length]);
 
   useEffect(() => {
     if (open && defaultValues) {
-      reset({
-        amount: defaultValues.amount ?? 0,
-        paidAt: defaultValues.paidAt
-          ? formatDateTimeForInput(new Date(defaultValues.paidAt))
-          : formatDateTimeForInput(new Date()),
-        dueDate: defaultValues.dueDate
-          ? formatDateTimeForInput(new Date(defaultValues.dueDate))
-          : formatDateTimeForInput(new Date()),
-        paymentMethodId: defaultValues.paymentMethodId ?? "",
-        discount: defaultValues.discount ?? 0,
-        surcharge: defaultValues.surcharge ?? 0,
-        notes: defaultValues.notes ?? "",
-        sendReceipt: defaultValues.sendReceipt ?? true,
-        renewClient: defaultValues.renewClient ?? false,
-      });
+      const vals = getInitialValues()
+      reset(vals);
+      // ensure select and numeric inputs reflect defaults immediately
+      if (typeof vals.amount === 'number') setValue('amount', vals.amount)
+      if (vals.paymentMethodId) setValue('paymentMethodId', vals.paymentMethodId)
     }
-  }, [open, defaultValues, reset]);
+  }, [open, defaultValues, reset, setValue]);
+
+  // ---- Funções auxiliares ----
+
+  function getInitialValues(): PaymentFormValues {
+    const now = new Date();
+
+    // Corrige o timezone local (evita o "um dia antes")
+    const expiresAt = defaultValues?.expiresAt
+      ? convertUTCToLocal(new Date(defaultValues.expiresAt))
+      : now;
+
+    // Calcula a nova data de vencimento com base no período do plano
+    const periodValue = defaultValues?.plan?.periodValue ?? 1; // padrão: 1 mês
+    const dueDate = addMonths(expiresAt, periodValue);
+
+    return {
+      amount: defaultValues?.amount ?? 0,
+      paidAt: formatDateTimeForInput(now),
+      dueDate: formatDateTimeForInput(dueDate),
+      paymentMethodId: defaultValues?.paymentMethodId ?? "",
+      discount: defaultValues?.discount ?? 0,
+      surcharge: defaultValues?.surcharge ?? 0,
+      notes: defaultValues?.notes ?? "",
+      sendReceipt: defaultValues?.sendReceipt ?? true,
+      renewClient: defaultValues?.renewClient ?? false,
+    };
+  }
+
+  // Corrige para exibir corretamente no input local
+  function convertUTCToLocal(date: Date): Date {
+    const local = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+    return local;
+  }
+
+  // Formata para exibição no input
+  function formatDateTimeForInput(date: Date): string {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+      date.getDate()
+    )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
+  function parseDateTimeFromInput(dateTimeString: string): Date {
+    // volta para UTC
+    const localDate = new Date(dateTimeString);
+    return new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000);
+  }
+
+  // ---- Submissão ----
 
   const onSubmit = async (data: PaymentFormValues) => {
     const paymentData = {
@@ -118,6 +140,8 @@ export function AddPaymentModal({
     await onConfirm(paymentData);
   };
 
+  // ---- Render ----
+
   return (
     <Modal
       open={open}
@@ -127,40 +151,34 @@ export function AddPaymentModal({
     >
       <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* VENCIMENTO */}
           <div className="space-y-2">
             <Label htmlFor="dueDate">Data/Hora de Vencimento</Label>
-            <Input
-              type="datetime-local"
-              {...register("dueDate")}
-            />
+            <Input type="datetime-local" {...register("dueDate")} />
             {errors.dueDate && (
               <p className="text-sm text-red-500">{errors.dueDate.message}</p>
             )}
           </div>
 
+          {/* PAGAMENTO */}
           <div className="space-y-2">
             <Label htmlFor="paidAt">Data/Hora do Pagamento</Label>
-            <Input
-              type="datetime-local"
-              {...register("paidAt")}
-            />
+            <Input type="datetime-local" {...register("paidAt")} />
             {errors.paidAt && (
               <p className="text-sm text-red-500">{errors.paidAt.message}</p>
             )}
           </div>
 
+          {/* VALOR */}
           <div className="space-y-2">
             <Label htmlFor="amount">Valor</Label>
-            <Input
-              type="number"
-              step="0.01"
-              {...register("amount")}
-            />
+            <Input type="number" step="0.01" {...register("amount")} />
             {errors.amount && (
               <p className="text-sm text-red-500">{errors.amount.message}</p>
             )}
           </div>
 
+          {/* FORMA DE PAGAMENTO */}
           <div className="space-y-2">
             <Label>Forma de Pagamento</Label>
             <Select
@@ -185,25 +203,20 @@ export function AddPaymentModal({
             )}
           </div>
 
+          {/* DESCONTO */}
           <div className="space-y-2">
             <Label htmlFor="discount">Desconto</Label>
-            <Input
-              type="number"
-              step="0.01"
-              {...register("discount")}
-            />
+            <Input type="number" step="0.01" {...register("discount")} />
           </div>
 
+          {/* ACRÉSCIMO */}
           <div className="space-y-2">
             <Label htmlFor="surcharge">Acréscimo</Label>
-            <Input
-              type="number"
-              step="0.01"
-              {...register("surcharge")}
-            />
+            <Input type="number" step="0.01" {...register("surcharge")} />
           </div>
         </div>
 
+        {/* OBSERVAÇÕES */}
         <div className="space-y-2">
           <Label htmlFor="notes">Observações</Label>
           <Textarea
@@ -212,15 +225,7 @@ export function AddPaymentModal({
           />
         </div>
 
-        <div className="flex items-center justify-between space-y-2">
-          <Label htmlFor="renewClient">Atualizar dados do cliente</Label>
-          <Switch
-            id="renewClient"
-            checked={watch("renewClient")}
-            onCheckedChange={(checked) => setValue("renewClient", checked)}
-          />
-        </div>
-
+        {/* SWITCH - ENVIAR MENSAGEM */}
         <div className="flex items-center justify-between space-y-2">
           <Label htmlFor="sendReceipt">Enviar mensagem</Label>
           <Switch

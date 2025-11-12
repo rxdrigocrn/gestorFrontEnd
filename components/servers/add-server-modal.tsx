@@ -11,6 +11,9 @@ import { useForm } from 'react-hook-form'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ServerFormData, serverSchema } from '@/schemas/serverFormSchema'
 import { useEffect } from 'react'
+import { Controller } from 'react-hook-form'
+import { NumericFormat } from 'react-number-format'
+
 
 interface AddServerModalProps {
   open: boolean
@@ -24,7 +27,7 @@ export function AddServerModal({ open, onOpenChange, onConfirm, defaultValues }:
     register,
     handleSubmit,
     formState: { errors },
-    watch,
+      control,
     reset,
     setValue,
   } = useForm<ServerFormData>({
@@ -77,13 +80,27 @@ export function AddServerModal({ open, onOpenChange, onConfirm, defaultValues }:
 
               <div className="space-y-2">
                 <Label htmlFor="cost">Valor do Crédito*</Label>
-                <Input
-                  id="cost"
-                  placeholder="0.00"
-                  type="number"
-                  step="0.01"
-                  {...register('cost', { valueAsNumber: true })}
+
+
+                <Controller
+                  name="cost"
+                  control={control}
+                  render={({ field }) => (
+                    <NumericFormat
+                      id="cost"
+                      thousandSeparator="."
+                      decimalSeparator=","
+                      prefix="R$ "
+                      decimalScale={2}
+                      fixedDecimalScale
+                      customInput={Input}
+                      value={field.value}
+                      onValueChange={(values) => field.onChange(values.floatValue ?? 0)}
+                      placeholder="R$ 0,00"
+                    />
+                  )}
                 />
+
                 {errors.cost && (
                   <p className="text-sm text-red-500">{errors.cost.message}</p>
                 )}

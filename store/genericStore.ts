@@ -13,6 +13,58 @@ type GenericStore<TResponse, TCreate, TUpdate = TCreate> = {
     deleteItem: (id: string) => Promise<void>
 }
 
+
+async function extractErrorMessage(err: any): Promise<string> {
+    if (!err) return 'Erro desconhecido'
+
+    // Caso seja um erro do Axios
+    if (err.response) {
+        const data = err.response.data
+        const message =
+            data?.message ||
+            data?.error ||
+            data?.errors ||
+            data?.detail ||
+            err.message
+
+        if (Array.isArray(message)) return message.join(', ')
+        if (typeof message === 'string') return message
+        return `${err.response.status} - ${err.response.statusText || 'Erro na requisição'}`
+    }
+
+    // Caso seja um Response (fetch)
+    if (err instanceof Response) {
+        try {
+            const data = await err.json()
+            const message =
+                data?.message ||
+                data?.error ||
+                data?.errors ||
+                data?.detail ||
+                `${err.status} - ${err.statusText}`
+            if (Array.isArray(message)) return message.join(', ')
+            if (typeof message === 'string') return message
+            return `${err.status} - ${err.statusText}`
+        } catch {
+            return `${err.status} - ${err.statusText}`
+        }
+    }
+
+    // Caso genérico (erro normal)
+    const message =
+        err?.message ||
+        err?.error ||
+        err?.data?.message ||
+        err?.response?.data?.message ||
+        'Erro desconhecido'
+
+    if (Array.isArray(message)) return message.join(', ')
+    if (typeof message === 'string') return message
+    return 'Erro desconhecido'
+}
+
+
+
 export function createGenericStore<TResponse, TCreate, TUpdate = TCreate>(
     resource: string,
     api: {
@@ -41,12 +93,11 @@ export function createGenericStore<TResponse, TCreate, TUpdate = TCreate>(
                     ? options.parseListResponse(data)
                     : { items: data, total: Array.isArray(data) ? data.length : 0 }
 
-                set({
-                    items: parsed.items,
-                    total: parsed.total,
-                })
+                set({ items: parsed.items, total: parsed.total })
             } catch (err: any) {
-                set({ error: err.message })
+                const message = await extractErrorMessage(err)
+                set({ error: message })
+                throw new Error(message)
             } finally {
                 set({ isLoading: false })
             }
@@ -55,9 +106,10 @@ export function createGenericStore<TResponse, TCreate, TUpdate = TCreate>(
         getItem: async (id: string) => {
             try {
                 return await api.fetchOne(resource, id)
-            } catch (err) {
-                console.error(err)
-                return null
+            } catch (err: any) {
+                const message = await extractErrorMessage(err)
+                set({ error: message })
+                throw new Error(message)
             }
         },
 
@@ -66,10 +118,11 @@ export function createGenericStore<TResponse, TCreate, TUpdate = TCreate>(
                 const newItem = await api.createItem(resource, data)
                 set({ items: [...get().items, newItem] })
             } catch (err: any) {
-                set({ error: err.message })
+                const message = await extractErrorMessage(err)
+                set({ error: message })
+                throw new Error(message)
             }
         },
-
         updateItem: async (id: string, data: TUpdate) => {
             try {
                 const updated = await api.updateItem(resource, id, data)
@@ -79,9 +132,12 @@ export function createGenericStore<TResponse, TCreate, TUpdate = TCreate>(
                     ),
                 })
             } catch (err: any) {
-                set({ error: err.message })
+                const message = await extractErrorMessage(err)
+                set({ error: message })
+                throw new Error(message)
             }
         },
+
 
         deleteItem: async (id: string) => {
             try {
@@ -90,7 +146,9 @@ export function createGenericStore<TResponse, TCreate, TUpdate = TCreate>(
                     items: get().items.filter((item) => (item as any).id !== id),
                 })
             } catch (err: any) {
-                set({ error: err.message })
+                const message = await extractErrorMessage(err)
+                set({ error: message })
+                throw new Error(message)
             }
         },
     }))

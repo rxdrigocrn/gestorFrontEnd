@@ -20,7 +20,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 
 interface ChartDataPoint {
-  label: string; // ex: "May", "Jun"
+  label: string; 
   revenue: number;
   expenses: number;
 }
@@ -85,8 +85,11 @@ function gerarDadosProjecao(
     const resultado = [];
 
     const ultimos3 = lucros.slice(-3);
+    const currentYear = new Date().getFullYear();
+
     ultimos3.forEach(({ label, lucro }) => {
-      const trimestre = `T${Math.floor(meses.indexOf(label) / 3) + 1} 2024`;
+      const idx = meses.indexOf(label);
+      const trimestre = `T${Math.floor(idx / 3) + 1} ${currentYear}`;
       resultado.push({
         quarter: trimestre,
         projected: lucro,
@@ -94,11 +97,15 @@ function gerarDadosProjecao(
       });
     });
 
+
+    const lastIndex = meses.indexOf(ultimoMes.label);
     for (let i = 1; i <= 3; i++) {
-      mesAtual = proximoMes(mesAtual);
+      const idx = (lastIndex + i) % 12;
+      const year = currentYear + Math.floor((lastIndex + i) / 12);
+      const mes = meses[idx];
       lucroBase = lucroBase * (1 + crescimentoMensal);
 
-      const trimestre = `T${Math.floor(meses.indexOf(mesAtual) / 3) + 1} 2024`;
+      const trimestre = `T${Math.floor(idx / 3) + 1} ${year}`;
       resultado.push({
         quarter: trimestre,
         projected: lucroBase,

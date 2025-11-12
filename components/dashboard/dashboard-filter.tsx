@@ -32,11 +32,11 @@ export function DashboardFilter({ period, date, onPeriodChange }: DashboardFilte
           <SelectValue placeholder="Select range" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="7d">Last 7 days</SelectItem>
-          <SelectItem value="30d">Last 30 days</SelectItem>
-          <SelectItem value="90d">Last quarter</SelectItem>
-          <SelectItem value="12m">Last year</SelectItem>
-          <SelectItem value="custom">Custom range</SelectItem>
+          <SelectItem value="7d">Últimos 7 dias</SelectItem>
+          <SelectItem value="30d">Últimos 30 dias</SelectItem>
+          <SelectItem value="90d">Último trimestre</SelectItem>
+          <SelectItem value="12m">Último ano</SelectItem>
+          <SelectItem value="custom">Intervalo personalizado</SelectItem>
         </SelectContent>
       </Select>
 

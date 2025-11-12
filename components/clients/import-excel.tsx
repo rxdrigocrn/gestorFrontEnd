@@ -127,6 +127,7 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
             onSuccess?.()
         } catch (error) {
             console.error('Erro ao importar arquivo:', error)
+            showToast('error', 'Erro na importação', { description: 'Ocorreu um erro ao enviar o arquivo. Tente novamente.' })
         } finally {
             setIsLoading(false)
         }

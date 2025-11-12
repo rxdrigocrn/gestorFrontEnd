@@ -133,7 +133,7 @@
   }
 
   .dark {
-    --background: 120 8% 10%;
+    --background: 120 8% 5%;
     /* verde-escuro suave */
     --foreground: 0 0% 92%;
     /* texto claro (#EBEBEB) */
@@ -190,7 +190,9 @@ html {
 }
 
 .rdp-root {
-  --rdp-accent-color: indigo; /* Change the accent color to indigo. */
-  --rdp-accent-background-color: #f0f0f0; /* Change the accent background color. */
+  --rdp-accent-color: indigo;
+  /* Change the accent color to indigo. */
+  --rdp-accent-background-color: #f0f0f0;
+  /* Change the accent background color. */
   /* Add more CSS variables here. */
 }

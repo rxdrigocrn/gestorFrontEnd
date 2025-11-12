@@ -150,7 +150,7 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
 
   }
 
-  const viewDetails = (payment: ClientPaymentResponse) => {
+  const viewDetails = (payment: ClientPayment | ClientPaymentResponse) => {
     setEditingPayment(payment)
     setShowPaymentDetail(true)
   }
@@ -304,7 +304,16 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
                 {clientData.status && (
                   <div>
                     <p className="text-sm text-muted-foreground">Situação</p>
-                    <Badge variant="default" className="bg-green-500">
+                    <Badge
+                      variant="outline"
+                      className={
+                        clientData.status === 'ACTIVE'
+                          ? 'bg-lime-500 text-white'
+                          : clientData.status === 'INACTIVE'
+                          ? 'bg-red-500 text-white'
+                          : 'bg-gray-500 text-white'
+                      }
+                    >
                       {renderField(clientData.status)}
                     </Badge>
                   </div>
@@ -442,7 +451,7 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
                             <MoreVertical className="w-4 h-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent side="bottom" align="end">
-                            <DropdownMenuItem onClick={() => viewDetails(payment as ClientPaymentResponse)}>Visualizar</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => viewDetails(payment)}>Visualizar</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditPayment(payment)}>Editar</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleOpenDialog(payment)} className="text-destructive">Excluir</DropdownMenuItem>
                           </DropdownMenuContent>

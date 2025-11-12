@@ -14,7 +14,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Eye, Edit, Trash2, MessageCircle, PlusCircle, CreditCard } from 'lucide-react'
+import { MoreHorizontal, Eye, Edit, Trash2, MessageCircle, PlusCircle, CreditCard, Users } from 'lucide-react'
+import DashboardStats from '@/components/dashboard/dashboard-stats'
 import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddClientModal } from '@/components/clients/add-client-modal'
@@ -35,6 +36,7 @@ import { useLeadSourceStore } from '@/store/leadStore'
 import { usePaymentMethodStore } from '@/store/paymentMethodStore'
 import { useServerStore } from '@/store/serverStore'
 import SendMessageModal from '@/components/clients/send-message-modal'
+import { Badge } from '@/components/ui/badge'
 
 export default function ClientsTable() {
   const router = useRouter()
@@ -53,6 +55,7 @@ export default function ClientsTable() {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [showMessageModal, setShowMessageModal] = useState(false)
   const [editingItem, setEditingItem] = useState<ClientResponse | null>(null)
+  const [paymentDefaultValues, setPaymentDefaultValues] = useState<Partial<ClientPayment> | undefined>(undefined)
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)
 
   const { showToast } = useSimpleToast();
@@ -161,9 +164,19 @@ export default function ClientsTable() {
 
 
   const filteredClients = clients.filter((client) => {
-    const matchesSearch =
-      client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    const normalizedSearch = searchTerm.trim().toLowerCase()
+
+    const nameMatch = client.name.toLowerCase().includes(normalizedSearch)
+    const emailMatch = client.email && client.email.toLowerCase().includes(normalizedSearch)
+
+    // phone match: allow matching formatted phone or digit-only input
+    const phone = client.phone ?? ''
+    const phoneMatchFormatted = phone.toLowerCase().includes(normalizedSearch)
+    const searchDigits = searchTerm.replace(/\D/g, '')
+    const phoneDigits = phone.replace(/\D/g, '')
+    const phoneMatchDigits = searchDigits ? phoneDigits.includes(searchDigits) : false
+
+    const matchesSearch = nameMatch || emailMatch || phoneMatchFormatted || phoneMatchDigits
 
     const matchesPlan = filters.planId ? client.plan?.id === filters.planId : true
 
@@ -174,24 +187,22 @@ export default function ClientsTable() {
     try {
       if (formData.id) {
         await updateItem(formData.id, formData as ClientUpdate)
-        showToast("success", "Cliente atualizado", {
-          description: "As alterações foram salvas com sucesso",
-        })
       } else {
         await createClient(formData as ClientCreate)
-        showToast("success", "Cliente criado", {
-          description: "O novo cliente foi registrado no sistema",
-        })
       }
 
       setShowAddModal(false)
       setEditingItem(null)
       fetchClients()
-    } catch (error) {
-      showToast("error", "Erro ao salvar", {
-        description: "Ocorreu um erro ao salvar o cliente",
+
+      showToast("success", "Cliente salvo", {
+        description: "As alterações foram salvas com sucesso",
       })
+    } catch (error: any) {
       console.error('Erro ao salvar cliente:', error)
+      showToast("error", "Erro ao salvar cliente", {
+        description: error?.message || "Ocorreu um erro ao salvar o cliente",
+      })
     }
   }
 
@@ -226,8 +237,12 @@ export default function ClientsTable() {
   }
 
   const handleAddPayment = (client: ClientResponse) => {
-    setShowPaymentModal(true)
+    // prepare default payment values: prefer client's paidValue if present, fallback to total
+    const paidValue = (client as any).paidValue ?? client.total ?? 0
+    const paymentMethodId = client.paymentMethodId ?? client.paymentMethod?.id ?? ''
+    setPaymentDefaultValues({ amount: paidValue, paymentMethodId })
     setEditingItem(client)
+    setShowPaymentModal(true)
   }
 
   const handleOpenMessageModal = (client: ClientResponse) => {
@@ -295,10 +310,6 @@ export default function ClientsTable() {
     }
   }
 
-
-
-
-
   return (
     <div className="space-y-4">
       {/* Cabeçalho */}
@@ -323,6 +334,44 @@ export default function ClientsTable() {
           </Button>
         </div>
       </div>
+
+
+      <div className="mx-auto">
+        {(() => {
+          const activeCount = clients.filter((c) => c.status === 'ACTIVE').length
+          const inactiveCount = clients.filter((c) => c.status === 'INACTIVE').length
+          const totalCount = typeof total === 'number' && total > 0 ? total : clients.length
+
+          const stats = [
+            {
+              title: 'Total de Clientes',
+              value: totalCount.toString(),
+              description: 'Inscritos',
+              icon: <Users className="h-5 w-5" />,
+            },
+            {
+              title: 'Ativos',
+              value: activeCount.toString(),
+              description: 'Clientes ativos',
+              icon: <Users className="h-5 w-5 text-green-500" />,
+            },
+            {
+              title: 'Inativos',
+              value: inactiveCount.toString(),
+              description: 'Clientes inativos',
+              icon: <Users className="h-5 w-5 text-red-500" />,
+            },
+          ]
+
+          return (
+            <div className="flex justify-center">
+              <DashboardStats stats={stats} />
+            </div>
+          )
+        })()}
+      </div>
+
+
 
       {/* Filtros */}
       <GenericFilters
@@ -398,21 +447,61 @@ export default function ClientsTable() {
                 </Avatar>
                 <div>
                   <p className="font-medium">{client.name}</p>
-                  <p className="text-xs text-muted-foreground">{client.email}</p>
+                  <p className="text-xs text-muted-foreground">{client.phone}</p>
                 </div>
               </div>
             ),
           },
           {
             header: 'Plano',
-            accessor: (client) => client.plan?.name ?? 'Sem plano',
+            accessor: (client) =>
+              client.plan ? (
+                <div>
+                  <p className="font-medium">{client.plan.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {client.plan.creditsToRenew
+                      ? `R$ ${client.plan.creditsToRenew.toFixed(2)}`
+                      : '-'}
+                  </p>
+                </div>
+              ) : (
+                'Sem plano'
+              ),
+          },
+          {
+            header: 'Status',
+            accessor: (client) => (
+              <Badge
+                variant={client.status === 'ACTIVE' ? 'outline' : client.status === 'INACTIVE' ? 'default' : undefined}
+                className={
+                  client.status === 'ACTIVE'
+                    ? 'bg-lime-500 text-white'
+                    : client.status === 'INACTIVE'
+                      ? 'bg-red-500 text-white'
+                      : 'bg-gray-500 text-white'
+                }           >
+                {client.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}
+              </Badge>
+            ),
+          },
+          {
+            header: 'Servidor',
+            accessor: (client) => client.server?.name ?? 'Sem servidor',
           },
           {
             header: 'Expiração',
-            accessor: (client) => client.expiresAt ? (() => {
-              const d = new Date(client.expiresAt);
-              return format(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())), 'dd/MM/yyyy');
-            })() : '-',
+            accessor: (client) =>
+              client.expiresAt
+                ? (() => {
+                  const d = new Date(client.expiresAt)
+                  return format(
+                    new Date(
+                      Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1)
+                    ),
+                    'dd/MM/yyyy'
+                  )
+                })()
+                : '-',
           },
         ]}
         actions={(client) => (
@@ -430,32 +519,41 @@ export default function ClientsTable() {
                 <Eye className="mr-2 h-4 w-4" />
                 Detalhes
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => {
-                e.stopPropagation()
-                handleAddPayment(client)
-              }}>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleAddPayment(client)
+                }}
+              >
                 <CreditCard className="mr-2 h-4 w-4" />
                 Adicionar Pagamento
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => {
-                e.stopPropagation()
-                handleEdit(client)
-              }}>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleEdit(client)
+                }}
+              >
                 <Edit className="mr-2 h-4 w-4" />
                 Editar
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => {
-                e.stopPropagation()
-                handleOpenMessageModal(client)
-              }}>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleOpenMessageModal(client)
+                }}
+              >
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Enviar Mensagem
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive" onClick={(e) => {
-                e.stopPropagation()
-                handleOpenDialog(client)
-              }}>
+              <DropdownMenuItem
+                className="text-destructive"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleOpenDialog(client)
+                }}
+              >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Excluir
               </DropdownMenuItem>
@@ -464,24 +562,32 @@ export default function ClientsTable() {
         )}
       />
 
-      {/* Modal */}
-      {showAddModal && (
-        <AddClientModal
-          open={showAddModal}
-          onOpenChange={handleModalChange}
-          onConfirm={handleSubmit}
-          defaultValues={editingItem || undefined}
-        />
-      )}
 
-      {showPaymentModal && (
-        <AddPaymentModal
-          open={showPaymentModal}
-          onOpenChange={handlePaymentModalChange}
-          onConfirm={handlePaymentSubmit}
-          defaultValues={editingItem || undefined}
-        />
-      )}
+      {/* Modal */}
+      {
+        showAddModal && (
+          <AddClientModal
+            open={showAddModal}
+            onOpenChange={handleModalChange}
+            onConfirm={handleSubmit}
+            defaultValues={editingItem || undefined}
+          />
+        )
+      }
+
+      {
+        showPaymentModal && (
+          <AddPaymentModal
+            open={showPaymentModal}
+            onOpenChange={(open) => {
+              handlePaymentModalChange(open)
+              if (!open) setPaymentDefaultValues(undefined)
+            }}
+            onConfirm={handlePaymentSubmit}
+            defaultValues={paymentDefaultValues}
+          />
+        )
+      }
 
 
       <ConfirmationDialog
@@ -508,6 +614,6 @@ export default function ClientsTable() {
         isOpen={showMessageModal}
         onClose={() => setShowMessageModal(false)}
       />
-    </div>
+    </div >
   )
 }

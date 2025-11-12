@@ -150,11 +150,22 @@ export default function ServersPage() {
           },
           {
             header: 'Valor Crédito',
-            accessor: (server) => server.cost ?? '-',
+            accessor: (server) => (
+              server.cost
+                ? new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(server.cost)
+                : '-'
+            ),
           },
           {
-            header: 'Sessão Wpp',
-            accessor: (server) => server.whatsappSession ?? '-',
+            header: 'Créditos',
+            accessor: (server) => (
+              server.credits !== null ? server.credits : '-'
+            ),
           },
           {
             header: 'Link Painel',

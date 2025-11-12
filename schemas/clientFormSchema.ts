@@ -20,14 +20,13 @@ export const clientFormSchema = z.object({
     id: z.string().uuid().optional().nullable(),
     name: z.string().optional().nullable(),
     username: z.string().min(1, "Usuário  obrigatório"),
-    password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-    email: z.string().email("Endereço de e-mail inválido").optional().nullable(),
+    password: z.string().optional().nullable(),
+    email: z.string().optional().nullable(),
     phone: z
         .string()
         .refine((val) => isValidPhoneNumber(val), {
             message: 'Número de telefone inválido',
         }),
-
     phone2: z
         .string()
         .optional()
@@ -55,6 +54,8 @@ export const clientFormSchema = z.object({
     paymentMethodId: z.string().optional().nullable(),
     screens: numberOrUndefined,
     pix: z.string().optional().nullable(),
+     paidValue: numberOrUndefined,
+    clientCost: numberOrUndefined,
 
     // Additional Info
     leadSourceId: z.string().optional().nullable(),
