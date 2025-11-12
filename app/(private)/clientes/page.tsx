@@ -15,7 +15,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { MoreHorizontal, Eye, Edit, Trash2, MessageCircle, PlusCircle, CreditCard, Users } from 'lucide-react'
-import DashboardStats from '@/components/dashboard/dashboard-stats'
+import { Card, CardContent } from '@/components/ui/card'
 import { GenericTable } from '@/components/table/GenericTable'
 import { GenericFilters } from '@/components/table/GenericFilters'
 import { AddClientModal } from '@/components/clients/add-client-modal'
@@ -336,36 +336,49 @@ export default function ClientsTable() {
       </div>
 
 
-      <div className="mx-auto">
+      <div className="w-full">
         {(() => {
           const activeCount = clients.filter((c) => c.status === 'ACTIVE').length
           const inactiveCount = clients.filter((c) => c.status === 'INACTIVE').length
           const totalCount = typeof total === 'number' && total > 0 ? total : clients.length
 
-          const stats = [
-            {
-              title: 'Total de Clientes',
-              value: totalCount.toString(),
-              description: 'Inscritos',
-              icon: <Users className="h-5 w-5" />,
-            },
-            {
-              title: 'Ativos',
-              value: activeCount.toString(),
-              description: 'Clientes ativos',
-              icon: <Users className="h-5 w-5 text-green-500" />,
-            },
-            {
-              title: 'Inativos',
-              value: inactiveCount.toString(),
-              description: 'Clientes inativos',
-              icon: <Users className="h-5 w-5 text-red-500" />,
-            },
-          ]
-
           return (
-            <div className="flex justify-center">
-              <DashboardStats stats={stats} />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 w-full">
+              <Card>
+                <CardContent className="flex flex-row items-center justify-between p-6">
+                  <div className="flex flex-col space-y-1">
+                    <span className="text-muted-foreground text-sm">Total de Clientes</span>
+                    <span className="text-2xl font-bold">{totalCount}</span>
+                  </div>
+                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Users className="h-6 w-6 text-primary" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="flex flex-row items-center justify-between p-6">
+                  <div className="flex flex-col space-y-1">
+                    <span className="text-muted-foreground text-sm">Ativos</span>
+                    <span className="text-2xl font-bold">{activeCount}</span>
+                  </div>
+                  <div className="h-12 w-12 rounded-lg bg-lime-100 flex items-center justify-center">
+                    <Users className="h-6 w-6 text-lime-600" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="flex flex-row items-center justify-between p-6">
+                  <div className="flex flex-col space-y-1">
+                    <span className="text-muted-foreground text-sm">Inativos</span>
+                    <span className="text-2xl font-bold">{inactiveCount}</span>
+                  </div>
+                  <div className="h-12 w-12 rounded-lg bg-red-100 flex items-center justify-center">
+                    <Users className="h-6 w-6 text-red-600" />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )
         })()}
@@ -477,7 +490,7 @@ export default function ClientsTable() {
                   client.status === 'ACTIVE'
                     ? 'bg-lime-500 text-white'
                     : client.status === 'INACTIVE'
-                      ? 'bg-red-500 text-white'
+                      ? 'bg-red-500 text-white hover:bg-red-600'
                       : 'bg-gray-500 text-white'
                 }           >
                 {client.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}

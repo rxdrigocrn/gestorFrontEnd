@@ -167,7 +167,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
 
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="Adicionar Novo Cliente" maxWidth="3xl">
-      <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
+      <form autoComplete="off" onSubmit={handleSubmit(onSubmit, onInvalid)}>
         <Tabs defaultValue="personal" className="w-full">
           <TabsList className="grid w-full grid-cols-3 text-xs sm:text-sm">
             <TabsTrigger className="py-1 px-2 sm:px-3 text-xs sm:text-sm" value="personal">
@@ -188,6 +188,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 <Label htmlFor="name">Nome</Label>
                 <Input
                   id="name"
+                  autoComplete="off"
                   placeholder="Nome completo"
                   {...register('name')}
                 />
@@ -198,6 +199,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
+                  autoComplete="off"
                   placeholder="Username"
                   {...register('username')}
                 />
@@ -209,6 +211,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 <div className="relative">
                   <Input
                     id="password"
+                    autoComplete="off"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Senha"
                     {...register('password')}
@@ -233,6 +236,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 <Input
                   id="email"
                   type="email"
+                  autoComplete="off"
                   placeholder="Email"
                   {...register('email')}
                 />
@@ -418,27 +422,6 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="clientCost">Custo do Cliente</Label>
-                <NumericFormat
-                  id="clientCost"
-                  thousandSeparator="."
-                  decimalSeparator=","
-                  prefix="R$ "
-                  allowNegative={false}
-                  decimalScale={2}
-                  fixedDecimalScale
-                  placeholder="R$ 39,99"
-                  customInput={Input}
-                  onValueChange={(values: NumberFormatValues) => {
-                    setValue('clientCost', values.floatValue ?? 0)
-                  }}
-                  value={watch('clientCost') || ''}
-                  disabled
-                />
-                {errors.clientCost && <p className="text-sm text-red-500">{errors.clientCost.message}</p>}
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="paidValue">Valor pago pelo Cliente</Label>
                 <NumericFormat
                   id="paidValue"
@@ -448,7 +431,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                   allowNegative={false}
                   decimalScale={2}
                   fixedDecimalScale
-                  placeholder="R$ 39,99"
+                  placeholder="R$ 0,00"
                   customInput={Input}
                   onValueChange={(values: NumberFormatValues) =>
                     setValue('paidValue', values.floatValue ?? 0)
@@ -457,8 +440,26 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 />
                 {errors.paidValue && <p className="text-sm text-red-500">{errors.paidValue.message}</p>}
               </div>
-
-              {/* Card informativo minimalista */}
+              <div className="space-y-2">
+                <Label htmlFor="clientCost">Custo do Cliente</Label>
+                <NumericFormat
+                  id="clientCost"
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  prefix="R$ "
+                  allowNegative={false}
+                  decimalScale={2}
+                  fixedDecimalScale
+                  placeholder="R$ 0,00"
+                  customInput={Input}
+                  onValueChange={(values: NumberFormatValues) => {
+                    setValue('clientCost', values.floatValue ?? 0)
+                  }}
+                  value={watch('clientCost') || ''}
+                  disabled
+                />
+                {errors.clientCost && <p className="text-sm text-red-500">{errors.clientCost.message}</p>}
+              </div>
               <div className="col-span-1 sm:col-span-2">
                 <div className="bg-card border rounded-lg p-4 space-y-3">
                   <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
@@ -466,19 +467,14 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                   </h3>
 
                   <div className="space-y-2">
+                    {/* Custo Total = plano x custo do credito x qtde telas */}
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Custo em relação Plano</span>
-                      <div className="text-right">
-                        <span className="text-foreground font-medium">R$ {custoServidor.toFixed(2)}</span>
-                        <p className="text-xs text-muted-foreground">{screens} telas × R$ {serverCost.toFixed(2)}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Custo do Servidor</span>
+                      <span className="text-muted-foreground">Custo Total</span>
                       <div className="text-right">
                         <span className="text-foreground font-medium">R$ {custoPlano.toFixed(2)}</span>
-                        <p className="text-xs text-muted-foreground">{planCredits} créditos × R$ {custoServidor.toFixed(2)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {planCredits} créditos × R$ {serverCost.toFixed(2)} × {screens} telas
+                        </p>
                       </div>
                     </div>
 
@@ -486,10 +482,10 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">Lucro Líquido</span>
                         <span className={`text-lg font-semibold ${paidValue - custoPlano > 0
-                            ? 'text-green-600 dark:text-green-400'
-                            : paidValue - custoPlano < 0
-                              ? 'text-red-600 dark:text-red-400'
-                              : 'text-foreground'
+                          ? 'text-green-600 dark:text-green-400'
+                          : paidValue - custoPlano < 0
+                            ? 'text-red-600 dark:text-red-400'
+                            : 'text-foreground'
                           }`}>
                           R$ {(paidValue - custoPlano).toFixed(2)}
                         </span>

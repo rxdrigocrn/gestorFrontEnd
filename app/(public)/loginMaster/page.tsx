@@ -10,7 +10,7 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Eye, EyeOff } from 'lucide-react' // adicione no topo
+import { Eye, EyeOff } from 'lucide-react'
 
 type LoginFormValues = z.infer<typeof loginSchema>
 

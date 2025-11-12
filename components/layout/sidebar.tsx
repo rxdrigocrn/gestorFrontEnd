@@ -15,6 +15,7 @@ import {
   MessageCircle,
   Globe,
   UserCog,
+  CircleDollarSign,
 } from "lucide-react"
 
 interface SidebarLink {
@@ -35,6 +36,8 @@ const links: SidebarLink[] = [
   { name: "Captações", href: "/captacao", icon: Globe },
   { name: "Cobranças", href: "/cobrancas", icon: DollarSign },
   { name: "Mensagens", href: "/mensagens", icon: MessageCircle },
+  { name: "Pagamentos", href: "/pagamentos", icon: CircleDollarSign },
+  { name: "Histórico", href: "/logs", icon: FileText },
 ]
 
 interface SidebarProps {
