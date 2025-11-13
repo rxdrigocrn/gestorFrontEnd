@@ -119,7 +119,9 @@ export function createGenericStore<TResponse, TCreate, TUpdate = TCreate>(
                 set({ items: [...get().items, newItem] })
             } catch (err: any) {
                 const message = await extractErrorMessage(err)
-                set({ error: message })
+                // Do not set the shared `error` state for mutations (create)
+                // Mutations should surface errors to the caller and not overwrite
+                // the store-level fetch error which is used by list UI components.
                 throw new Error(message)
             }
         },
@@ -133,7 +135,7 @@ export function createGenericStore<TResponse, TCreate, TUpdate = TCreate>(
                 })
             } catch (err: any) {
                 const message = await extractErrorMessage(err)
-                set({ error: message })
+                // Do not set the shared `error` state for mutations (update)
                 throw new Error(message)
             }
         },
@@ -147,7 +149,7 @@ export function createGenericStore<TResponse, TCreate, TUpdate = TCreate>(
                 })
             } catch (err: any) {
                 const message = await extractErrorMessage(err)
-                set({ error: message })
+                // Do not set the shared `error` state for mutations (delete)
                 throw new Error(message)
             }
         },

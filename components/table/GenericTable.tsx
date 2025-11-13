@@ -45,28 +45,20 @@ export function GenericTable<T>({
     isLoading,
     error,
 }: GenericTableProps<T>) {
-    if (error) {
-        const message = typeof error === 'string' ? error : 'Erro ao carregar os dados.'
-        return (
-            <div className="flex justify-center items-center min-h-[30vh]">
-                <ErrorBadge message={message} />
-            </div>
-        )
-    }
-
+    if (error) return <ErrorBadge message={typeof error === 'string' ? error : 'Erro ao carregar dados.'} />
     const skeletonRows = pagination?.limit || 5
 
     return (
         <div className="rounded-md border">
             <Table>
-                <TableHeader>
+                <TableHeader className='bg-primary  '>
                     <TableRow>
                         {columns.map((col, i) => (
-                            <TableHead key={i} className={col.className}>
+                            <TableHead key={i} className={`${col.className} text-black`}>
                                 {col.header}
                             </TableHead>
                         ))}
-                        {actions && <TableHead className="text-right">Ações</TableHead>}
+                        {actions && <TableHead className="text-right text-black">Ações</TableHead>}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -74,7 +66,7 @@ export function GenericTable<T>({
                         ? Array.from({ length: skeletonRows }).map((_, idx) => (
                             <TableRow key={idx}>
                                 {columns.map((col, i) => (
-                                    <TableCell key={i}>
+                                    <TableCell key={i} className={col.className ?? ''}>
                                         <Skeleton className="h-4 w-full rounded animate-pulse" />
                                     </TableCell>
                                 ))}
@@ -92,7 +84,7 @@ export function GenericTable<T>({
                                 onClick={() => onRowClick?.(row)}
                             >
                                 {columns.map((col, i) => (
-                                    <TableCell key={i}>
+                                    <TableCell key={i} className={col.className ?? ''}>
                                         {typeof col.accessor === 'function'
                                             ? col.accessor(row)
                                             : String(row[col.accessor])}

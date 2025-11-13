@@ -200,8 +200,24 @@ export default function ClientsTable() {
       })
     } catch (error: any) {
       console.error('Erro ao salvar cliente:', error)
+
+      const extractErrorMessage = (err: any) => {
+        if (!err) return 'Ocorreu um erro ao salvar o cliente'
+        const resp = err?.response?.data
+        if (resp) {
+          if (typeof resp === 'string') return resp
+          if (resp.message) return resp.message
+          if (resp.error) return resp.error
+          if (resp.errors) {
+            if (Array.isArray(resp.errors)) return resp.errors.map((e: any) => e.message || e).join(', ')
+            if (typeof resp.errors === 'object') return Object.values(resp.errors).flat().map((v: any) => v.message || v).join(', ')
+          }
+        }
+        return err.message || String(err)
+      }
+
       showToast("error", "Erro ao salvar cliente", {
-        description: error?.message || "Ocorreu um erro ao salvar o cliente",
+        description: extractErrorMessage(error),
       })
     }
   }
@@ -464,6 +480,7 @@ export default function ClientsTable() {
                 </div>
               </div>
             ),
+            className: 'text-left',
           },
           {
             header: 'Plano',
@@ -480,6 +497,7 @@ export default function ClientsTable() {
               ) : (
                 'Sem plano'
               ),
+            className: 'text-left',
           },
           {
             header: 'Status',
@@ -496,10 +514,15 @@ export default function ClientsTable() {
                 {client.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}
               </Badge>
             ),
+            className: 'text-center',
           },
           {
             header: 'Servidor',
             accessor: (client) => client.server?.name ?? 'Sem servidor',
+            className: 'text-left',
+          },
+          {
+            header: 'Valor', accessor: (client) => client.paidValue !== null ? `R$ ${client.paidValue?.toFixed(2)}` : '-', className: 'text-right',
           },
           {
             header: 'Expiração',
@@ -515,6 +538,7 @@ export default function ClientsTable() {
                   )
                 })()
                 : '-',
+            className: 'text-center',
           },
         ]}
         actions={(client) => (

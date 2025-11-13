@@ -74,7 +74,7 @@ export function Pagination({
     }
 
     return (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 px-2 py-2 w-full overflow-x-auto">
+        <div className="flex flex-col  sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 px-2 py-2 w-full overflow-x-auto">
 
             {showLimitSelector && !compact && (
                 <div className="flex items-center gap-2 flex-shrink-0">

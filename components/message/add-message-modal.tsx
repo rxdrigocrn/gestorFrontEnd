@@ -96,8 +96,7 @@ export function AddMessageTemplateModal({
             <p className="text-sm text-red-600">{errors.name.message}</p>
           )}
         </div>
-
-        <div className="space-y-1">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="content">Conteúdo</Label>
             <div className="flex items-center text-xs text-muted-foreground">
@@ -105,6 +104,24 @@ export function AddMessageTemplateModal({
               Use tags dinâmicas para personalização
             </div>
           </div>
+          <div className="flex justify-between items-center gap-2 mt-2">
+            <label className="text-sm text-muted-foreground">Inserir tag:</label>
+            <select
+              className="border bg-card rounded px-2 py-1 text-sm"
+              defaultValue=""
+              onChange={(e) => {
+                const v = e.target.value
+                if (v) insertTag(v)
+                e.currentTarget.value = ''
+              }}
+            >
+              <option value="" disabled>Selecionar...</option>
+              <option value="{{clientName}}">{'{{clientName}} - Nome do cliente'}</option>
+              <option value="{{planName}}">{'{{planName}} - Nome do plano'}</option>
+            </select>
+          </div>
+
+
 
           <Textarea
             id="content"
@@ -113,13 +130,13 @@ export function AddMessageTemplateModal({
             className="min-h-[120px]"
           />
 
-       
 
-          <div className="mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-600">
+
+          <div className="mt-2 p-3 bg-card text-muted-foreground rounded-md text-sm">
             <p className="font-medium mb-1">Como funcionam as tags:</p>
-            <ul className="list-disc pl-5 space-y-1">
-              <li><code className="bg-gray-100 px-1 rounded">{"{{clientName}}"}</code> será substituído pelo nome do cliente</li>
-              <li><code className="bg-gray-100 px-1 rounded">{"{{planName}}"}</code> será substituído pelo nome do plano do cliente</li>
+            <ul className="list-disc pl-5 space-y-2">
+              <li><code className="bg-primary px-1 py-0.5 rounded text-black">{"{{clientName}}"}</code> será substituído pelo nome do cliente</li>
+              <li><code className="bg-primary px-1 py-0.5 rounded text-black">{"{{planName}}"}</code> será substituído pelo nome do plano do cliente</li>
             </ul>
           </div>
 

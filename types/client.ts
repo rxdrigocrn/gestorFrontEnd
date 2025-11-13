@@ -50,6 +50,8 @@ export type ClientResponse = {
     deviceId?: string
     applicationId?: string
     paymentMethodId?: string
+    paidValue: number ;
+    clientCost?: number;
     leadSourceId?: string
     screens?: number
     pix?: string

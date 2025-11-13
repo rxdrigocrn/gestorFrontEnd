@@ -31,6 +31,7 @@ import { useLeadSourceStore } from '@/store/leadStore'
 import { useServerStore } from '@/store/serverStore'
 import { formatPhoneToE164 } from '@/utils/phone'
 import { NumberFormatValues, NumericFormat } from 'react-number-format'
+import { useSimpleToast } from '@/hooks/use-toast'
 
 interface AddClientModalProps {
   open: boolean
@@ -63,6 +64,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
   const { items: applications, fetchItems: fetchApplications } = useApplicationStore()
   const { items: leadSources, fetchItems: fetchLeadSources } = useLeadSourceStore()
   const { items: servers, fetchItems: fetchServers } = useServerStore()
+  const { showToast } = useSimpleToast()
 
   useEffect(() => {
     fetchPlans()
@@ -74,15 +76,44 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
   }, [])
 
   const onSubmit = (data: ClientFormData) => {
+    if (!data.email || (typeof data.email === 'string' && data.email.trim() === '')) {
+      ;(data as any).email = null
+    }
+
     if (data.expiresAt) {
       data.expiresAt = new Date(data.expiresAt).toISOString()
     }
+
     onConfirm(data)
   }
 
 
   const onInvalid = (errors: any) => {
     console.error('Form validation errors:', errors)
+
+    const flattenErrors = (errObj: any, prefix = ''): string[] => {
+      if (!errObj) return []
+      const msgs: string[] = []
+      for (const key of Object.keys(errObj)) {
+        const val = errObj[key]
+        const path = prefix ? `${prefix}.${key}` : key
+        if (val && typeof val === 'object' && 'message' in val && val.message) {
+          msgs.push(`${path.replace(/\./g, ' → ')}: ${String(val.message)}`)
+        } else if (val && typeof val === 'object') {
+          msgs.push(...flattenErrors(val, path))
+        }
+      }
+      return msgs
+    }
+
+    const msgs = flattenErrors(errors)
+    const description = msgs.length ? msgs.join('\n') : 'Existem campos inválidos no formulário.'
+
+    try {
+      showToast('error', 'Erros no formulário', { description })
+    } catch (e) {
+      // ignore toast errors
+    }
   }
 
   useEffect(() => {
@@ -93,7 +124,6 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
           const d = new Date(val)
           if (!isValid(d)) return ""
 
-          // ✅ Corrige o fuso (UTC -> Local)
           d.setMinutes(d.getMinutes() + d.getTimezoneOffset())
 
           const pad = (n: number) => String(n).padStart(2, '0')
