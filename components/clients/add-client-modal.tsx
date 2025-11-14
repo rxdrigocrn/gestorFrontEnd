@@ -77,7 +77,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
 
   const onSubmit = (data: ClientFormData) => {
     if (!data.email || (typeof data.email === 'string' && data.email.trim() === '')) {
-      ;(data as any).email = null
+      ; (data as any).email = null
     }
 
     if (data.expiresAt) {
@@ -290,6 +290,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                       onChange={field.onChange}
                       onBlur={field.onBlur}
                       inputComponent={Input}
+                      inputProps={{ autoComplete: 'off' }}
                     />
                     {errors.phone && (
                       <p className="text-sm text-red-500">{errors.phone.message}</p>
@@ -314,6 +315,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                       onChange={field.onChange}
                       onBlur={field.onBlur}
                       inputComponent={Input}
+                      inputProps={{ autoComplete: 'off' }}
                     />
                     {errors.phone2 && (
                       <p className="text-sm text-red-500">{errors.phone2.message}</p>
@@ -327,6 +329,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 <Label>Data de Expiração</Label>
                 <Input
                   type="date"
+                  autoComplete="off"
                   {...register('expiresAt')}
                   className="w-full"
                 />
@@ -340,6 +343,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 <Label htmlFor="location">Localização</Label>
                 <Input
                   id="location"
+                  autoComplete="off"
                   placeholder="Localização"
                   {...register('location')}
                 />
@@ -350,6 +354,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 <Label htmlFor="time">Time</Label>
                 <Input
                   id="time"
+                  autoComplete="off"
                   placeholder="Time"
                   {...register('time')}
                 />
@@ -361,6 +366,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
               <Label htmlFor="notes">Notas</Label>
               <Textarea
                 id="notes"
+                autoComplete="off"
                 placeholder="Notas adicionais..."
                 {...register('notes')}
               />
@@ -445,6 +451,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 <Input
                   id="screens"
                   type="number"
+                  autoComplete="off"
                   min="1"
                   {...register('screens', { valueAsNumber: true })}
                 />
@@ -641,6 +648,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 <Label htmlFor="m3u">M3U Link</Label>
                 <Input
                   id="m3u"
+                  autoComplete="off"
                   {...register('m3u')}
                 />
                 {errors.m3u && <p className="text-sm text-red-500">{errors.m3u.message}</p>}
@@ -650,6 +658,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 <Label htmlFor="mac">Endereço MAC</Label>
                 <Input
                   id="mac"
+                  autoComplete="off"
                   {...register('mac')}
                 />
                 {errors.mac && <p className="text-sm text-red-500">{errors.mac.message}</p>}
@@ -659,6 +668,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 <Label htmlFor="deviceKey">Chave do Dispositivo/OTP Code</Label>
                 <Input
                   id="deviceKey"
+                  autoComplete="off"
                   {...register('deviceKey')}
                 />
                 {errors.deviceKey && <p className="text-sm text-red-500">{errors.deviceKey.message}</p>}
@@ -669,6 +679,7 @@ export function AddClientModal({ open, onOpenChange, onConfirm, defaultValues }:
                 <Input
                   id="birthDate"
                   type="date"
+                  autoComplete="off"
                   {...register('birthDate')}
                 />
                 {errors.birthDate && <p className="text-sm text-red-500">{errors.birthDate.message}</p>}

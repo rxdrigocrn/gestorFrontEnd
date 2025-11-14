@@ -167,9 +167,10 @@ export function AddPlanModal({ open, onOpenChange, onConfirm, defaultValues }: A
                             <Input
                                 id="creditsToRenew"
                                 type="number"
-                                step="1"
+                                step="0.01"
+                                min="0.01"
                                 {...register('creditsToRenew', { valueAsNumber: true })}
-                                placeholder="Número de créditos"
+                                placeholder="Número de créditos (ex: 1, 0.5)"
                             />
                             {errors.creditsToRenew && (
                                 <p className="text-sm text-red-600">
