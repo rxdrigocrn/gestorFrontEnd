@@ -10,6 +10,8 @@ interface PlanCardProps {
     description?: string
     price: number
     features?: string[]
+    maxClients?: number
+    maxUsers?: number
     onSelect?: () => void
     selected?: boolean
     popular?: boolean
@@ -22,11 +24,17 @@ export function PlanCard({
     description,
     price,
     features = [],
+    maxClients,
+    maxUsers,
     onSelect,
     selected,
     popular = false,
     billingInterval = 'month'
 }: PlanCardProps) {
+    const nf = (n?: number) => n == null ? '-' : Intl.NumberFormat('pt-BR').format(n)
+    const extraFeatures: string[] = []
+    if (typeof maxClients === 'number') extraFeatures.push(`Clientes suportados: ${nf(maxClients)}`)
+    if (typeof maxUsers === 'number') extraFeatures.push(`Usuários permitidos: ${nf(maxUsers)}`)
     return (
         <div className="relative">
             {/* Badge para plano popular */}
@@ -91,14 +99,21 @@ export function PlanCard({
                     </div>
 
                     {/* Lista de features */}
-                    {features.length > 0 && (
+                    {(extraFeatures.length > 0 || features.length > 0) && (
                         <ul className="space-y-3">
+                            {extraFeatures.map((feature, index) => (
+                                <li key={`extra-${index}`} className="flex items-start gap-3">
+                                    <CheckIcon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${selected ? 'text-emerald-500' : 'text-gray-400'}`} />
+                                    <span className={`text-sm ${selected ? 'text-gray-800 font-medium' : 'text-gray-600'}`}>
+                                        {feature}
+                                    </span>
+                                </li>
+                            ))}
+
                             {features.map((feature, index) => (
                                 <li key={index} className="flex items-start gap-3">
-                                    <CheckIcon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${selected ? 'text-emerald-500' : 'text-gray-400'
-                                        }`} />
-                                    <span className={`text-sm ${selected ? 'text-gray-800 font-medium' : 'text-gray-600'
-                                        }`}>
+                                    <CheckIcon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${selected ? 'text-emerald-500' : 'text-gray-400'}`} />
+                                    <span className={`text-sm ${selected ? 'text-gray-800 font-medium' : 'text-gray-600'}`}>
                                         {feature}
                                     </span>
                                 </li>

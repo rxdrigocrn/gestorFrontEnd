@@ -17,50 +17,45 @@ interface ImportExcelModalProps {
 export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelModalProps) {
     const { showToast } = useSimpleToast()
     const [clientsFile, setClientsFile] = useState<File | null>(null)
-    const [paymentsFile, setPaymentsFile] = useState<File | null>(null)
     const [isDraggingClients, setIsDraggingClients] = useState(false)
-    const [isDraggingPayments, setIsDraggingPayments] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const clientsFileInputRef = useRef<HTMLInputElement>(null)
-    const paymentsFileInputRef = useRef<HTMLInputElement>(null)
 
     const commonPrevent = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault()
         e.stopPropagation()
     }
 
-    const handleDragEnter = useCallback((which: 'clients' | 'payments') => (e: React.DragEvent<HTMLDivElement>) => {
+    const handleDragEnter = useCallback(() => (e: React.DragEvent<HTMLDivElement>) => {
         commonPrevent(e)
         if (isLoading) return
-        if (which === 'clients') setIsDraggingClients(true)
-        else setIsDraggingPayments(true)
+        setIsDraggingClients(true)
     }, [isLoading])
 
-    const handleDragLeave = useCallback((which: 'clients' | 'payments') => (e: React.DragEvent<HTMLDivElement>) => {
+    const handleDragLeave = useCallback(() => (e: React.DragEvent<HTMLDivElement>) => {
         commonPrevent(e)
         if (isLoading) return
-        if (which === 'clients') setIsDraggingClients(false)
-        else setIsDraggingPayments(false)
+        setIsDraggingClients(false)
     }, [isLoading])
 
     const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
         commonPrevent(e)
     }, [])
 
-    const handleDrop = useCallback((which: 'clients' | 'payments') => (e: React.DragEvent<HTMLDivElement>) => {
+    const handleDrop = useCallback(() => (e: React.DragEvent<HTMLDivElement>) => {
         commonPrevent(e)
         if (isLoading) return
-        if (which === 'clients') setIsDraggingClients(false)
-        else setIsDraggingPayments(false)
+        setIsDraggingClients(false)
 
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             const droppedFile = e.dataTransfer.files[0]
             if (droppedFile.name.endsWith('.xlsx')) {
-                if (which === 'clients') setClientsFile(droppedFile)
-                else setPaymentsFile(droppedFile)
+                setClientsFile(droppedFile)
             }
         }
     }, [isLoading])
+
+    
 
     const handleClientsFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         if (isLoading) return
@@ -72,34 +67,18 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
         }
     }, [isLoading])
 
-    const handlePaymentsFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        if (isLoading) return
-        if (e.target.files && e.target.files.length > 0) {
-            const selectedFile = e.target.files[0]
-            if (selectedFile.name.endsWith('.xlsx')) {
-                setPaymentsFile(selectedFile)
-            }
-        }
-    }, [isLoading])
-
     const handleRemoveClientsFile = useCallback(() => {
         if (isLoading) return
         setClientsFile(null)
         if (clientsFileInputRef.current) clientsFileInputRef.current.value = ''
     }, [isLoading])
 
-    const handleRemovePaymentsFile = useCallback(() => {
-        if (isLoading) return
-        setPaymentsFile(null)
-        if (paymentsFileInputRef.current) paymentsFileInputRef.current.value = ''
-    }, [isLoading])
-
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault()
         if (isLoading) return
 
-        if (!clientsFile || !paymentsFile) {
-            console.error('Ambos os arquivos (clientsFile e paymentsFile) são obrigatórios.')
+        if (!clientsFile) {
+            console.error('Arquivo clientsFile é obrigatório.')
             return
         }
 
@@ -115,14 +94,11 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
         try {
             const formData = new FormData()
             formData.append('clientsFile', clientsFile as Blob)
-            formData.append('paymentsFile', paymentsFile as Blob)
 
             const res = await createItem('/clients/import/excel', formData)
 
             setClientsFile(null)
-            setPaymentsFile(null)
             if (clientsFileInputRef.current) clientsFileInputRef.current.value = ''
-            if (paymentsFileInputRef.current) paymentsFileInputRef.current.value = ''
             showToast('success', 'Importação enviada', { description: 'Arquivo enviado com sucesso. Processamento em andamento.' })
             onSuccess?.()
         } catch (error) {
@@ -131,7 +107,7 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
         } finally {
             setIsLoading(false)
         }
-    }, [clientsFile, paymentsFile, isLoading, onOpenChange, onSuccess])
+    }, [clientsFile, isLoading, onOpenChange, onSuccess])
 
     return (
         <Modal
@@ -141,7 +117,7 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
             description="Envie um arquivo .xlsx para importar vários clientes de uma vez"
         >
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                     {/* Clients file dropzone */}
                     <div
                         className={cn(
@@ -150,10 +126,10 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
                             clientsFile ? 'border-green-500 bg-green-500/10' : '',
                             isLoading && 'opacity-60 pointer-events-none'
                         )}
-                        onDragEnter={handleDragEnter('clients')}
-                        onDragLeave={handleDragLeave('clients')}
+                        onDragEnter={handleDragEnter()}
+                        onDragLeave={handleDragLeave()}
                         onDragOver={handleDragOver}
-                        onDrop={handleDrop('clients')}
+                        onDrop={handleDrop()}
                         onClick={() => !isLoading && clientsFileInputRef.current?.click()}
                     >
                         <input
@@ -181,48 +157,11 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
                         </div>
                     </div>
 
-                    {/* Payments file dropzone */}
-                    <div
-                        className={cn(
-                            'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
-                            isDraggingPayments ? 'border-primary bg-primary/10' : 'border-muted-foreground/30 hover:border-muted-foreground/50',
-                            paymentsFile ? 'border-green-500 bg-green-500/10' : '',
-                            isLoading && 'opacity-60 pointer-events-none'
-                        )}
-                        onDragEnter={handleDragEnter('payments')}
-                        onDragLeave={handleDragLeave('payments')}
-                        onDragOver={handleDragOver}
-                        onDrop={handleDrop('payments')}
-                        onClick={() => !isLoading && paymentsFileInputRef.current?.click()}
-                    >
-                        <input
-                            type="file"
-                            ref={paymentsFileInputRef}
-                            onChange={handlePaymentsFileChange}
-                            accept=".xlsx"
-                            className="hidden"
-                            disabled={isLoading}
-                        />
-
-                        <div className="flex flex-col items-center justify-center space-y-2">
-                            <UploadIcon className="w-10 h-10 text-muted-foreground" />
-                            <Label className="text-sm">Arquivo de Pagamentos (paymentsFile)</Label>
-                            <p className="text-sm text-muted-foreground">
-                                {paymentsFile ? (
-                                    <span className="font-medium text-green-600">{paymentsFile.name}</span>
-                                ) : (
-                                    <>
-                                        <span className="font-medium text-primary">Clique para selecionar</span> ou arraste e solte
-                                    </>
-                                )}
-                            </p>
-                            <p className="text-xs text-muted-foreground">Apenas arquivos .xlsx são aceitos</p>
-                        </div>
-                    </div>
+                    {/* second column intentionally left empty (payments file removed) */}
                 </div>
 
                 {/* Selected files summary */}
-                {(clientsFile || paymentsFile) && (
+                {clientsFile && (
                     <div className="space-y-2">
                         {clientsFile && (
                             <div className="flex items-center justify-between p-3 bg-muted rounded-md">
@@ -234,23 +173,12 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
                                 <Button type="button" variant="ghost" size="sm" onClick={handleRemoveClientsFile} disabled={isLoading} className="text-red-500 hover:text-red-600">Remover</Button>
                             </div>
                         )}
-
-                        {paymentsFile && (
-                            <div className="flex items-center justify-between p-3 bg-muted rounded-md">
-                                <div className="flex items-center space-x-2">
-                                    <FileIcon className="w-5 h-5" />
-                                    <span className="text-sm font-medium">{paymentsFile.name}</span>
-                                    <span className="text-xs text-muted-foreground">{(paymentsFile.size / 1024 / 1024).toFixed(2)} MB</span>
-                                </div>
-                                <Button type="button" variant="ghost" size="sm" onClick={handleRemovePaymentsFile} disabled={isLoading} className="text-red-500 hover:text-red-600">Remover</Button>
-                            </div>
-                        )}
                     </div>
                 )}
 
                 <div className="flex justify-end space-x-2 pt-4">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancelar</Button>
-                    <Button type="submit" disabled={!clientsFile || !paymentsFile || isLoading}>
+                    <Button type="submit" disabled={!clientsFile || isLoading}>
                         {isLoading ? 'Importando...' : 'Importar'}
                     </Button>
                 </div>

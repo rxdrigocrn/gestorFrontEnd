@@ -19,11 +19,12 @@ export const clientFormSchema = z.object({
     // Personal Data
     id: z.string().uuid().optional().nullable(),
     name: z.string().optional().nullable(),
-    username: z.string().min(1, "Usuário  obrigatório"),
+    username: z.string().nonempty("Usuário é obrigatório"),
     password: z.string().optional().nullable(),
     email: z.string().optional().nullable(),
     phone: z
         .string()
+        .nonempty('Telefone é obrigatório')
         .refine((val) => isValidPhoneNumber(val), {
             message: 'Número de telefone inválido',
         }),
@@ -49,8 +50,8 @@ export const clientFormSchema = z.object({
     time: z.string().optional().nullable(),
 
     // Payment
-    serverId: z.string(),
-    planId: z.string(),
+    serverId: z.string().nonempty('Servidor é obrigatório'),
+    planId: z.string().nonempty('Plano é obrigatório'),
     paymentMethodId: z.string().optional().nullable(),
     screens: numberOrUndefined,
     pix: z.string().optional().nullable(),

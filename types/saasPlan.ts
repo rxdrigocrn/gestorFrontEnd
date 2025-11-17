@@ -9,6 +9,7 @@ export interface SaaSPlanResponse {
   abacatePayPlanId?: string | null;
   createdAt: string; // ou Date, dependendo de como a API serializa
   features?: string[];
+
   popular?: boolean;
 }
 

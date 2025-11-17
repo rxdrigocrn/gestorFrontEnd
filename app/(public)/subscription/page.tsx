@@ -33,6 +33,8 @@ const SubscriptionPage = () => {
         'Suporte por email',
         'Acesso básico aos recursos'
       ],
+      maxClients: 5,
+      maxUsers: 10,
       createdAt: new Date().toISOString(),
     },
     {
@@ -47,6 +49,8 @@ const SubscriptionPage = () => {
         'Recursos avançados',
         'Relatórios detalhados'
       ],
+      maxClients: 50,
+      maxUsers: 100,
       createdAt: new Date().toISOString(),
     },
     {
@@ -62,6 +66,8 @@ const SubscriptionPage = () => {
         'API acesso',
         'SSO integrado'
       ],
+      maxClients: 500,
+      maxUsers: 1000,
       createdAt: new Date().toISOString(),
     },
   ]
@@ -119,19 +125,27 @@ const SubscriptionPage = () => {
 
         {/* Planos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
-          {plans.map((plan) => (
-            <PlanCard
-              key={plan.id}
-              id={plan.id}
-              name={plan.name}
-              price={plan.price}
-              features={plan.features}
-              popular={plan.popular}
-              billingInterval="month"
-              onSelect={() => handleSelectPlan(plan.id)}
-              selected={selectedPlan === plan.id}
-            />
-          ))}
+          {items && items.length > 0 ? (
+            items.map((plan) => (
+              <PlanCard
+                key={plan.id}
+                id={plan.id}
+                name={plan.name}
+                price={plan.price}
+                features={plan.features}
+                maxClients={plan.maxClients}
+                maxUsers={plan.maxUsers}
+                popular={plan.popular}
+                billingInterval="month"
+                onSelect={() => handleSelectPlan(plan.id)}
+                selected={selectedPlan === plan.id}
+              />
+            ))
+          ) : (
+            <p className="col-span-full text-center text-gray-500">
+              Nenhum plano disponível no momento.
+            </p>
+          )}
         </div>
 
         {/* Métodos de Pagamento */}

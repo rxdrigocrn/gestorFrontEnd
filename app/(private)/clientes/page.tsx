@@ -198,6 +198,8 @@ export default function ClientsTable() {
       showToast("success", "Cliente salvo", {
         description: "As alterações foram salvas com sucesso",
       })
+
+      return true
     } catch (error: any) {
       console.error('Erro ao salvar cliente:', error)
 
@@ -219,6 +221,8 @@ export default function ClientsTable() {
       showToast("error", "Erro ao salvar cliente", {
         description: extractErrorMessage(error),
       })
+
+      return false
     }
   }
 

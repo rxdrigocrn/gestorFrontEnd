@@ -34,20 +34,15 @@ function StatsCard({ title, value, description, icon, trend, extra }: StatsCardP
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
 
-        {/* Se tiver extra (clientes), renderiza os três números */}
         {extra ? (
-          <div className="mt-3 grid grid-cols-3 text-center text-sm text-muted-foreground">
+          <div className="mt-1 grid grid-cols-2 pb-0 text-center text-sm text-muted-foreground">
             <div>
-              <p className="text-green-600 font-semibold">{extra.active}</p>
+              <p className="text-green-600 text-lg font-semibold">{extra.active}</p>
               <p>Ativos</p>
             </div>
             <div>
-              <p className="text-red-500 font-semibold">{extra.inactive}</p>
+              <p className="text-red-500 text-lg font-semibold">{extra.inactive}</p>
               <p>Inativos</p>
-            </div>
-            <div>
-              <p className="text-blue-500 font-semibold">{extra.total}</p>
-              <p>Total</p>
             </div>
           </div>
         ) : (

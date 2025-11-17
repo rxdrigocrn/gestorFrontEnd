@@ -131,7 +131,7 @@ function transformKpisToStats(kpis: any) {
                 },
             },
             {
-                title: 'Clientes Ativos',
+                title: 'Clientes Totais',
                 value: kpis.totalActiveClients.toString(),
                 description: 'Inscritos ativos',
                 icon: <Users className="h-5 w-5" />,
