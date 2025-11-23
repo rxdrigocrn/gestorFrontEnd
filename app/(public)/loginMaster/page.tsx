@@ -35,7 +35,7 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(
-        `http://34.237.173.84/auth/login`,
+        `http://localhost:5000/auth/login`,
         data,
         { withCredentials: true }
       )

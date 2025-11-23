@@ -8,6 +8,7 @@ import SystemLogs from '@/components/dashboard/system-logs'
 import ProfitProjections from '@/components/dashboard/profit-projections'
 import { DashboardFilter } from '@/components/dashboard/dashboard-filter'
 import { fetchAll } from '@/services/api-services'
+import { DateRange } from 'react-day-picker'
 import { KpiResponse, KpiResponseByDate } from '@/types/dashboard'
 import { DollarSign, Users, TrendingUp, Clock } from 'lucide-react'
 import Loader from '@/components/loaders/loader'
@@ -21,7 +22,7 @@ export default function DashboardPage() {
     const [error, setError] = useState('')
 
     const [periodFilter, setPeriodFilter] = useState<string>('7d')
-    const [customDateFilter, setCustomDateFilter] = useState<Date | undefined>()
+    const [customDateFilter, setCustomDateFilter] = useState<DateRange | undefined>()
 
     const mapPeriodToDays = (period: string): number => {
         switch (period) {
@@ -33,17 +34,33 @@ export default function DashboardPage() {
         }
     }
 
-    const fetchDashboardData = (period: string, customDate?: Date) => {
+    const fetchDashboardData = (period: string, customDate?: DateRange) => {
         setLoading(true)
         setError('')
 
         let kpiUrl = ''
         let queryParams = new URLSearchParams()
 
-        if (period === 'custom' && customDate) {
-            queryParams.set('date', customDate.toISOString())
-            kpiUrl = `/dashboard/kpi-cards/by-date?${queryParams.toString()}`
-        } else {
+        if (period === 'custom' && customDate?.from) {
+            const from = customDate.from
+            const to = customDate.to ?? customDate.from // se não tiver to, considera single-day
+
+            const isSingleDay =
+                from.toDateString() === to.toDateString()
+
+            if (isSingleDay) {
+                // DIA ÚNICO → /by-date?date=
+                queryParams.set('date', from.toISOString())
+                kpiUrl = `/dashboard/kpi-cards/by-date?${queryParams.toString()}`
+            } else {
+                // RANGE → /by-range?from=&to=
+                queryParams.set('from', from.toISOString())
+                queryParams.set('to', to.toISOString())
+                kpiUrl = `/dashboard/kpi-cards/by-range?${queryParams.toString()}`
+            }
+        }
+        else {
+            // Período padrão
             const days = mapPeriodToDays(period)
             queryParams.set('period', days.toString())
             kpiUrl = `/dashboard/kpi-cards?${queryParams.toString()}`
@@ -68,7 +85,8 @@ export default function DashboardPage() {
             .finally(() => setLoading(false))
     }
 
-    const handlePeriodChange = (period: string, customDate?: Date) => {
+
+    const handlePeriodChange = (period: string, customDate?: DateRange) => {
         setPeriodFilter(period)
         setCustomDateFilter(customDate)
     }
@@ -116,106 +134,120 @@ export default function DashboardPage() {
 }
 
 function transformKpisToStats(kpis: any) {
-    const isByDate = kpis?.dailyRevenue !== undefined
+    const isByDate = kpis?.dailyRevenue !== undefined && kpis?.overallTotalRevenue !== undefined
+    const realDate = new Date(kpis.date);
+
+    // Tratamento: pegar Y/M/D diretamente, ignorando shifts
+    const yyyy = realDate.getUTCFullYear();
+    const mm = (realDate.getUTCMonth() + 1).toString().padStart(2, '0');
+    const dd = realDate.getUTCDate().toString().padStart(2, '0');
+
+    value: `${dd}/${mm}/${yyyy}`
 
     if (isByDate) {
         return [
             {
                 title: 'Receita do Dia',
-                value: `R$ ${kpis.dailyRevenue.toFixed(2).replace('.', ',')}`,
-                description: `Acumulado: R$ ${kpis.overallTotalRevenue.toFixed(2).replace('.', ',')}`,
+                value: `R$ ${(kpis.dailyRevenue ?? 0).toFixed(2).replace('.', ',')}`,
+                description: `Acumulado total: R$ ${(kpis.overallTotalRevenue ?? 0).toFixed(2).replace('.', ',')}`,
                 icon: <DollarSign className="h-5 w-5" />,
-                trend: {
-                    value: 'N/A',
-                    isPositive: true,
-                },
+                trend: { value: '—', isPositive: true },
             },
             {
                 title: 'Clientes Totais',
-                value: kpis.totalActiveClients.toString(),
+                value: (kpis.totalActiveClients ?? 0).toString(),
                 description: 'Inscritos ativos',
                 icon: <Users className="h-5 w-5" />,
-                trend: {
-                    value: 'N/A',
-                    isPositive: true,
-                },
             },
             {
                 title: 'Novos Clientes no Dia',
-                value: kpis.newClientsToday.toString(),
+                value: (kpis.newClientsToday ?? 0).toString(),
                 description: 'Clientes adquiridos hoje',
                 icon: <TrendingUp className="h-5 w-5" />,
-                trend: {
-                    value: 'N/A',
-                    isPositive: true,
-                },
             },
             {
                 title: 'Data selecionada',
-                value: new Date(kpis.date).toLocaleDateString('pt-BR'),
+                value: (() => {
+                    const d = new Date(kpis.date)
+                    const yyyy = d.getUTCFullYear()
+                    const mm = String(d.getUTCMonth() + 1).padStart(2, "0")
+                    const dd = String(d.getUTCDate()).padStart(2, "0")
+                    return `${dd}/${mm}/${yyyy}`
+                })(),
                 description: 'Data da análise',
                 icon: <Clock className="h-5 w-5" />,
-                trend: {
-                    value: '',
-                    isPositive: true,
-                },
-            },
+            }
+
         ]
     }
 
-    // Caso padrão (por período)
+    // ---- KPI POR RANGE / PERÍODO NORMAL ----
+
+    const active =
+        kpis.activeClients ??
+        kpis.totalActiveClients ??
+        0
+
+    const inactive = kpis.inactiveClients ?? 0
+    const archived = kpis.archivedClients ?? 0
+
+    const totalClients =
+        kpis.totalClients ??
+        (active + inactive + archived)
+
+
+    const totalRevenue = kpis.totalRevenue ?? 0
+    const previousRevenue = kpis.previousPeriodRevenue ?? 0
+
+    const trendPercent =
+        previousRevenue > 0
+            ? (((totalRevenue - previousRevenue) / previousRevenue) * 100).toFixed(1)
+            : '0'
+
     return [
         {
             title: 'Receita Total',
-            value: `R$ ${kpis.totalRevenue.toFixed(2).replace('.', ',')}`,
-            description: `Antes: R$ ${kpis.previousPeriodRevenue.toFixed(2).replace('.', ',')}`,
+            value: `R$ ${totalRevenue.toFixed(2).replace('.', ',')}`,
+            description: `Período anterior: R$ ${previousRevenue.toFixed(2).replace('.', ',')}`,
             icon: <DollarSign className="h-5 w-5" />,
             trend: {
-                value:
-                    kpis.previousPeriodRevenue === 0
-                        ? 'N/A'
-                        : `${(
-                            ((kpis.totalRevenue - kpis.previousPeriodRevenue) / kpis.previousPeriodRevenue) *
-                            100
-                        ).toFixed(1)}%`,
-                isPositive: kpis.totalRevenue >= kpis.previousPeriodRevenue,
+                value: `${trendPercent}%`,
+                isPositive: Number(trendPercent) >= 0,
             },
         },
         {
             title: 'Clientes Ativos',
-            value: (kpis.activeClients + (kpis.inactiveClients ?? 0) + (kpis.archivedClients ?? 0)).toString(),
-            description: `Inscritos`,
+            value: totalClients.toString(),
+            description: 'Inscritos',
             extra: {
-                active: kpis.activeClients,
-                inactive: kpis.inactiveClients ?? 0,
-                total: kpis.activeClients + (kpis.inactiveClients ?? 0) + (kpis.archivedClients ?? 0),
+                active,
+                inactive,
+                total: totalClients,
             },
             icon: <Users className="h-5 w-5" />,
             trend: {
-                value: `${kpis.growthRate?.toFixed(1) ?? '0'}%`,
+                value: `${(kpis.growthRate ?? 0).toFixed(1)}%`,
                 isPositive: (kpis.growthRate ?? 0) >= 0,
             },
         },
         {
             title: 'Taxa de Crescimento',
-            value: `${kpis.growthRate.toFixed(1)}%`,
+            value: `${(kpis.growthRate ?? 0).toFixed(1)}%`,
             description: 'Crescimento mensal',
             icon: <TrendingUp className="h-5 w-5" />,
             trend: {
-                value: `${kpis.growthRate.toFixed(1)}%`,
-                isPositive: kpis.growthRate >= 0,
+                value: `${(kpis.growthRate ?? 0).toFixed(1)}%`,
+                isPositive: (kpis.growthRate ?? 0) >= 0,
             },
         },
         {
             title: 'Período Médio de Retenção',
-            value: '9,2 meses',
-            description: 'Período médio de retenção dos clientes',
+            value: `${(kpis.retentionMonths ?? 9.2).toFixed(1)} meses`,
+            description: 'Retenção média dos clientes',
             icon: <Clock className="h-5 w-5" />,
-            trend: {
-                value: '5,5%',
-                isPositive: true,
-            },
+            trend: { value: '—', isPositive: true },
         },
     ]
 }
+
 

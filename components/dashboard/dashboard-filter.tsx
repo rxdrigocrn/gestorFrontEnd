@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   Select,
   SelectContent,
@@ -17,17 +18,33 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { DateRange } from 'react-day-picker'
 
 interface DashboardFilterProps {
   period: string
-  date?: Date
-  onPeriodChange?: (period: string, customDate?: Date) => void
+  date?: DateRange
+  onPeriodChange?: (period: string, customDate?: DateRange) => void
 }
 
 export function DashboardFilter({ period, date, onPeriodChange }: DashboardFilterProps) {
+  const [open, setOpen] = useState(false)
+  const [tempRange, setTempRange] = useState<DateRange | undefined>(date)
+
+  const handleApplyRange = () => {
+    onPeriodChange?.('custom', tempRange)
+    setOpen(false)
+  }
+
   return (
     <div className="flex flex-col sm:flex-row gap-2">
-      <Select value={period} onValueChange={(val) => onPeriodChange?.(val, date)}>
+
+      <Select
+        value={period}
+        onValueChange={(val) => {
+          onPeriodChange?.(val, date)
+          setTempRange(date)
+        }}
+      >
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Select range" />
         </SelectTrigger>
@@ -41,30 +58,45 @@ export function DashboardFilter({ period, date, onPeriodChange }: DashboardFilte
       </Select>
 
       {period === 'custom' && (
-        <Popover>
+        <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              type='button'
+              type="button"
               className={cn(
-                'w-[240px] justify-start text-left font-normal',
-                !date && 'text-muted-foreground'
+                'w-[260px] justify-start text-left font-normal',
+                !date?.from && 'text-muted-foreground'
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {date ? format(date, 'PPP') : 'Pick a date'}
+              {date?.from
+                ? date.to
+                  ? `${format(date.from, 'dd/MM/yyyy')} — ${format(
+                    date.to,
+                    'dd/MM/yyyy'
+                  )}`
+                  : format(date.from, 'dd/MM/yyyy')
+                : 'Escolher intervalo'}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+
+          <PopoverContent className="flex flex-col gap-2 w-auto p-2" align="start">
             <Calendar
-              mode="single"
-              selected={date}
-              onSelect={(newDate) => onPeriodChange?.(period, newDate)}
-              initialFocus
+              mode="range"
+              selected={tempRange}
+              onSelect={setTempRange}
+              numberOfMonths={2}
             />
+
+            <Button onClick={handleApplyRange}>
+              Aplicar
+            </Button>
           </PopoverContent>
+
+          
         </Popover>
       )}
+
     </div>
   )
 }
