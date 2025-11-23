@@ -53,7 +53,7 @@ export default function ResetPasswordPage() {
 
         try {
             const response = await axios.post(
-                'http://localhost:5000/auth/reset-password',
+                'http://34.237.173.84/auth/reset-password',
                 {
                     token,
                     password: data.password,
