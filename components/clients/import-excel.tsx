@@ -157,24 +157,7 @@ export function ImportExcelModal({ open, onOpenChange, onSuccess }: ImportExcelM
                         </div>
                     </div>
 
-                    {/* second column intentionally left empty (payments file removed) */}
                 </div>
-
-                {/* Selected files summary */}
-                {clientsFile && (
-                    <div className="space-y-2">
-                        {clientsFile && (
-                            <div className="flex items-center justify-between p-3 bg-muted rounded-md">
-                                <div className="flex items-center space-x-2">
-                                    <FileIcon className="w-5 h-5" />
-                                    <span className="text-sm font-medium">{clientsFile.name}</span>
-                                    <span className="text-xs text-muted-foreground">{(clientsFile.size / 1024 / 1024).toFixed(2)} MB</span>
-                                </div>
-                                <Button type="button" variant="ghost" size="sm" onClick={handleRemoveClientsFile} disabled={isLoading} className="text-red-500 hover:text-red-600">Remover</Button>
-                            </div>
-                        )}
-                    </div>
-                )}
 
                 <div className="flex justify-end space-x-2 pt-4">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancelar</Button>
