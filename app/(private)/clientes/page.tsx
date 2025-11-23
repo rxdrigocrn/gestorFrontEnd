@@ -183,7 +183,7 @@ export default function ClientsTable() {
     return matchesSearch && matchesPlan
   })
 
-  const handleSubmit = async (formData: ClientFormData) => {
+  const handleSubmit = async (formData: ClientFormData): Promise<boolean> => {
     try {
       if (formData.id) {
         await updateItem(formData.id, formData as ClientUpdate)

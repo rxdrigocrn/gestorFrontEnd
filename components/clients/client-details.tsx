@@ -61,7 +61,7 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
     return value
   }
 
-  const handleSubmit = async (formData: ClientFormData) => {
+  const handleSubmit = async (formData: ClientFormData): Promise<boolean> => {
     try {
       if (clientData.id) {
         await updateItem(clientData.id, formData as ClientUpdate)
@@ -78,11 +78,13 @@ export function ClientDetails({ clientData }: ClientDetailsProps) {
       setShowAddModal(false)
       setEditingItem(null)
       fetchClients()
+      return true
     } catch (error) {
       showToast("error", "Erro ao salvar", {
         description: "Ocorreu um erro ao salvar o cliente",
       })
       console.error('Erro ao salvar cliente:', error)
+      return false
     }
   }
 
