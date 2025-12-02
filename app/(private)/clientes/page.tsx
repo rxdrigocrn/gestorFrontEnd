@@ -73,6 +73,13 @@ export default function ClientsTable() {
   const [hasLoadedPaymentMethods, setHasLoadedPaymentMethods] = useState(false)
   const [hasLoadedLeadSources, setHasLoadedLeadSources] = useState(false)
 
+  const [loading, setLoading] = useState(false)
+  const [kpis, setKpis] = useState<{ totalClients: number; activeClients: number; inactiveClients: number }>({
+    totalClients: 0,
+    activeClients: 0,
+    inactiveClients: 0,
+  })
+
   const handleFiltersOpen = () => {
     if (!hasLoadedPlans) {
       fetchPlans()
@@ -330,6 +337,27 @@ export default function ClientsTable() {
     }
   }
 
+  const fetchKpiCardsForToday = async () => {
+    setLoading(true)
+
+    try {
+      const today = new Date().toISOString()
+      const url = `/dashboard/kpi-cards/by-date?date=${today}`
+
+      const kpisData = await fetchAll(url)
+
+      setKpis(kpisData)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchKpiCardsForToday()
+  }, [])
+
   return (
     <div className="space-y-4">
       {/* Cabeçalho */}
@@ -357,52 +385,50 @@ export default function ClientsTable() {
 
 
       <div className="w-full">
-        {(() => {
-          const activeCount = clients.filter((c) => c.status === 'ACTIVE').length
-          const inactiveCount = clients.filter((c) => c.status === 'INACTIVE').length
-          const totalCount = typeof total === 'number' && total > 0 ? total : clients.length
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 w-full">
 
-          return (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 w-full">
-              <Card>
-                <CardContent className="flex flex-row items-center justify-between p-6">
-                  <div className="flex flex-col space-y-1">
-                    <span className="text-muted-foreground text-sm">Total de Clientes</span>
-                    <span className="text-2xl font-bold">{totalCount}</span>
-                  </div>
-                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Users className="h-6 w-6 text-primary" />
-                  </div>
-                </CardContent>
-              </Card>
 
-              <Card>
-                <CardContent className="flex flex-row items-center justify-between p-6">
-                  <div className="flex flex-col space-y-1">
-                    <span className="text-muted-foreground text-sm">Ativos</span>
-                    <span className="text-2xl font-bold">{activeCount}</span>
-                  </div>
-                  <div className="h-12 w-12 rounded-lg bg-lime-100 flex items-center justify-center">
-                    <Users className="h-6 w-6 text-lime-600" />
-                  </div>
-                </CardContent>
-              </Card>
+          <Card>
+            <CardContent className="flex flex-row items-center justify-between p-6">
+              <div className="flex flex-col space-y-1">
+                <span className="text-muted-foreground text-sm">Total de Clientes</span>
+                <span className="text-2xl font-bold">{kpis.totalClients}</span>
+              </div>
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Users className="h-6 w-6 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
 
-              <Card>
-                <CardContent className="flex flex-row items-center justify-between p-6">
-                  <div className="flex flex-col space-y-1">
-                    <span className="text-muted-foreground text-sm">Inativos</span>
-                    <span className="text-2xl font-bold">{inactiveCount}</span>
-                  </div>
-                  <div className="h-12 w-12 rounded-lg bg-red-100 flex items-center justify-center">
-                    <Users className="h-6 w-6 text-red-600" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )
-        })()}
+          {/* ATIVOS */}
+          <Card>
+            <CardContent className="flex flex-row items-center justify-between p-6">
+              <div className="flex flex-col space-y-1">
+                <span className="text-muted-foreground text-sm">Ativos</span>
+                <span className="text-2xl font-bold">{kpis.activeClients}</span>
+              </div>
+              <div className="h-12 w-12 rounded-lg bg-lime-100 flex items-center justify-center">
+                <Users className="h-6 w-6 text-lime-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* INATIVOS */}
+          <Card>
+            <CardContent className="flex flex-row items-center justify-between p-6">
+              <div className="flex flex-col space-y-1">
+                <span className="text-muted-foreground text-sm">Inativos</span>
+                <span className="text-2xl font-bold">{kpis.inactiveClients}</span>
+              </div>
+              <div className="h-12 w-12 rounded-lg bg-red-100 flex items-center justify-center">
+                <Users className="h-6 w-6 text-red-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+        </div>
       </div>
+
 
 
 
