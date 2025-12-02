@@ -342,7 +342,7 @@ export default function ClientsTable() {
 
     try {
       const today = new Date().toISOString()
-      const url = `/dashboard/kpi-cards/by-date?date=${today}`
+      const url = `/dashboard/kpi-cards`
 
       const kpisData = await fetchAll(url)
 
