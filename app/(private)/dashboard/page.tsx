@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import DashboardStats from '@/components/dashboard/dashboard-stats'
+import { useRouter } from 'next/navigation'
 import RevenueChart from '@/components/dashboard/revenue-chart'
 import PaymentHistory from '@/components/dashboard/payment-history'
 import SystemLogs from '@/components/dashboard/system-logs'
@@ -106,6 +107,28 @@ export default function DashboardPage() {
     if (!kpis) return null
 
     const stats = transformKpisToStats(kpis)
+    const router = useRouter()
+
+    // attach click handlers to expiration related cards to navigate to clients with filters
+    const statsWithHandlers = stats.map((s) => {
+        const lower = s.title.toLowerCase()
+        if (lower.includes('expiram hoje') || lower.includes('vence hoje') || lower.includes('vence_hoje') || lower.includes('vence hoje')) {
+            // navigate to clients list for active clients that expire today
+            return { ...s, onClick: () => router.push('/clientes?status=ACTIVE&expiring=today') }
+        }
+        if (lower.includes('expiram amanhã') || lower.includes('amanhã') || lower.includes('amanha')) {
+            // for tomorrow/in2 navigate to active clients and apply expiring filter
+            return { ...s, onClick: () => router.push('/clientes?status=ACTIVE&expiring=tomorrow') }
+        }
+        if (lower.includes('expirados ontem') || lower.includes('expirad') || lower.includes('ontem')) {
+            // navigate to clients that are inactive (expired yesterday)
+            return { ...s, onClick: () => router.push('/clientes?status=INACTIVE') }
+        }
+        if (lower.includes('expiram em 2 dias') || lower.includes('2 dias')) {
+            return { ...s, onClick: () => router.push('/clientes?status=ACTIVE&expiring=in2') }
+        }
+        return s
+    })
 
     return (
         <div className="space-y-6">
@@ -118,7 +141,7 @@ export default function DashboardPage() {
                 />
             </div>
 
-            <DashboardStats stats={stats} />
+                <DashboardStats stats={statsWithHandlers} />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <RevenueChart />
@@ -177,7 +200,32 @@ function transformKpisToStats(kpis: any) {
                 description: 'Data da análise',
                 icon: <Clock className="h-5 w-5" />,
             }
-
+            ,
+            // Expiration related KPIs
+            {
+                title: 'Expirados Ontem',
+                value: (kpis.expiredYesterday ?? 0).toString(),
+                description: 'Clientes que expiraram ontem',
+                icon: <Clock className="h-5 w-5" />,
+            },
+            {
+                title: 'Expiram Hoje',
+                value: (kpis.expiringToday ?? 0).toString(),
+                description: 'Clientes que expiram hoje',
+                icon: <Clock className="h-5 w-5" />,
+            },
+            {
+                title: 'Expiram Amanhã',
+                value: (kpis.expiringTomorrow ?? 0).toString(),
+                description: 'Clientes que expiram amanhã',
+                icon: <Clock className="h-5 w-5" />,
+            },
+            {
+                title: 'Expiram em 2 dias',
+                value: (kpis.expiringIn2Days ?? 0).toString(),
+                description: 'Clientes que expiram em 2 dias',
+                icon: <Clock className="h-5 w-5" />,
+            }
         ]
     }
 
@@ -246,6 +294,31 @@ function transformKpisToStats(kpis: any) {
             description: 'Retenção média dos clientes',
             icon: <Clock className="h-5 w-5" />,
             trend: { value: '—', isPositive: true },
+        },
+
+        {
+            title: 'Expirados Ontem',
+            value: (kpis.expiredYesterday ?? 0).toString(),
+            description: 'Clientes que expiraram ontem',
+            icon: <Clock className="h-5 w-5" />,
+        },
+        {
+            title: 'Expiram Hoje',
+            value: (kpis.expiringToday ?? 0).toString(),
+            description: 'Clientes que expiram hoje',
+            icon: <Clock className="h-5 w-5" />,
+        },
+        {
+            title: 'Expiram Amanhã',
+            value: (kpis.expiringTomorrow ?? 0).toString(),
+            description: 'Clientes que expiram amanhã',
+            icon: <Clock className="h-5 w-5" />,
+        },
+        {
+            title: 'Expiram em 2 dias',
+            value: (kpis.expiringIn2Days ?? 0).toString(),
+            description: 'Clientes que expiram em 2 dias',
+            icon: <Clock className="h-5 w-5" />,
         },
     ]
 }

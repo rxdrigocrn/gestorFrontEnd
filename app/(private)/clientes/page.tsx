@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { useClientStore } from '@/store/clientStore'
 
@@ -65,6 +66,8 @@ export default function ClientsTable() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState<{ [key: string]: string }>({})
   const [appliedFilters, setAppliedFilters] = useState<{ [key: string]: string }>({})
+  const searchParams = useSearchParams()
+  const [expiringFilter, setExpiringFilter] = useState<string | null>(null)
 
   const [hasLoadedPlans, setHasLoadedPlans] = useState(false)
   const [hasLoadedServers, setHasLoadedServers] = useState(false)
@@ -108,24 +111,35 @@ export default function ClientsTable() {
   }
 
   useEffect(() => {
+    const exp = searchParams.get('expiring');
+    const status = searchParams.get('status');
+    setExpiringFilter(exp);
+
     const params: { [key: string]: string | number } = {
       page,
       limit,
     };
 
-    if (searchTerm.trim()) {
-      params.name = searchTerm.trim();
-    }
+    if (searchTerm.trim()) params.name = searchTerm.trim();
 
     Object.entries(filters).forEach(([key, value]) => {
-      if (value && value !== '') {
-        params[key] = value;
-      }
+      if (value) params[key] = value;
     });
+
+    // `expiring` is a frontend-only filter (we'll filter by `expiresAt` after
+    // the backend returns clients). Only send `status` to the backend.
+    if (status) params.status = status;
 
     fetchClients(params);
 
-  }, [searchTerm, filters, page, limit]);
+  }, [searchTerm, filters, page, limit, searchParams]);
+
+
+  useEffect(() => {
+    const exp = searchParams.get("expiring");
+    setExpiringFilter(exp);
+  }, [searchParams]);
+
 
   const planOptions = useMemo(() => {
     return plans.map(({ id, name }) => ({
@@ -187,7 +201,46 @@ export default function ClientsTable() {
 
     const matchesPlan = filters.planId ? client.plan?.id === filters.planId : true
 
-    return matchesSearch && matchesPlan
+    // apply expiring filter if present
+    let matchesExpiring = true
+    if (expiringFilter) {
+      const expiresAt = client.expiresAt
+      if (!expiresAt) matchesExpiring = false
+      else {
+        const d = new Date(expiresAt)
+        const targetUTC = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
+        const today = new Date()
+        const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())
+        const diffDays = Math.round((targetUTC - todayUTC) / (24 * 60 * 60 * 1000))
+
+        switch (expiringFilter) {
+          // expired yesterday: should have status VENCIDO and expiresAt == yesterday
+          case 'yesterday':
+            matchesExpiring = (client.status === 'INACTIVE') && diffDays === -1
+            break
+
+          // expiring today: should be ACTIVE and expiresAt == today
+          case 'today':
+            matchesExpiring = (client.status === 'ACTIVE') && diffDays === 0
+            break
+
+          // expiring tomorrow: ACTIVE and expiresAt == tomorrow
+          case 'tomorrow':
+            matchesExpiring = (client.status === 'ACTIVE') && diffDays === 1
+            break
+
+          // expiring in 2 days: ACTIVE and expiresAt == in 2 days
+          case 'in2':
+            matchesExpiring = (client.status === 'ACTIVE') && diffDays === 2
+            break
+
+          default:
+            matchesExpiring = true
+        }
+      }
+    }
+
+    return matchesSearch && matchesPlan && matchesExpiring
   })
 
   const handleSubmit = async (formData: ClientFormData): Promise<boolean> => {
@@ -386,6 +439,7 @@ export default function ClientsTable() {
 
       <div className="w-full">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 w-full">
+        
 
 
           <Card>

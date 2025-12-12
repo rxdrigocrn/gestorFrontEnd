@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createMessageTemplateSchema, MessageTemplateFormData } from '@/schemas/messageTemplateSchema'
@@ -51,7 +51,31 @@ export function AddMessageTemplateModal({
     }
   }, [open, defaultValues, reset]);
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined)
+
+  useEffect(() => {
+    // if defaultValues contain imageUrl (string), show it as preview
+    if (defaultValues?.imageUrl && typeof defaultValues.imageUrl === 'string') {
+      setPreviewUrl(defaultValues.imageUrl)
+    } else {
+      setPreviewUrl(undefined)
+    }
+    setSelectedFile(null)
+  }, [defaultValues, open])
+
   const onSubmit = async (data: MessageTemplateFormData) => {
+    // If a file was selected, build FormData and send file under `imageFile`
+    if (selectedFile) {
+      const fd = new FormData()
+      if (data.id) fd.append('id', String(data.id))
+      fd.append('name', data.name)
+      fd.append('content', data.content)
+      fd.append('imageFile', selectedFile, selectedFile.name)
+      await onConfirm(fd as unknown as MessageTemplateFormData)
+      return
+    }
+
     const sanitizedData = {
       ...data,
       imageUrl: data.imageUrl?.trim() === '' ? undefined : data.imageUrl,
@@ -146,14 +170,42 @@ export function AddMessageTemplateModal({
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="imageUrl">URL da Imagem (Opcional)</Label>
+          <Label htmlFor="imageUrl">URL da Imagem (Opcional) — ou envie um arquivo</Label>
           <Input
             id="imageUrl"
             {...register('imageUrl')}
             placeholder="URL da imagem"
+            disabled={!!selectedFile}
           />
           {errors.imageUrl && (
             <p className="text-sm text-red-600">{errors.imageUrl.message}</p>
+          )}
+
+          <div className="pt-2">
+            <input
+              id="imageFile"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) {
+                  setSelectedFile(file)
+                  const url = URL.createObjectURL(file)
+                  setPreviewUrl(url)
+                } else {
+                  setPreviewUrl(defaultValues?.imageUrl as string | undefined)
+                }
+              }}
+            />
+          </div>
+
+          {previewUrl && (
+            <div className="mt-2">
+              <Label>Preview</Label>
+              <div className="mt-1">
+                <img src={previewUrl} alt="preview" className="max-h-40 rounded-md" />
+              </div>
+            </div>
           )}
         </div>
 

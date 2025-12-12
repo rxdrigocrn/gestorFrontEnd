@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useMessageStore } from '@/store/messageStore' // Presumed store for messages
+import { api } from '@/services/api'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,25 +54,44 @@ export default function MessagesTable() {
     return matchesSearch
   })
 
-  const handleSubmit = async (data: MessageTemplateFormData) => {
+
+
+  const handleSubmit = async (data: any) => {
     try {
-      if (data.id) {
-        await updateItem(data.id, data as MessageTemplateUpdate)
-        showToast("success", "Mensagem atualizada", {
-          description: "As alterações foram salvas com sucesso",
-        })
+      if (data instanceof FormData) {
+        const id = data.get('id') as string | null
+        if (id) {
+          await api.patch(`/message-templates/${id}`, data)
+          showToast("success", "Mensagem atualizada", {
+            description: "As alterações foram salvas com sucesso",
+          })
+        } else {
+          await api.post(`/message-templates`, data)
+          showToast("success", "Mensagem criada", {
+            description: "A mensagem foi criada com sucesso",
+          })
+        }
       } else {
-        await createItem(data as MessageTemplateCreate)
-        showToast("success", "Mensagem criada", {
-          description: "A mensagem foi criada com sucesso",
-        })
+        // Plain JSON path (no file)
+        if (data.id) {
+          await updateItem(data.id, data as MessageTemplateUpdate)
+          showToast("success", "Mensagem atualizada", {
+            description: "As alterações foram salvas com sucesso",
+          })
+        } else {
+          await createItem(data as MessageTemplateCreate)
+          showToast("success", "Mensagem criada", {
+            description: "A mensagem foi criada com sucesso",
+          })
+        }
       }
+
       setShowAddModal(false)
       setEditingItem(null)
       fetchMessages()
     } catch (error) {
       showToast("error", "Erro ao salvar mensagem", {
-
+        description: 'Ocorreu um erro ao salvar a mensagem',
       })
       console.error('Erro ao salvar mensagem:', error)
     }
@@ -140,7 +160,7 @@ export default function MessagesTable() {
       <GenericTable<MessageTemplateResponse>
         data={filteredMessages}
         rowKey={(row) => row.id}
-         isLoading={isLoading}
+        isLoading={isLoading}
         error={error ?? undefined}
         columns={[
           {
