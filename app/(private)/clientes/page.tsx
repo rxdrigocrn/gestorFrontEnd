@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { useClientStore } from '@/store/clientStore'
@@ -39,7 +39,7 @@ import { useServerStore } from '@/store/serverStore'
 import SendMessageModal from '@/components/clients/send-message-modal'
 import { Badge } from '@/components/ui/badge'
 
-export default function ClientsTable() {
+function ClientsTableContent() {
   const router = useRouter()
   const { fetchItems: fetchClients, items: clients, total, isLoading, error, createItem: createClient, updateItem, deleteItem, addPaymentToClient } = useClientStore()
   const { fetchItems: fetchDevices, items: devices } = useDeviceStore()
@@ -736,5 +736,14 @@ export default function ClientsTable() {
         onClose={() => setShowMessageModal(false)}
       />
     </div >
+  )
+}
+
+export default function ClientsTable() {
+  return (
+    // O fallback pode ser um esqueleto de carregamento ou um spinner simples
+    <Suspense fallback={<div className="p-4">Carregando clientes...</div>}>
+      <ClientsTableContent />
+    </Suspense>
   )
 }
