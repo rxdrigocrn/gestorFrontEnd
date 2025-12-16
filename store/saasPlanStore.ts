@@ -34,7 +34,7 @@ export const useSaasPlanStore = () => {
       const token = sessionStorage.getItem('token')
       if (!token) throw new Error('Usuário não autenticado.')
 
-      const res = await fetch(`http://34.237.173.84/billing/create-checkout`, {
+      const res = await fetch(`http://34.237.173.84/api/billing/create-checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
