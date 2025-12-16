@@ -96,7 +96,7 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(
-        `http://34.237.173.84/api/auth/forgot-password`,
+        `http://34.237.173.84/api/api/auth/forgot-password`,
         data
       )
 

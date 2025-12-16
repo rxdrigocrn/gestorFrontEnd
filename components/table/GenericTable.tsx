@@ -7,15 +7,16 @@ import {
     TableRow
 } from '@/components/ui/table'
 import { Pagination } from './Pagination'
-import { Button } from '../ui/button'
-import { Skeleton } from '../ui/skeleton' // importe o Skeleton do shadcn/ui
-import Loader from '@/components/loaders/loader'
+import { Skeleton } from '../ui/skeleton'
 import ErrorBadge from '@/components/ui/error-badge'
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
+import React from 'react'
 
 export interface Column<T> {
     header: string
     accessor: keyof T | ((row: T) => React.ReactNode)
     className?: string
+    sortKey?: string  
 }
 
 interface GenericTableProps<T> {
@@ -33,6 +34,11 @@ interface GenericTableProps<T> {
     }
     isLoading?: boolean
     error?: boolean | string
+    sortConfig?: {
+        sortBy?: string
+        sortOrder?: 'asc' | 'desc'
+    }
+    onSort?: (key: string) => void
 }
 
 export function GenericTable<T>({
@@ -44,6 +50,8 @@ export function GenericTable<T>({
     pagination,
     isLoading,
     error,
+    sortConfig,
+    onSort
 }: GenericTableProps<T>) {
     if (error) return <ErrorBadge message={typeof error === 'string' ? error : 'Erro ao carregar dados.'} />
     const skeletonRows = pagination?.limit || 5
@@ -51,13 +59,38 @@ export function GenericTable<T>({
     return (
         <div className="rounded-md border">
             <Table>
-                <TableHeader className='bg-primary  '>
+                <TableHeader className='bg-primary'>
                     <TableRow>
-                        {columns.map((col, i) => (
-                            <TableHead key={i} className={`${col.className} text-black`}>
-                                {col.header}
-                            </TableHead>
-                        ))}
+                        {columns.map((col, i) => {
+                            const isSorted = sortConfig?.sortBy === col.sortKey;
+                            const isAsc = sortConfig?.sortOrder === 'asc';
+                            const canSort = !!col.sortKey && !!onSort;
+
+                            return (
+                                <TableHead
+                                    key={i}
+                                    className={`${col.className} text-black select-none transition-colors`}
+                                    onClick={() => canSort && onSort(col.sortKey!)}
+                                    style={{ cursor: canSort ? 'pointer' : 'default' }}
+                                >
+                                    <div className={`flex items-center gap-2 ${col.className?.includes('text-right') ? 'justify-end' :
+                                        col.className?.includes('text-center') ? 'justify-center' : 'justify-start'
+                                        }`}>
+                                        {col.header}
+
+                                        {canSort && (
+                                            <span className="ml-1">
+                                                {isSorted ? (
+                                                    isAsc ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />
+                                                ) : (
+                                                    <ArrowUpDown className="h-4 w-4 opacity-30 hover:opacity-100" />
+                                                )}
+                                            </span>
+                                        )}
+                                    </div>
+                                </TableHead>
+                            )
+                        })}
                         {actions && <TableHead className="text-right text-black">Ações</TableHead>}
                     </TableRow>
                 </TableHeader>

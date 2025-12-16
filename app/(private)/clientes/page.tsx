@@ -69,6 +69,10 @@ function ClientsTableContent() {
   const searchParams = useSearchParams()
   const [expiringFilter, setExpiringFilter] = useState<string | null>(null)
 
+  // 1. NOVOS ESTADOS PARA ORDENAÇÃO <---
+  const [sortBy, setSortBy] = useState<string | undefined>('createdAt')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
   const [hasLoadedPlans, setHasLoadedPlans] = useState(false)
   const [hasLoadedServers, setHasLoadedServers] = useState(false)
   const [hasLoadedApplications, setHasLoadedApplications] = useState(false)
@@ -82,6 +86,18 @@ function ClientsTableContent() {
     activeClients: 0,
     inactiveClients: 0,
   })
+
+  // 2. FUNÇÃO QUE LIDA COM O CLIQUE NO CABEÇALHO <---
+  const handleSort = (key: string) => {
+    if (sortBy === key) {
+      // Se clicar na mesma coluna, inverte
+      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+    } else {
+      // Se for coluna nova, define ela e começa descendente (ou asc se preferir)
+      setSortBy(key)
+      setSortOrder('desc')
+    }
+  }
 
   const handleFiltersOpen = () => {
     if (!hasLoadedPlans) {
@@ -115,9 +131,12 @@ function ClientsTableContent() {
     const status = searchParams.get('status');
     setExpiringFilter(exp);
 
-    const params: { [key: string]: string | number } = {
+    // 3. ADICIONAR PARAMS DE ORDENAÇÃO NO FETCH <---
+    const params: { [key: string]: string | number | undefined } = {
       page,
       limit,
+      sortBy,    // Enviando para API
+      sortOrder, // Enviando para API
     };
 
     if (searchTerm.trim()) params.name = searchTerm.trim();
@@ -126,13 +145,12 @@ function ClientsTableContent() {
       if (value) params[key] = value;
     });
 
-    // `expiring` is a frontend-only filter (we'll filter by `expiresAt` after
-    // the backend returns clients). Only send `status` to the backend.
     if (status) params.status = status;
 
     fetchClients(params);
 
-  }, [searchTerm, filters, page, limit, searchParams]);
+    // Adicione sortBy e sortOrder no array de dependências para refazer a busca quando mudarem
+  }, [searchTerm, filters, page, limit, searchParams, sortBy, sortOrder]);
 
 
   useEffect(() => {
@@ -439,8 +457,6 @@ function ClientsTableContent() {
 
       <div className="w-full">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 w-full">
-        
-
 
           <Card>
             <CardContent className="flex flex-row items-center justify-between p-6">
@@ -482,8 +498,6 @@ function ClientsTableContent() {
 
         </div>
       </div>
-
-
 
 
       {/* Filtros */}
@@ -531,8 +545,6 @@ function ClientsTableContent() {
         ]}
       />
 
-
-
       {/* Tabela */}
       <GenericTable<ClientResponse>
         data={filteredClients}
@@ -540,6 +552,11 @@ function ClientsTableContent() {
         onRowClick={(row) => router.push(`/clientes/${row.id}`)}
         isLoading={isLoading}
         error={error ?? undefined}
+
+        // 4. PASSAR AS PROPS PARA TABELA <---
+        sortConfig={{ sortBy, sortOrder }}
+        onSort={handleSort}
+
         pagination={{
           page,
           limit,
@@ -550,9 +567,11 @@ function ClientsTableContent() {
             setPage(1)
           },
         }}
+        // 5. DEFINIR O SORTKEY EM CADA COLUNA <---
         columns={[
           {
             header: 'Cliente',
+            sortKey: 'name', // <--- DTO: name
             accessor: (client) => (
               <div className="flex items-center space-x-3">
                 <Avatar>
@@ -568,6 +587,7 @@ function ClientsTableContent() {
           },
           {
             header: 'Plano',
+            sortKey: 'plan', // <--- DTO: plan
             accessor: (client) =>
               client.plan ? (
                 <div>
@@ -585,6 +605,7 @@ function ClientsTableContent() {
           },
           {
             header: 'Status',
+            sortKey: 'status', // <--- DTO: status
             accessor: (client) => (
               <Badge
                 variant={client.status === 'ACTIVE' ? 'outline' : client.status === 'INACTIVE' ? 'default' : undefined}
@@ -594,7 +615,7 @@ function ClientsTableContent() {
                     : client.status === 'INACTIVE'
                       ? 'bg-red-500 text-white hover:bg-red-600'
                       : 'bg-gray-500 text-white'
-                }           >
+                }          >
                 {client.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}
               </Badge>
             ),
@@ -602,14 +623,18 @@ function ClientsTableContent() {
           },
           {
             header: 'Servidor',
+            sortKey: 'server', // <--- DTO: server
             accessor: (client) => client.server?.name ?? 'Sem servidor',
             className: 'text-left',
           },
           {
-            header: 'Valor', accessor: (client) => client.paidValue !== null ? `R$ ${client.paidValue?.toFixed(2)}` : '-', className: 'text-right',
+            header: 'Valor',
+            sortKey: 'value', // <--- DTO: value
+            accessor: (client) => client.paidValue !== null ? `R$ ${client.paidValue?.toFixed(2)}` : '-', className: 'text-right',
           },
           {
             header: 'Expiração',
+            sortKey: 'expiresAt', // <--- DTO: expiresAt
             accessor: (client) =>
               client.expiresAt
                 ? (() => {
@@ -741,7 +766,6 @@ function ClientsTableContent() {
 
 export default function ClientsTable() {
   return (
-    // O fallback pode ser um esqueleto de carregamento ou um spinner simples
     <Suspense fallback={<div className="p-4">Carregando clientes...</div>}>
       <ClientsTableContent />
     </Suspense>
