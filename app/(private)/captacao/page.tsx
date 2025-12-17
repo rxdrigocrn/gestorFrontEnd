@@ -147,7 +147,7 @@ export default function LeadsTable() {
                     },
                 ]}
                 actions={(lead) => (
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
                                 <MoreHorizontal className="h-4 w-4" />

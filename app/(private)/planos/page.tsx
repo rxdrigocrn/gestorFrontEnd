@@ -163,7 +163,7 @@ export default function PlansTable() {
                     },
                 ]}
                 actions={(plan) => (
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
                                 <MoreHorizontal className="h-4 w-4" />

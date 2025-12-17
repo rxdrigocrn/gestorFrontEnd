@@ -651,9 +651,9 @@ function ClientsTableContent() {
           },
         ]}
         actions={(client) => (
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">Abrir menu</span>
               </Button>
@@ -661,33 +661,30 @@ function ClientsTableContent() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Ações</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push(`/clientes/${client.id}`)}>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/clientes/${client.id}`);
+                }}
+              >
                 <Eye className="mr-2 h-4 w-4" />
                 Detalhes
               </DropdownMenuItem>
+
               <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleAddPayment(client)
-                }}
+                onClick={(e) => { e.stopPropagation(); handleAddPayment(client) }}
               >
                 <CreditCard className="mr-2 h-4 w-4" />
                 Adicionar Pagamento
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleEdit(client)
-                }}
+                onClick={(e) => { e.stopPropagation(); handleEdit(client) }}
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Editar
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleOpenMessageModal(client)
-                }}
+                onClick={(e) => { e.stopPropagation(); handleOpenMessageModal(client) }}
               >
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Enviar Mensagem
@@ -695,10 +692,7 @@ function ClientsTableContent() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleOpenDialog(client)
-                }}
+                onClick={(e) => { e.stopPropagation(); handleOpenDialog(client) }}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Excluir
