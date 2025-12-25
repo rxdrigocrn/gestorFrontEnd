@@ -140,8 +140,89 @@ export function AddMessageTemplateModal({
               }}
             >
               <option value="" disabled>Selecionar...</option>
-              <option value="{{clientName}}">{'{{clientName}} - Nome do cliente'}</option>
-              <option value="{{planName}}">{'{{planName}} - Nome do plano'}</option>
+
+              {/* Dados do cliente */}
+              <option value="{NOME}">{'{NOME} - Nome'}</option>
+              <option value="{NOME_SOBRENOME}">{'{NOME_SOBRENOME} - Nome e sobrenome'}</option>
+              <option value="{NOME_COMPLETO}">{'{NOME_COMPLETO} - Nome completo'}</option>
+              <option value="{EMAIL}">{'{EMAIL} - Email'}</option>
+              <option value="{TELEFONE}">{'{TELEFONE} - Telefone'}</option>
+              <option value="{USUARIO}">{'{USUARIO} - Usuário'}</option>
+              <option value="{SENHA}">{'{SENHA} - Senha'}</option>
+              <option value="{MAC}">{'{MAC} - MAC Address'}</option>
+              <option value="{OBSERVACAO}">{'{OBSERVACAO} - Observação'}</option>
+
+              {/* Datas e horários */}
+              <option value="{DATA_HOJE}">{'{DATA_HOJE} - Data de hoje'}</option>
+              <option value="{DIA_HOJE}">{'{DIA_HOJE} - Dia de hoje'}</option>
+              <option value="{HORA_AGORA}">{'{HORA_AGORA} - Hora atual'}</option>
+              <option value="{TIME}">{'{TIME} - Data e hora completas'}</option>
+              <option value="{DIA}">{'{DIA} - Dia'}</option>
+              <option value="{HORA}">{'{HORA} - Hora'}</option>
+              <option value="{MES_ATUAL}">{'{MES_ATUAL} - Mês atual'}</option>
+              <option value="{ANIVERSARIO}">{'{ANIVERSARIO} - Aniversário'}</option>
+
+              {/* Vencimento */}
+              <option value="{VENCIMENTO}">{'{VENCIMENTO} - Data de vencimento'}</option>
+              <option value="{VENCIMENTO_APLICATIVO}">{'{VENCIMENTO_APLICATIVO} - Vencimento app'}</option>
+              <option value="{HORA_VENCIMENTO_APLICATIVO}">{'{HORA_VENCIMENTO_APLICATIVO} - Hora vencimento app'}</option>
+              <option value="{DIA_VENCIMENTO_APLICATIVO}">{'{DIA_VENCIMENTO_APLICATIVO} - Dia vencimento app'}</option>
+              <option value="{DIF_DIAS_VENCIMENTO_HOJE}">{'{DIF_DIAS_VENCIMENTO_HOJE} - Dif. dias vencimento'}</option>
+              <option value="{DIF_DIAS_CADASTRO_HOJE}">{'{DIF_DIAS_CADASTRO_HOJE} - Dif. dias cadastro'}</option>
+
+              {/* Plano e pagamento */}
+              <option value="{PLANO}">{'{PLANO} - Plano'}</option>
+              <option value="{PLANO_OBS}">{'{PLANO_OBS} - Obs. do plano'}</option>
+              <option value="{VALOR}">{'{VALOR} - Valor'}</option>
+              <option value="{PAGAMENTO}">{'{PAGAMENTO} - Forma de pagamento'}</option>
+              <option value="{PIX}">{'{PIX} - Chave PIX'}</option>
+              <option value="{URL_RENOVACAO}">{'{URL_RENOVACAO} - URL de renovação'}</option>
+
+              {/* Aplicativo / Dispositivo */}
+              <option value="{APLICATIVO}">{'{APLICATIVO} - Aplicativo'}</option>
+              <option value="{DISPOSITIVO}">{'{DISPOSITIVO} - Dispositivo'}</option>
+              <option value="{TELAS}">{'{TELAS} - Telas'}</option>
+              <option value="{DEVICE_KEY_OTP_CODE}">{'{DEVICE_KEY_OTP_CODE} - Device Key OTP'}</option>
+              <option value="{MINUTOS_TESTE}">{'{MINUTOS_TESTE} - Minutos de teste'}</option>
+
+              {/* Servidor */}
+              <option value="{SERVIDOR}">{'{SERVIDOR} - Servidor'}</option>
+              <option value="{INFO_SERVIDOR}">{'{INFO_SERVIDOR} - Info servidor'}</option>
+              <option value="{DNS_1}">{'{DNS_1} - DNS 1'}</option>
+              <option value="{DNS_2}">{'{DNS_2} - DNS 2'}</option>
+              <option value="{DNS_3}">{'{DNS_3} - DNS 3'}</option>
+              <option value="{DNS_4}">{'{DNS_4} - DNS 4'}</option>
+
+              {/* URLs / APIs */}
+              <option value="{LINK_M3U}">{'{LINK_M3U} - Link M3U'}</option>
+              <option value="{EPG}">{'{EPG} - EPG'}</option>
+              <option value="{URL_API_XC}">{'{URL_API_XC} - API XC'}</option>
+              <option value="{URL_API_SMARTERS}">{'{URL_API_SMARTERS} - API Smarters'}</option>
+
+              {/* Apps */}
+              <option value="{URL_APP_ANDROID}">{'{URL_APP_ANDROID} - App Android'}</option>
+              <option value="{URL_APP_ANDROID_2}">{'{URL_APP_ANDROID_2} - App Android 2'}</option>
+              <option value="{URL_APP_IOS}">{'{URL_APP_IOS} - App iOS'}</option>
+              <option value="{URL_APP_SAMSUNG}">{'{URL_APP_SAMSUNG} - App Samsung'}</option>
+              <option value="{URL_APP_LG}">{'{URL_APP_LG} - App LG'}</option>
+              <option value="{URL_APP_ROKU}">{'{URL_APP_ROKU} - App Roku'}</option>
+
+              {/* Indicados / métricas */}
+              <option value="{CAPTACAO}">{'{CAPTACAO} - Captação'}</option>
+              <option value="{LTV}">{'{LTV} - LTV'}</option>
+              <option value="{NUM_INDICADOS}">{'{NUM_INDICADOS} - Nº indicados'}</option>
+              <option value="{TOTAL_INDICADOS}">{'{TOTAL_INDICADOS} - Total indicados'}</option>
+              <option value="{TOTAL_INDICADOS_MES}">{'{TOTAL_INDICADOS_MES} - Indicados no mês'}</option>
+              <option value="{NOME_ULTIMO_INDICADO}">{'{NOME_ULTIMO_INDICADO} - Último indicado'}</option>
+
+              {/* Fidelidade */}
+              <option value="{PONTOS_FIDELIDADE}">{'{PONTOS_FIDELIDADE} - Pontos fidelidade'}</option>
+              <option value="{PONTOS_NECESSARIOS}">{'{PONTOS_NECESSARIOS} - Pontos necessários'}</option>
+              <option value="{PONTOS_RESTANTES}">{'{PONTOS_RESTANTES} - Pontos restantes'}</option>
+
+              {/* Outros */}
+              <option value="{SITUACAO}">{'{SITUACAO} - Situação'}</option>
+              <option value="{SAUDACAO}">{'{SAUDACAO} - Saudação'}</option>
             </select>
           </div>
 
