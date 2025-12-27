@@ -2,10 +2,11 @@ import axios from 'axios'
 import { useSubscriptionModalStore } from '@/store/subscriptionModalStore'
 
 export const api = axios.create({
-  // baseURL: process.env.NEXT_PUBLIC_API_URL || "http://http://34.237.173.84/api/v1/api",
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://34.237.173.84/api/v1",
   withCredentials: true,
 })
+
+export const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://34.237.173.84/api/v1"
 
 api.interceptors.request.use(
   (config) => {
@@ -27,7 +28,7 @@ if (typeof window !== 'undefined') {
     (err) => {
       if (err.response?.status === 403) {
         const errorMessage =
-          err.response?.data?.message || 
+          err.response?.data?.message ||
           'A sua subscrição não está ativa. Por favor, complete o pagamento.'
 
         import('@/store/subscriptionModalStore').then(

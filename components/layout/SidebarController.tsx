@@ -9,9 +9,9 @@ export default function SidebarController({ children }: { children: React.ReactN
     return (
         <div className="relative flex min-h-screen flex-col">
             <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-            <div className="flex flex-1">
+            <div className="flex min-h-screen">
                 <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-                <main className="flex-1 p-4 sm:p-6 w-full max-w-[100vw] overflow-x-hidden">
+                <main className="flex-1 p-6">
                     {children}
                 </main>
             </div>

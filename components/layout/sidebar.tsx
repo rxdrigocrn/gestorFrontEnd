@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -16,15 +17,11 @@ import {
   Globe,
   UserCog,
   CircleDollarSign,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 
-interface SidebarLink {
-  name: string
-  href: string
-  icon: React.ComponentType<{ className?: string }>
-}
-
-const links: SidebarLink[] = [
+const links = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Usuários", href: "/usuarios", icon: UserCog },
   { name: "Clientes", href: "/clientes", icon: Users },
@@ -47,48 +44,88 @@ interface SidebarProps {
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const pathname = usePathname()
-
-  // Fecha a sidebar ao clicar em um link (mobile)
-  const handleLinkClick = () => {
-    setSidebarOpen(false)
-  }
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   return (
     <>
-      {/* Overlay para fechar sidebar no mobile */}
+      {/* Overlay Mobile */}
       <div
         className={cn(
-          "fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden transition-opacity duration-300",
-          sidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          "fixed inset-0 bg-black/40 z-20 md:hidden transition-opacity duration-300",
+          sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
         onClick={() => setSidebarOpen(false)}
       />
 
       <aside
         className={cn(
-          "fixed top-16 left-0 z-30 h-[calc(100vh-4rem)] w-64 shrink-0 overflow-y-auto border-r bg-background px-4 py-6 md:sticky md:block md:translate-x-0 transition-transform duration-300 ease-in-out",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed top-16 left-0 z-30 h-[calc(100vh-4rem)] border-r bg-background transition-all duration-300 ease-in-out md:sticky",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+          isCollapsed ? "w-[78px]" : "w-64"
         )}
       >
-        <nav className="flex flex-col gap-1">
-          {links.map(({ name, href, icon: Icon }) => {
-            const isActive = pathname === href || pathname.startsWith(`${href}/`)
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={handleLinkClick}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                  isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+        <div className="flex h-full flex-col justify-between py-4">
+          {/* Menu de Links */}
+          <nav className="flex flex-col gap-1 px-3">
+            {links.map(({ name, href, icon: Icon }) => {
+              const isActive = pathname === href || pathname.startsWith(`${href}/`)
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={cn(
+                    "group relative flex items-center h-10 rounded-lg transition-all duration-200 hover:bg-accent",
+                    isActive ? "bg-accent text-white" : "text-muted-foreground",
+                    isCollapsed ? "justify-center px-0" : "px-3"
+                  )}
+                >
+                  <Icon className={cn("h-5 w-5 shrink-0 transition-transform", isActive && "scale-110")} />
+
+                  <span
+                    className={cn(
+                      "ml-3 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out text-sm font-medium",
+                      isCollapsed ? "w-0 opacity-0 ml-0" : "w-full opacity-100"
+                    )}
+                  >
+                    {name}
+                  </span>
+
+                  {/* Tooltip simples quando fechado */}
+                  {isCollapsed && (
+                    <div className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-xs rounded shadow-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap border">
+                      {name}
+                    </div>
+                  )}
+                </Link>
+              )
+            })}
+          </nav>
+
+          {/* Botão de Recolher/Expandir */}
+          <div className="px-3 mt-auto pt-4 border-t border-border/50">
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className={cn(
+                "flex items-center w-full h-10 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-200",
+                isCollapsed ? "justify-center px-0" : "px-3"
+              )}
+            >
+              <div className={cn("flex items-center transition-all", isCollapsed ? "flex-col" : "flex-row gap-3")}>
+                {isCollapsed ? (
+                  <ChevronRight className="h-5 w-5" />
+                ) : (
+                  <>
+                    <ChevronLeft className="h-5 w-5" />
+                    <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-all duration-300">
+                      Recolher menu
+                    </span>
+                  </>
                 )}
-              >
-                <Icon className="h-5 w-5" />
-                {name}
-              </Link>
-            )
-          })}
-        </nav>
+              </div>
+            </button>
+          </div>
+        </div>
       </aside>
     </>
   )

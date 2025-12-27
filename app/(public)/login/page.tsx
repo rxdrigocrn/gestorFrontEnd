@@ -20,6 +20,7 @@ import {
   DialogFooter,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { apiUrl } from '@/services/api'
 
 type LoginFormValues = z.infer<typeof loginSchema>
 
@@ -65,7 +66,7 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(
-        `http://34.237.173.84/api/v1/auth/login`,
+        `${apiUrl}/auth/login`,
         data,
         { withCredentials: true }
       )

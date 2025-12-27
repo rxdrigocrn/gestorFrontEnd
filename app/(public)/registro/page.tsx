@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Eye, EyeOff } from 'lucide-react'
 import { registerSchema, RegisterFormValues } from '@/schemas/registerSchema'
-
+import { apiUrl } from '@/services/api'
 const unmask = (value: string) => value.replace(/\D/g, '')
 
 const RegisterPage = () => {
@@ -41,7 +41,7 @@ const RegisterPage = () => {
 
     try {
       const response = await axios.post(
-        `http://34.237.173.84/api/v1/auth/register`,
+        `${apiUrl}/auth/register`,
         sanitized,
         { withCredentials: true }
       )
