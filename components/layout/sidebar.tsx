@@ -59,7 +59,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
 
       <aside
         className={cn(
-          "fixed top-16 left-0 z-30 h-[calc(100vh-4rem)] border-r bg-background transition-all duration-300 ease-in-out md:sticky",
+          "fixed top-16 left-0 z-30 h-[calc(100vh-4rem)] border-r bg-card transition-all duration-300 ease-in-out md:sticky",
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           isCollapsed ? "w-[78px]" : "w-64"
         )}
