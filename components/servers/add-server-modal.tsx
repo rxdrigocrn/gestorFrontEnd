@@ -59,7 +59,7 @@ export function AddServerModal({ open, onOpenChange, onConfirm, defaultValues }:
     >
       <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4 p-4">
         <Tabs defaultValue="data" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="data">Dados</TabsTrigger>
             <TabsTrigger value="apps">Apps</TabsTrigger>
             <TabsTrigger value="info">Info</TabsTrigger>

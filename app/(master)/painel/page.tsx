@@ -28,7 +28,6 @@ const AdminPanelPage = () => {
     isLoading: isLoadingUsers,
   } = useUserStore();
 
-  // --- Paginação ---
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -36,7 +35,6 @@ const AdminPanelPage = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  // --- Cálculo de paginação ---
   const totalPages = Math.ceil(users.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentUsers = users.slice(startIndex, startIndex + itemsPerPage);
