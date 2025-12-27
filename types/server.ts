@@ -10,6 +10,14 @@ export type ServerBase = {
   samsungAppUrl?: string
   lgAppUrl?: string
   rokuAppUrl?: string
+  dns1?: string
+  dns2?: string
+  dns3?: string
+  dns4?: string
+  urlApiXc?: string
+  urlApiSmarters?: string
+  epgUrl?: string
+  serverInfo?: string
 }
 
 export type ServerCreate = ServerBase
@@ -26,4 +34,3 @@ export type ServerResponse = ServerBase & {
 }
 
 export type ServerList = ServerResponse[]
-

@@ -27,7 +27,7 @@ export function AddServerModal({ open, onOpenChange, onConfirm, defaultValues }:
     register,
     handleSubmit,
     formState: { errors },
-      control,
+    control,
     reset,
     setValue,
   } = useForm<ServerFormData>({
@@ -62,6 +62,7 @@ export function AddServerModal({ open, onOpenChange, onConfirm, defaultValues }:
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="data">Dados</TabsTrigger>
             <TabsTrigger value="apps">Apps</TabsTrigger>
+            <TabsTrigger value="info">Info</TabsTrigger>
           </TabsList>
 
           <TabsContent value="data">
@@ -222,6 +223,48 @@ export function AddServerModal({ open, onOpenChange, onConfirm, defaultValues }:
                 {errors.rokuAppUrl && (
                   <p className="text-sm text-red-500">{errors.rokuAppUrl.message}</p>
                 )}
+              </div>
+            </div>
+          </TabsContent>
+          <TabsContent value="info">
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="dns1">DNS 1</Label>
+                  <Input id="dns1" placeholder="Ex: 1.1.1.1" {...register("dns1")} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dns2">DNS 2</Label>
+                  <Input id="dns2" placeholder="Ex: 8.8.8.8" {...register("dns2")} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dns3">DNS 3</Label>
+                  <Input id="dns3" {...register("dns3")} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dns4">DNS 4</Label>
+                  <Input id="dns4" {...register("dns4")} />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="urlApiXc">URL API XC</Label>
+                <Input id="urlApiXc" placeholder="http://api.exemplo.com" {...register("urlApiXc")} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="urlApiSmarters">URL API Smarters</Label>
+                <Input id="urlApiSmarters" placeholder="http://smarters.exemplo.com" {...register("urlApiSmarters")} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="epgUrl">URL do EPG</Label>
+                <Input id="epgUrl" placeholder="http://link-epg.xml" {...register("epgUrl")} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="serverInfo">Informações do Servidor</Label>
+                <Input id="serverInfo" placeholder="Notas adicionais..." {...register("serverInfo")} />
               </div>
             </div>
           </TabsContent>
